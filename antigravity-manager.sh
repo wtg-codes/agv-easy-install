@@ -60,8 +60,7 @@ install_repo() {
                 sudo gpg --dearmor --yes -o /etc/apt/keyrings/antigravity-repo-key.gpg
             
             echo "📦 Configuring APT repository..."
-            # FIXED: Correct Artifact Registry formatting (URL PROJECT_ID REPO_NAME main)
-            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev antigravity-apt main" | \
+            echo "deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main" | \
                 sudo tee /etc/apt/sources.list.d/antigravity.list > /dev/null
             
             echo "🔄 Updating package lists..."
