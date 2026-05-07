@@ -1,0 +1,44 @@
+name: Nightly Antigravity URL Update
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run at midnight UTC
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-url:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Scrape latest URL
+        id: scrape
+        run: |
+          LATEST_URL=$(python scrape_latest.py)
+          echo "LATEST_URL=$LATEST_URL" >> $GITHUB_ENV
+          echo "url=$LATEST_URL" >> $GITHUB_OUTPUT
+
+      - name: Update antigravity-manager.sh
+        if: env.LATEST_URL != ''
+        run: |
+          sed -i "s|DOWNLOAD_URL=.*|DOWNLOAD_URL=\"${{ env.LATEST_URL }}\"|" antigravity-manager.sh
+
+      - name: Commit and push changes
+        if: env.LATEST_URL != ''
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add antigravity-manager.sh
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: nightly update of Antigravity download URL"
+            git push
+          fi
