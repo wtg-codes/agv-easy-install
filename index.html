@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install Google Antigravity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom animations for the copy feedback */
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .animate-pop {
+            animation: pop 0.3s ease-in-out;
+        }
+        
+        /* Subtle gradient background */
+        body {
+            background-color: #0f172a;
+            background-image: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
+            background-attachment: fixed;
+        }
+
+        /* Hide the default details marker (triangle) */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+<body class="text-slate-300 font-sans min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
+
+    <div class="max-w-3xl w-full bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl shadow-2xl overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-slate-800/80 p-8 border-b border-slate-700 text-center">
+            <div class="inline-flex items-center justify-center p-4 bg-indigo-500/20 text-indigo-400 rounded-2xl mb-4">
+                <i data-lucide="rocket" class="w-10 h-10"></i>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">Google Antigravity Setup</h1>
+            <p class="text-slate-400 text-lg">The 60-second quick install guide for students.</p>
+        </div>
+
+        <!-- Walkthrough Steps -->
+        <div class="p-6 sm:p-10 space-y-8">
+
+            <!-- Step 1 -->
+            <div class="flex gap-4 sm:gap-6">
+                <div class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-slate-700 text-white font-bold text-xl border border-slate-600">
+                    1
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-5 h-5 text-indigo-400"></i>
+                        Open Your Terminal
+                    </h2>
+                    <p class="text-slate-400 leading-relaxed">
+                        On your Ubuntu machine, open the terminal app. You can do this quickly by pressing 
+                        <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">Ctrl</kbd> + 
+                        <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">Alt</kbd> + 
+                        <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">T</kbd>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="flex gap-4 sm:gap-6">
+                <div class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-slate-700 text-white font-bold text-xl border border-slate-600">
+                    2
+                </div>
+                <div class="w-full">
+                    <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="copy" class="w-5 h-5 text-indigo-400"></i>
+                        Copy the Install Command
+                    </h2>
+                    <p class="text-slate-400 leading-relaxed mb-4">
+                        Click the button below to copy the automated installation script. This single command downloads the installer and runs it entirely in memory—no extra execution permissions required!
+                    </p>
+                    
+                    <!-- Code Block UI -->
+                    <div class="relative bg-slate-950 rounded-xl border border-slate-700 p-4 shadow-inner group">
+                        <code class="block font-mono text-sm sm:text-base text-emerald-400 break-all pr-12">
+                            curl -sL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh" | bash
+                        </code>
+                        
+                        <!-- Copy Button -->
+                        <button id="copyBtn" onclick="copyCommand()" class="absolute top-1/2 -translate-y-1/2 right-3 p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500" title="Copy to clipboard">
+                            <i data-lucide="clipboard" id="copyIcon" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="flex gap-4 sm:gap-6">
+                <div class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-slate-700 text-white font-bold text-xl border border-slate-600">
+                    3
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="play-circle" class="w-5 h-5 text-indigo-400"></i>
+                        Paste and Run
+                    </h2>
+                    <p class="text-slate-400 leading-relaxed">
+                        Go back to your terminal, paste the command you just copied (<kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">Ctrl</kbd> + <kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">Shift</kbd> + <kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">V</kbd>), and press <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">Enter</kbd>. The script will download the IDE, set up your <code>~/my-antigravity-work</code> workspace, and register the app automatically.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="flex gap-4 sm:gap-6">
+                <div class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white font-bold text-xl shadow-[0_0_15px_rgba(79,70,229,0.5)]">
+                    <i data-lucide="check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="code" class="w-5 h-5 text-indigo-400"></i>
+                        Launch Antigravity
+                    </h2>
+                    <p class="text-slate-400 leading-relaxed">
+                        You're all set! You can now launch <strong>Google Antigravity</strong> directly from your Ubuntu Application Menu, or double-click the shortcut it placed on your Desktop.
+                    </p>
+                    
+                    <div class="mt-4 p-4 bg-slate-800/80 rounded-xl border border-slate-700 text-sm">
+                        <h3 class="font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                            <i data-lucide="terminal-square" class="w-4 h-4 text-indigo-400"></i>
+                            Fallback: Running from the Terminal
+                        </h3>
+                        <p class="text-slate-400 mb-2">If the icons don't appear right away, you can always launch it from your terminal by typing:</p>
+                        <code class="block w-fit bg-slate-900 text-emerald-400 px-3 py-2 rounded border border-slate-700 font-mono mb-1">antigravity</code>
+                        <p class="text-slate-400 mb-4 text-xs italic">If it says "command not found", close and reopen your terminal to refresh your system path, then try again.</p>
+
+                        <div class="mb-4 pt-4 border-t border-slate-700/50">
+                            <strong class="text-slate-300 block mb-2">Direct Execution Fallback</strong>
+                            <p class="text-slate-400 mb-2">If the above still fails, navigate directly to the folder and run it manually:</p>
+                            <div class="bg-slate-900 p-3 rounded border border-slate-700 font-mono text-emerald-400 leading-relaxed">
+                                <span class="text-slate-500">cd</span> ~/.local/bin<br>
+                                <span class="text-slate-500">./</span>antigravity
+                            </div>
+                        </div>
+                        
+                        <p class="text-slate-400 leading-relaxed pt-2 border-t border-slate-700/50">
+                            <strong class="text-slate-300 block mb-1">Where are my files?</strong>
+                            &bull; App installation: <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">~/.local/lib/antigravity</code><br>
+                            &bull; Your workspace: <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">~/my-antigravity-work</code>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transparency / Full Script Section -->
+            <div class="pt-6 border-t border-slate-700/50">
+                <details class="group bg-slate-800/40 rounded-xl border border-slate-700 overflow-hidden transition-all duration-300">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-xl">
+                        <span class="flex items-center gap-3 font-semibold text-slate-300 group-hover:text-white transition-colors">
+                            <i data-lucide="file-code" class="w-5 h-5 text-slate-400"></i>
+                            Curious what this runs? View the source code
+                        </span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-500 group-open:rotate-180 transition-transform duration-300"></i>
+                    </summary>
+                    <div class="p-4 bg-slate-950 border-t border-slate-700 overflow-x-auto">
+<pre><code class="text-xs sm:text-sm text-slate-400 font-mono leading-relaxed">#!/usr/bin/env bash
+set -e
+
+# Default to --install if run without arguments
+COMMAND=${1:---install}
+
+DOWNLOAD_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+
+# Directories
+BIN_DIR="$HOME/.local/bin"
+APP_DIR="$HOME/.local/lib/antigravity"
+WORKSPACE_DIR="$HOME/my-antigravity-work"
+
+# Safely locate the Desktop directory
+DESKTOP_DIR=$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")
+APPLICATIONS_DIR="$HOME/.local/share/applications"
+
+# Files
+DESKTOP_FILE_SYS="$APPLICATIONS_DIR/google-antigravity.desktop"
+DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
+
+print_usage() {
+    echo "Usage: ./antigravity-manager.sh [OPTION]"
+    echo "Options:"
+    echo "  --install   Installs Antigravity, sets up workspace, and creates desktop shortcuts. (Default)"
+    echo "  --remove    Uninstalls Antigravity and removes shortcuts."
+}
+
+do_remove() {
+    echo "🧹 Removing Google Antigravity..."
+    rm -rf "$APP_DIR"
+    rm -f "$BIN_DIR/antigravity"
+    rm -f "$DESKTOP_FILE_SYS"
+    rm -f "$DESKTOP_FILE_USER"
+    echo "✅ Uninstalled successfully. (Note: Your code in $WORKSPACE_DIR was kept safe)."
+}
+
+do_install() {
+    echo "🚀 Starting Google Antigravity Installation..."
+
+    echo "📁 Preparing directories..."
+    mkdir -p "$BIN_DIR" "$APP_DIR" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$APPLICATIONS_DIR"
+
+    TMP_DIR=$(mktemp -d)
+
+    echo "⬇️ Downloading Antigravity..."
+    curl -sL "$DOWNLOAD_URL" -o "$TMP_DIR/Antigravity.tar.gz"
+
+    echo "📦 Extracting archive..."
+    tar -xzf "$TMP_DIR/Antigravity.tar.gz" -C "$APP_DIR" --strip-components=1
+
+    echo "🔗 Creating symlink..."
+    ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
+
+    echo "🖼️ Registering application icon..."
+    # Fallback logic for icons
+    ICON_PATH="code"
+    if [ -f "$APP_DIR/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png" ]; then
+        ICON_PATH="$APP_DIR/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png"
+    elif [ -f "$APP_DIR/resources/app/resources/linux/code.png" ]; then
+        ICON_PATH="$APP_DIR/resources/app/resources/linux/code.png"
+    elif [ -f "$APP_DIR/antigravity.png" ]; then
+        ICON_PATH="$APP_DIR/antigravity.png"
+    fi
+
+    cat << EOF > "$DESKTOP_FILE_SYS"
+[Desktop Entry]
+Version=1.0
+Name=Google Antigravity
+Comment=Secure Agentic Development IDE
+Exec=$BIN_DIR/antigravity %F
+Icon=$ICON_PATH
+Terminal=false
+Type=Application
+Categories=Development;IDE;
+StartupNotify=true
+EOF
+
+    chmod +x "$DESKTOP_FILE_SYS"
+
+    # Refresh app menu
+    if command -v update-desktop-database &>/dev/null; then
+        update-desktop-database "$APPLICATIONS_DIR" || true
+    fi
+
+    echo "🖥️ Adding shortcut to Desktop..."
+    cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+    chmod +x "$DESKTOP_FILE_USER"
+
+    # Trust desktop icon if possible
+    if command -v gio &>/dev/null; then
+        echo "🛡️ Marking desktop shortcut as trusted..."
+        gio set "$DESKTOP_FILE_USER" metadata::trusted true || true
+    fi
+
+    echo "🧹 Cleaning up..."
+    rm -rf "$TMP_DIR"
+
+    echo "🔍 Verifying PATH..."
+    if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
+        echo "⚠️  WARNING: $BIN_DIR is not in your PATH."
+        echo "Please add the following line to your ~/.bashrc:"
+        echo "export PATH=\"\$HOME/.local/bin:\$PATH\""
+        echo "Then run: source ~/.bashrc"
+    else
+        echo "✅ PATH looks good."
+    fi
+
+    echo "🎉 Installation Complete!"
+    echo "Your workspace is ready at: $WORKSPACE_DIR"
+    echo "Run 'antigravity --version' to verify."
+}
+
+case "$COMMAND" in
+    --install)
+        do_install
+        ;;
+    --remove)
+        do_remove
+        ;;
+    --help|-h)
+        print_usage
+        ;;
+    *)
+        print_usage
+        exit 1
+        ;;
+esac</code></pre>
+                    </div>
+                </details>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="mt-8 text-center text-slate-500 text-sm pb-8">
+        Designed for class setup. Works exclusively on Linux/Ubuntu.<br>
+        <a href="https://github.com/wtg-codes/agv-easy-install" target="_blank" class="hover:text-indigo-400 transition-colors underline mt-2 inline-block">View full source on GitHub</a>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // The command to copy (Updated to match the actual repo)
+        const commandToCopy = 'curl -sL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh" | bash';
+
+        function copyCommand() {
+            const copyBtn = document.getElementById('copyBtn');
+            const copyIcon = document.getElementById('copyIcon');
+
+            // Fallback copy mechanism for wider compatibility (especially in iframes)
+            const fallbackCopy = () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = commandToCopy;
+                textArea.style.position = "fixed";  // Avoid scrolling to bottom
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    triggerSuccessState(copyBtn, copyIcon);
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                    alert('Failed to copy. Please manually select and copy the text.');
+                }
+                document.body.removeChild(textArea);
+            };
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(commandToCopy).then(() => {
+                    triggerSuccessState(copyBtn, copyIcon);
+                }).catch(() => {
+                    fallbackCopy();
+                });
+            } else {
+                fallbackCopy();
+            }
+        }
+
+        function triggerSuccessState(btn, iconElement) {
+            // Visual feedback
+            btn.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'animate-pop');
+            btn.classList.remove('bg-slate-800', 'text-slate-300', 'hover:bg-slate-700');
+            
+            // Change icon to a checkmark
+            iconElement.setAttribute('data-lucide', 'check-check');
+            lucide.createIcons(); // Re-render the new icon
+
+            // Reset after 2.5 seconds
+            setTimeout(() => {
+                btn.classList.remove('bg-emerald-600', 'border-emerald-500', 'text-white', 'animate-pop');
+                btn.classList.add('bg-slate-800', 'text-slate-300', 'hover:bg-slate-700');
+                
+                // Change icon back to clipboard
+                iconElement.setAttribute('data-lucide', 'clipboard');
+                lucide.createIcons();
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
