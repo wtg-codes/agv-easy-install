@@ -1,88 +1,74 @@
 #!/usr/bin/env bash
 set -e
 
-# Configuration
-DOWNLOAD_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+# Default to --install if run without arguments
+COMMAND=${1:---install}
 
-# Directories (for Tarball install)
+DOWNLOAD_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+SCRIPT_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh"
+
+# Directories
 BIN_DIR="$HOME/.local/bin"
 APP_DIR="$HOME/.local/lib/antigravity"
 WORKSPACE_DIR="$HOME/my-antigravity-work"
-DESKTOP_DIR="$HOME/Desktop"
+
+# Safely locate the Desktop directory
+DESKTOP_DIR=$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")
+APPLICATIONS_DIR="$HOME/.local/share/applications"
 
 # Files
-DESKTOP_FILE_SYS="$HOME/.local/share/applications/google-antigravity.desktop"
+DESKTOP_FILE_SYS="$APPLICATIONS_DIR/google-antigravity.desktop"
 DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
-ICON_PATH="$APP_DIR/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png"
 
-detect_distro() {
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        DISTRO=$ID
-        DISTRO_LIKE=$ID_LIKE
-    else
-        DISTRO="unknown"
-    fi
+print_header() {
+    echo "------------------------------------------"
+    echo "   Google Antigravity Manager"
+    echo "------------------------------------------"
 }
 
-check_deps() {
+check_dependencies() {
     echo "🔍 Checking dependencies..."
-    # Get glibc version (e.g., 2.35)
-    GLIBC_VERSION=$(ldd --version | head -n 1 | grep -oP '\d+\.\d+' | head -n 1)
-    echo "   Detected glibc: $GLIBC_VERSION"
+    # Using sed 1q to avoid "Broken pipe" errors sometimes seen with head -n1
+    GLIBC_VER=$(ldd --version | sed 1q | grep -oE '[0-9]+\.[0-9]+' | sed 1q)
+    echo "   Detected glibc: $GLIBC_VER"
 
-    # Simple version check (split by dot)
-    MAJOR=$(echo $GLIBC_VERSION | cut -d. -f1)
-    MINOR=$(echo $GLIBC_VERSION | cut -d. -f2)
+    # Version comparison without bc
+    # Assumes version format X.YY
+    IFS='.' read -ra VER <<< "$GLIBC_VER"
+    MAJOR=${VER[0]}
+    MINOR=${VER[1]}
 
     if [ "$MAJOR" -lt 2 ] || { [ "$MAJOR" -eq 2 ] && [ "$MINOR" -lt 28 ]; }; then
-        echo "⚠️  Warning: Your glibc version ($GLIBC_VERSION) is lower than the recommended 2.28."
-        echo "   Antigravity might not run correctly."
+        echo "❌ Error: Antigravity requires glibc 2.28 or higher."
+        exit 1
     fi
 }
 
-install_repo() {
-    detect_distro
-    case "$DISTRO" in
-        ubuntu|debian|kali|linuxmint)
-            echo "📦 Setting up DEB repository..."
-            sudo mkdir -p /etc/apt/keyrings
-            curl -fSsL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg | \
-                sudo gpg --dearmor --yes -o /etc/apt/keyrings/antigravity-repo-key.gpg
-            echo "deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/antigravity-apt antigravity main" | \
-                sudo tee /etc/apt/sources.list.d/antigravity.list > /dev/null
-            sudo apt update
-            sudo apt install -y antigravity
-            ;;
-        fedora|rhel|centos|amzn)
-            echo "📦 Setting up RPM repository..."
-            sudo tee /etc/yum.repos.d/antigravity.repo << EOL
-[antigravity-rpm]
-name=Antigravity RPM Repository
-baseurl=https://us-central1-yum.pkg.dev/projects/antigravity-auto-updater-dev/antigravity-rpm
-enabled=1
-gpgcheck=0
-EOL
-            sudo dnf makecache
-            sudo dnf install -y antigravity
-            ;;
-        *)
-            echo "❌ Distribution $DISTRO not explicitly supported for repo install."
-            echo "   Falling back to Tarball installation..."
-            do_install_tarball
-            ;;
-    esac
+print_usage() {
+    echo "Usage: antigravity-manager [OPTION]"
+    echo "Options:"
+    echo "  --install   Installs Antigravity, sets up workspace, and creates desktop shortcuts. (Default)"
+    echo "  --remove    Uninstalls Antigravity and removes shortcuts."
 }
 
-do_install_tarball() {
-    echo "🚀 Starting Google Antigravity Standalone (Tarball) Installation..."
+do_remove() {
+    echo "🧹 Removing Google Antigravity..."
+    rm -rf "$APP_DIR"
+    rm -f "$BIN_DIR/antigravity"
+    rm -f "$BIN_DIR/antigravity-manager"
+    rm -f "$DESKTOP_FILE_SYS"
+    rm -f "$DESKTOP_FILE_USER"
+    echo "✅ Uninstalled successfully. (Note: Your code in $WORKSPACE_DIR was kept safe)."
+}
+
+do_install() {
+    print_header
+    check_dependencies
+
+    echo "🚀 Starting Google Antigravity Installation..."
 
     echo "📁 Preparing directories..."
-    mkdir -p "$BIN_DIR"
-    mkdir -p "$APP_DIR"
-    mkdir -p "$WORKSPACE_DIR"
-    mkdir -p "$DESKTOP_DIR"
-    mkdir -p "$(dirname "$DESKTOP_FILE_SYS")"
+    mkdir -p "$BIN_DIR" "$APP_DIR" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$APPLICATIONS_DIR"
 
     TMP_DIR=$(mktemp -d)
 
@@ -95,24 +81,51 @@ do_install_tarball() {
     echo "🔗 Creating symlink..."
     ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
 
+    echo "🛠️ Installing management script..."
+    if [[ "$0" == *"antigravity-manager.sh" ]]; then
+        cp "$0" "$BIN_DIR/antigravity-manager"
+    else
+        curl -sL "$SCRIPT_URL" -o "$BIN_DIR/antigravity-manager"
+    fi
+    chmod +x "$BIN_DIR/antigravity-manager"
+
     echo "🖼️ Registering application icon..."
+    # Fallback logic for icons
+    ICON_PATH="code"
+    if [ -f "$APP_DIR/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png" ]; then
+        ICON_PATH="$APP_DIR/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png"
+    elif [ -f "$APP_DIR/resources/app/resources/linux/code.png" ]; then
+        ICON_PATH="$APP_DIR/resources/app/resources/linux/code.png"
+    elif [ -f "$APP_DIR/antigravity.png" ]; then
+        ICON_PATH="$APP_DIR/antigravity.png"
+    fi
+
     cat << EOF > "$DESKTOP_FILE_SYS"
 [Desktop Entry]
 Version=1.0
 Name=Google Antigravity
 Comment=Secure Agentic Development IDE
-Exec=$BIN_DIR/antigravity
+Exec=$BIN_DIR/antigravity %F
 Icon=$ICON_PATH
 Terminal=false
 Type=Application
 Categories=Development;IDE;
+StartupNotify=true
 EOF
+
+    chmod +x "$DESKTOP_FILE_SYS"
+
+    # Refresh app menu
+    if command -v update-desktop-database &>/dev/null; then
+        update-desktop-database "$APPLICATIONS_DIR" || true
+    fi
 
     echo "🖥️ Adding shortcut to Desktop..."
     cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
     chmod +x "$DESKTOP_FILE_USER"
 
-    if command -v gio &> /dev/null; then
+    # Trust desktop icon if possible
+    if command -v gio &>/dev/null; then
         echo "🛡️ Marking desktop shortcut as trusted..."
         gio set "$DESKTOP_FILE_USER" metadata::trusted true || true
     fi
@@ -125,60 +138,28 @@ EOF
         echo "⚠️  WARNING: $BIN_DIR is not in your PATH."
         echo "Please add the following line to your ~/.bashrc:"
         echo "export PATH=\"\$HOME/.local/bin:\$PATH\""
+        echo "Then run: source ~/.bashrc"
+    else
+        echo "✅ PATH looks good."
     fi
 
     echo "🎉 Installation Complete!"
     echo "Your workspace is ready at: $WORKSPACE_DIR"
+    echo "Run 'antigravity' to launch."
 }
 
-do_remove() {
-    echo "🧹 Removing Google Antigravity..."
-    # Try removing repo package if exists
-    detect_distro
-    if command -v apt &> /dev/null && [ -f /etc/apt/sources.list.d/antigravity.list ]; then
-        sudo apt remove -y antigravity || true
-        sudo rm -f /etc/apt/sources.list.d/antigravity.list
-    elif command -v dnf &> /dev/null && [ -f /etc/yum.repos.d/antigravity.repo ]; then
-        sudo dnf remove -y antigravity || true
-        sudo rm -f /etc/yum.repos.d/antigravity.repo
-    fi
-
-    # Cleanup standalone files
-    rm -rf "$APP_DIR"
-    rm -f "$BIN_DIR/antigravity"
-    rm -f "$DESKTOP_FILE_SYS"
-    rm -f "$DESKTOP_FILE_USER"
-    echo "✅ Uninstalled successfully. (Note: Your code in $WORKSPACE_DIR was kept safe)."
-}
-
-print_usage() {
-    echo "Usage: $0 [OPTION]"
-    echo "Options:"
-    echo "  --install   Run the interactive installation wizard."
-    echo "  --remove    Uninstall Antigravity."
-}
-
-if [ "$1" == "--remove" ]; then
-    do_remove
-    exit 0
-elif [ "$1" == "--install" ] || [ -z "$1" ]; then
-    echo "------------------------------------------"
-    echo "   Google Antigravity Manager"
-    echo "------------------------------------------"
-    check_deps
-    echo ""
-    echo "How would you like to install Antigravity?"
-    echo "1) Standard Repository (Best for updates, requires sudo)"
-    echo "2) Standalone Tarball (Installs to ~/.local, no sudo needed for app)"
-    echo "3) Cancel"
-    read -p "Select an option [1-3]: " choice
-
-    case $choice in
-        1) install_repo ;;
-        2) do_install_tarball ;;
-        *) echo "Cancelled."; exit 0 ;;
-    esac
-else
-    print_usage
-    exit 1
-fi
+case "$COMMAND" in
+    --install)
+        do_install
+        ;;
+    --remove)
+        do_remove
+        ;;
+    --help|-h)
+        print_usage
+        ;;
+    *)
+        print_usage
+        exit 1
+        ;;
+esac
