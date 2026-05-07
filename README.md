@@ -1,41 +1,36 @@
-# agv-easy-install
+# Google Antigravity Easy Install
 
-A simple way for students to install Google Antigravity on Linux.
+A streamlined installation script for Google Antigravity on Linux/Ubuntu systems.
 
-## Quick Install (Interactive Guide)
+## 🚀 Quick Install (Recommended)
 
-Check out our [Setup Guide](https://wtg-codes.github.io/agv-easy-install/) for a step-by-step walkthrough.
+The easiest way to get started is to follow our **[Interactive Installation Guide](https://wtg-codes.github.io/agv-easy-install/)**.
 
-## Quick Install (Terminal)
-
-To install Google Antigravity, run the following command in your terminal:
+Alternatively, run this command in your terminal:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh | bash
+curl -sL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh" | bash
 ```
 
-## Management Script
+## 🛠️ Management
 
-The installation script is also a manager that allows you to install or remove the application.
+Once installed, you can manage your installation using the `antigravity-manager` command:
 
-### Reinstalling / Updating (Default)
-
-To reinstall or update to the latest version handled by this script:
-
+### Uninstall
 ```bash
-curl -sL https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh | bash
+antigravity-manager --remove
 ```
 
-Or if you have the script locally:
-
+### Reinstall / Update
 ```bash
-./antigravity-manager.sh --install
+antigravity-manager --install
 ```
 
-### Uninstalling
+## 📁 Locations
+- **Application:** `~/.local/lib/antigravity`
+- **Binary:** `~/.local/bin/antigravity`
+- **Manager:** `~/.local/bin/antigravity-manager`
+- **Workspace:** `~/my-antigravity-work`
 
-To remove Google Antigravity and its shortcuts (keeping your workspace safe):
-
-```bash
-./antigravity-manager.sh --remove
-```
+## 📝 Note for Students
+This tool is designed for class setup and works exclusively on Ubuntu/Linux systems. If you encounter any issues, please check the interactive guide for fallback instructions.

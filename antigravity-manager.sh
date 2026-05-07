@@ -5,6 +5,7 @@ set -e
 COMMAND=${1:---install}
 
 DOWNLOAD_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+SCRIPT_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh"
 
 # Directories
 BIN_DIR="$HOME/.local/bin"
@@ -20,7 +21,7 @@ DESKTOP_FILE_SYS="$APPLICATIONS_DIR/google-antigravity.desktop"
 DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
 
 print_usage() {
-    echo "Usage: ./antigravity-manager.sh [OPTION]"
+    echo "Usage: antigravity-manager [OPTION]"
     echo "Options:"
     echo "  --install   Installs Antigravity, sets up workspace, and creates desktop shortcuts. (Default)"
     echo "  --remove    Uninstalls Antigravity and removes shortcuts."
@@ -30,6 +31,7 @@ do_remove() {
     echo "🧹 Removing Google Antigravity..."
     rm -rf "$APP_DIR"
     rm -f "$BIN_DIR/antigravity"
+    rm -f "$BIN_DIR/antigravity-manager"
     rm -f "$DESKTOP_FILE_SYS"
     rm -f "$DESKTOP_FILE_USER"
     echo "✅ Uninstalled successfully. (Note: Your code in $WORKSPACE_DIR was kept safe)."
@@ -51,6 +53,14 @@ do_install() {
 
     echo "🔗 Creating symlink..."
     ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
+
+    echo "🛠️ Installing management script..."
+    if [[ "$0" == *"antigravity-manager.sh" ]]; then
+        cp "$0" "$BIN_DIR/antigravity-manager"
+    else
+        curl -sL "$SCRIPT_URL" -o "$BIN_DIR/antigravity-manager"
+    fi
+    chmod +x "$BIN_DIR/antigravity-manager"
 
     echo "🖼️ Registering application icon..."
     # Fallback logic for icons
@@ -108,7 +118,7 @@ EOF
 
     echo "🎉 Installation Complete!"
     echo "Your workspace is ready at: $WORKSPACE_DIR"
-    echo "Run 'antigravity --version' to verify."
+    echo "Run 'antigravity' to launch."
 }
 
 case "$COMMAND" in
