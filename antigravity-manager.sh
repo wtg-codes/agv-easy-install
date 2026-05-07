@@ -3,6 +3,7 @@ set -e
 
 # Configuration
 DOWNLOAD_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+MANAGER_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh"
 
 # Directories (for Tarball install)
 BIN_DIR="$HOME/.local/bin"
@@ -14,6 +15,14 @@ DESKTOP_DIR="$HOME/Desktop"
 DESKTOP_FILE_SYS="$HOME/.local/share/applications/google-antigravity.desktop"
 DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
 ICON_PATH="$APP_DIR/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png"
+
+save_manager_locally() {
+    echo "💾 Saving Antigravity Manager to your system..."
+    mkdir -p "$BIN_DIR"
+    curl -sL "$MANAGER_URL" -o "$BIN_DIR/antigravity-manager"
+    chmod +x "$BIN_DIR/antigravity-manager"
+    echo "✅ Manager saved! You can now type 'antigravity-manager' in your terminal anytime to manage the app."
+}
 
 detect_distro() {
     if [ -f /etc/os-release ]; then
@@ -160,6 +169,7 @@ do_remove() {
     # Cleanup standalone files
     rm -rf "$APP_DIR"
     rm -f "$BIN_DIR/antigravity"
+    rm -f "$BIN_DIR/antigravity-manager"
     rm -f "$DESKTOP_FILE_SYS"
     rm -f "$DESKTOP_FILE_USER"
     
@@ -186,15 +196,17 @@ elif [ "$1" == "--install" ] || [ -z "$1" ]; then
     echo "------------------------------------------"
     check_deps
     echo ""
-    echo "How would you like to install Antigravity?"
-    echo "1) Standard Repository (Best for updates, requires sudo)"
-    echo "2) Standalone Tarball (Installs to ~/.local, no sudo needed for app)"
-    echo "3) Cancel"
-    read -p "Select an option [1-3]: " choice < /dev/tty
+    echo "What would you like to do?"
+    echo "1) Install via Standard Repository (Best for updates, requires sudo)"
+    echo "2) Install via Standalone Tarball (Installs to ~/.local, no sudo needed)"
+    echo "3) Remove/Uninstall an existing Antigravity setup"
+    echo "4) Cancel"
+    read -p "Select an option [1-4]: " choice < /dev/tty
 
     case $choice in
-        1) install_repo ;;
-        2) do_install_tarball ;;
+        1) install_repo; save_manager_locally ;;
+        2) do_install_tarball; save_manager_locally ;;
+        3) do_remove ;;
         *) echo "Cancelled."; exit 0 ;;
     esac
 else
