@@ -43,7 +43,27 @@
                 <i data-lucide="rocket" class="w-10 h-10"></i>
             </div>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">Google Antigravity Setup</h1>
-            <p class="text-slate-400 text-lg">The 60-second quick install guide for students.</p>
+            <p class="text-slate-400 text-lg">The quick install guide for students.</p>
+        </div>
+
+        <!-- Prerequisites -->
+        <div class="px-6 pt-6 sm:px-10 sm:pt-8">
+            <div class="p-5 bg-amber-900/20 border border-amber-700/50 rounded-2xl shadow-inner">
+                <h2 class="text-lg font-bold text-amber-400 mb-3 flex items-center gap-2">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    Important Prerequisites
+                </h2>
+                <ul class="space-y-3 text-amber-200/80 text-sm sm:text-base leading-relaxed">
+                    <li class="flex items-start gap-3">
+                        <i data-lucide="cloud" class="w-5 h-5 text-amber-500/70 shrink-0 mt-0.5"></i>
+                        <span><strong>Environment:</strong> First, spin up a Linux CloudTop via internal corp tools and wait until you reach the graphical desktop.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i data-lucide="user-x" class="w-5 h-5 text-amber-500/70 shrink-0 mt-0.5"></i>
+                        <span><strong>Account:</strong> You MUST use a <strong>consumer Gmail account</strong> (your corporate account will <em>not</em> work). Ensure you have the password and your 2FA device handy for this account.</span>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <!-- Walkthrough Steps -->
@@ -60,7 +80,7 @@
                         Open Your Terminal
                     </h2>
                     <p class="text-slate-400 leading-relaxed">
-                        On your Ubuntu machine, open the terminal app. You can do this quickly by pressing
+                        Once you are on your CloudTop desktop, open the terminal app. You can do this quickly by pressing
                         <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">Ctrl</kbd> +
                         <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">Alt</kbd> +
                         <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">T</kbd>.
@@ -103,12 +123,55 @@
                 </div>
                 <div>
                     <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                        <i data-lucide="play-circle" class="w-5 h-5 text-indigo-400"></i>
-                        Paste and Run
+                        <i data-lucide="list-tree" class="w-5 h-5 text-indigo-400"></i>
+                        Run and Select Your Installation
                     </h2>
-                    <p class="text-slate-400 leading-relaxed">
-                        Go back to your terminal, paste the command you just copied (<kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">Ctrl</kbd> + <kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">Shift</kbd> + <kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">V</kbd>), and press <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">Enter</kbd>. The script will download the IDE, set up your <code>~/my-antigravity-work</code> workspace, and register the app automatically.
+                    <p class="text-slate-400 leading-relaxed mb-3">
+                        Go back to your terminal, paste the command you just copied (<kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">Ctrl</kbd> + <kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">Shift</kbd> + <kbd class="bg-slate-900 border border-slate-700 px-1 rounded text-sm mx-1">V</kbd>), and press <kbd class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-sm font-mono mx-1 shadow-sm">Enter</kbd>. 
                     </p>
+                    
+                    <div class="bg-slate-900/80 border border-slate-700 p-5 rounded-xl text-sm mt-4">
+                        <h3 class="font-bold text-white mb-2">Menu Options Explained:</h3>
+                        <p class="text-emerald-400/90 mb-4 text-xs">💡 Always try Option 1 first! If that errors out, just run the command again and choose Option 2 instead.</p>
+                        
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-emerald-500/20 text-emerald-400 font-mono rounded text-xs border border-emerald-500/30">1</span>
+                                <div>
+                                    <strong class="text-slate-200">Standard Repository (Recommended)</strong>
+                                    <p class="text-slate-400 text-xs mt-0.5">Installs the app securely via your system's package manager so it stays updated automatically.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-amber-500/20 text-amber-400 font-mono rounded text-xs border border-amber-500/30">2</span>
+                                <div>
+                                    <strong class="text-slate-200">Standalone Tarball (Fallback)</strong>
+                                    <p class="text-slate-400 text-xs mt-0.5">If Option 1 fails, use this. It downloads the IDE to a local folder (no sudo required).</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-slate-800 text-slate-400 font-mono rounded text-xs border border-slate-700">3</span>
+                                <div>
+                                    <strong class="text-slate-200">Install/Update this Manager script</strong>
+                                    <p class="text-slate-400 text-xs mt-0.5">Saves this menu to your computer so you can access it anytime by typing <code>antigravity-manager</code>.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-slate-800 text-slate-400 font-mono rounded text-xs border border-slate-700">4</span>
+                                <div>
+                                    <strong class="text-slate-200">Remove/Uninstall setup</strong>
+                                    <p class="text-slate-400 text-xs mt-0.5">Safely deletes the IDE and shortcuts (keeps your actual code safe).</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-slate-800 text-slate-400 font-mono rounded text-xs border border-slate-700">5</span>
+                                <div>
+                                    <strong class="text-slate-200">Remove Manager script</strong>
+                                    <p class="text-slate-400 text-xs mt-0.5">Deletes the <code>antigravity-manager</code> tool from your system.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
@@ -134,22 +197,26 @@
                         <p class="text-slate-400 mb-2">If the icons don't appear right away, you can always launch it from your terminal by typing:</p>
                         <code class="block w-fit bg-slate-900 text-emerald-400 px-3 py-2 rounded border border-slate-700 font-mono mb-1">antigravity</code>
                         <p class="text-slate-400 mb-4 text-xs italic">If it says "command not found", close and reopen your terminal to refresh your system path, then try again.</p>
-
-                        <div class="mb-4 pt-4 border-t border-slate-700/50">
-                            <strong class="text-slate-300 block mb-2">Direct Execution Fallback</strong>
-                            <p class="text-slate-400 mb-2">If the above still fails, navigate directly to the folder and run it manually:</p>
-                            <div class="bg-slate-900 p-3 rounded border border-slate-700 font-mono text-emerald-400 leading-relaxed">
-                                <span class="text-slate-500">cd</span> ~/.local/bin<br>
-                                <span class="text-slate-500">./</span>antigravity
-                            </div>
-                        </div>
-
+                        
                         <p class="text-slate-400 leading-relaxed pt-2 border-t border-slate-700/50">
                             <strong class="text-slate-300 block mb-1">Where are my files?</strong>
-                            &bull; App installation: <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">~/.local/lib/antigravity</code><br>
-                            &bull; Your workspace: <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">~/my-antigravity-work</code>
+                            &bull; <strong>Workspace:</strong> <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">~/my-antigravity-work</code><br>
+                            &bull; <strong>If you chose Option 1 (Standard):</strong> Installed system-wide via APT/DNF.<br>
+                            &bull; <strong>If you chose Option 2 (Tarball):</strong> Installed to <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">~/.local/lib/antigravity</code>.
                         </p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Management Section -->
+            <div class="bg-slate-900/50 border border-slate-700 p-5 rounded-xl flex items-start gap-4">
+                <i data-lucide="settings-2" class="w-6 h-6 text-slate-400 mt-1 shrink-0"></i>
+                <div>
+                    <h3 class="font-bold text-white mb-1">Managing Your Installation</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        The script automatically saved a management tool to your system! If you ever need to uninstall the IDE, switch installation types, or force an update, just open a terminal and type:
+                        <code class="block w-fit bg-slate-950 text-indigo-300 px-2 py-1 rounded border border-slate-800 font-mono mt-2">antigravity-manager</code>
+                    </p>
                 </div>
             </div>
 
