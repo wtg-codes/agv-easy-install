@@ -589,27 +589,27 @@ interactive_menu() {
     render_menu $selected
     
     while true; do
-        read -rsn1 key < /dev/tty
+        read -rsn1 key < /dev/tty || true
         case "$key" in
             $'\x1b') # ESC
-                read -rsn1 key2 < /dev/tty
+                read -rsn1 key2 < /dev/tty || true
                 if [[ "$key2" == "[" ]]; then
-                    read -rsn1 key3 < /dev/tty
+                    read -rsn1 key3 < /dev/tty || true
                     if [[ "$key3" == "A" ]]; then # Up
-                        ((selected--))
+                        selected=$((selected - 1))
                         [ $selected -lt 0 ] && selected=$((num_opts-1))
                     elif [[ "$key3" == "B" ]]; then # Down
-                        ((selected++))
+                        selected=$((selected + 1))
                         [ $selected -ge $num_opts ] && selected=0
                     fi
                 fi
                 ;;
             "k"|"w") # Up fallback
-                ((selected--))
+                selected=$((selected - 1))
                 [ $selected -lt 0 ] && selected=$((num_opts-1))
                 ;;
             "j"|"s") # Down fallback
-                ((selected++))
+                selected=$((selected + 1))
                 [ $selected -ge $num_opts ] && selected=0
                 ;;
             "") # Enter
