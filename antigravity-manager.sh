@@ -470,7 +470,7 @@ do_install_tarball() {
         exit 1
     fi
 
-    run_cmd_spinner "Extracting archive..." tar -xzf "$TMP_DIR/Antigravity.tar.gz" -C "$APP_DIR" --strip-components=1
+    gum spin --spinner dot --title "Extracting archive..." -- tar -xzf "$TMP_DIR/Antigravity.tar.gz" -C "$APP_DIR" --strip-components=1
 
     log_info "${C_BLUE}🔗 Creating symlink...${C_RESET}"
     ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
@@ -498,9 +498,15 @@ EOF
     fi
 
     echo ""
-    log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
-    log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
-    log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+    if command -v gum >/dev/null 2>&1; then
+        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Installation Complete!
+Launch: antigravity
+Workspace: $WORKSPACE_DIR"
+    else
+        log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
+        log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
+        log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+    fi
     
     configure_chrome_path
     mkdir -p "$STATE_DIR"
@@ -558,95 +564,33 @@ do_remove() {
     log_info "${C_GREEN}✅ Uninstalled successfully.${C_RESET} (Note: Your code in $WORKSPACE_DIR was kept safe)."
 }
 
-render_menu() {
-    local selected=$1
-    echo -e "${C_BOLD}Select an install method${C_RESET} ${C_DIM}(★ = recommended)${C_RESET}"
-    
+interactive_menu() {
+    bootstrap_ui
+    echo ""
     local options=(
-        "Homebrew"          "cross-platform, no sudo"           "1"
-        "System Repo"       "APT/DNF, auto-updates, needs sudo" "2"
-        "Tarball"           "manual, installs to ~/.local"      "3"
-        "Save manager"      "add 'antigravity-manager' command" "0"
-        "Uninstall"         "remove Antigravity"                "0"
-        "Remove mgr"        "remove this script"                "0"
-        "Cancel"            "exit without changes"              "0"
+        "Homebrew (cross-platform, no sudo)"
+        "System Repo (APT/DNF, auto-updates, needs sudo)"
+        "Tarball (manual, installs to ~/.local)"
+        "Save manager (add 'antigravity-manager' command)"
+        "Uninstall (remove Antigravity)"
+        "Remove mgr (remove this script)"
+        "Cancel"
     )
+    # Menu has options [1-7]
+    CHOICE=$(gum choose --cursor="❯ " --selected="${options[$((RECOMMENDED-1))]}" "${options[@]}")
     
-    for (( i=0; i<7; i++ )); do
-        local title="${options[$((i*3))]}"
-        local desc="${options[$((i*3+1))]}"
-        local rec="${options[$((i*3+2))]}"
-        
-        local prefix="  "
-        local title_color="${C_RESET}"
-        local desc_color="${C_DIM}"
-        local star=" "
-        
-        if [ "$rec" != "0" ] && [ "$rec" = "$RECOMMENDED" ]; then
-            star="${C_GREEN}★${C_RESET}"
-        fi
-        
-        if [ "$i" -eq "$selected" ]; then
-            prefix="${C_CYAN}❯ ${C_RESET}"
-            title_color="${C_CYAN}${C_BOLD}"
-            desc_color="${C_CYAN}"
-        else
-            prefix="  "
-        fi
-        
-        local padded_title="$title"
-        while [ ${#padded_title} -lt 14 ]; do padded_title="$padded_title "; done
-        
-        echo -e "${prefix}${title_color}${padded_title}${C_RESET} ${star} ${desc_color}${desc}${C_RESET}"
-    done
-    echo -e "\n${C_DIM}(Use up/down arrows to move [1-7], Enter to select)${C_RESET}"
+    case "$CHOICE" in
+        "Homebrew"*) choice=1 ;;
+        "System Repo"*) choice=2 ;;
+        "Tarball"*) choice=3 ;;
+        "Save manager"*) choice=4 ;;
+        "Uninstall"*) choice=5 ;;
+        "Remove mgr"*) choice=6 ;;
+        "Cancel"*) choice=7 ;;
+        *) choice=7 ;;
+    esac
 }
 
-interactive_menu() {
-    local selected=0
-    local num_opts=7
-    
-    tput civis 2>/dev/null || true # hide cursor
-    # Print initial menu
-    render_menu $selected
-    
-    while true; do
-        read -rsn1 key < /dev/tty || true
-        case "$key" in
-            $'\x1b') # ESC
-                read -rsn1 key2 < /dev/tty || true
-                if [[ "$key2" == "[" ]]; then
-                    read -rsn1 key3 < /dev/tty || true
-                    if [[ "$key3" == "A" ]]; then # Up
-                        selected=$((selected - 1))
-                        [ $selected -lt 0 ] && selected=$((num_opts-1))
-                    elif [[ "$key3" == "B" ]]; then # Down
-                        selected=$((selected + 1))
-                        [ $selected -ge $num_opts ] && selected=0
-                    fi
-                fi
-                ;;
-            "k"|"w") # Up fallback
-                selected=$((selected - 1))
-                [ $selected -lt 0 ] && selected=$((num_opts-1))
-                ;;
-            "j"|"s") # Down fallback
-                selected=$((selected + 1))
-                [ $selected -ge $num_opts ] && selected=0
-                ;;
-            "") # Enter
-                break
-                ;;
-        esac
-        # Redraw
-        # Move cursor up num_opts + 2 (header and footer)
-        echo -en "\033[$((num_opts + 3))A"
-        render_menu $selected
-    done
-    tput cnorm 2>/dev/null || true
-    echo "" # breathing room
-    return $((selected + 1))
-}
 
 print_usage() {
     echo -e "${C_BOLD}Antigravity Manager v${SCRIPT_VERSION}${C_RESET}"
