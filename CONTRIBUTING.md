@@ -45,3 +45,7 @@ Thanks for your interest in improving the installer! Here's how to get started.
 | [`AGENTS.md`](AGENTS.md) | Full rules and architecture context |
 | [`tests/run_gates.sh`](tests/run_gates.sh) | Automated gate tests for all phases |
 | [`docs/architecture/`](docs/architecture/) | Critique, retort, and implementation plan |
+
+## Development
+
+The `antigravity-manager.sh` file is bundled from the `src/` directory. **Do not edit it directly**. Edit the files in `src/` and run `./build.sh` to compile your changes before committing.

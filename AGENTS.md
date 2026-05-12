@@ -7,8 +7,8 @@
 ## Project Identity
 
 **What this is:** A cross-platform installer toolkit for Google Antigravity, consisting of:
-- `antigravity-manager.sh` — The core product. A Bash script that installs, manages, and removes Antigravity via system repos (APT/DNF), Homebrew, or standalone tarball.
-- `docs/index.html` — A GitHub Pages landing page (interactive install guide for students).
+- `src/` and `build.sh` — The source files for the manager script. **Never edit `antigravity-manager.sh` directly.** Edit the files in `src/` and run `./build.sh` to compile them.
+- `antigravity-manager.sh` — The compiled core product. A Bash script that installs, manages, and removes Antigravity.
 - `scrape_latest.py` — A Python utility that scrapes the latest Antigravity tarball URL (run nightly by CI).
 - `.github/workflows/` — CI pipelines for Pages deployment and nightly URL updates.
 

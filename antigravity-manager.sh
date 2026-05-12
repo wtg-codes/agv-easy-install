@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# =============================================================================
+# Google Antigravity Setup Script
+# WARNING: This file is auto-generated. Do not edit directly.
+# Edit the files in the src/ directory and run ./build.sh instead.
+# =============================================================================
 set -e
 
 # Colors for a cooler terminal output
@@ -373,17 +378,9 @@ print_system_info() {
 
 print_banner() {
     local mode="$1"
-    echo -e "${C_CYAN}"
-    cat << 'BANNER_EOF'
-     ___        __  _                     _ __       
-    /   |  ____/ /_(_)___ __________ __   (_) /___  __
-   / /| | / __ \ __/ / _ \/ ___/ __ \ /| / / / __ \/ /
-  / ___ |/ / / / /_/ / / / / / / / / / |/ / / /_/ / / 
- /_/  |_/_/ /_/\__/_/\__,_/_/ /_/ /_/|___/_/\____/_/  
-BANNER_EOF
-    echo -e "${C_RESET}"
-    echo -e "  ${C_BLUE}${C_BOLD}Google Antigravity Setup v${SCRIPT_VERSION}${C_RESET} ${mode}"
-    echo -e "  ${C_DIM}────────────────────────────────────────────────────────${C_RESET}"
+    echo -e "
+  🚀 ${C_BLUE}${C_BOLD}A${C_RED}n${C_YELLOW}t${C_BLUE}i${C_GREEN}G${C_RED}r${C_BLUE}a${C_RED}v${C_YELLOW}i${C_BLUE}t${C_GREEN}y${C_RESET} ${C_BOLD}Setup v${SCRIPT_VERSION}${C_RESET} ${mode}"
+    echo -e "  ${C_DIM}──────────────────────────────────────────────────${C_RESET}"
 }
 
 install_brew() {
@@ -640,6 +637,23 @@ interactive_menu() {
 }
 
 
+
+run_demo_spinners() {
+    run_cmd_ui "Faking installation via choice $choice..." sleep 2
+    run_cmd_ui "Configuring Chrome path..." sleep 1
+    echo ""
+    if command -v gum >/dev/null 2>&1; then
+        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Demo Complete!
+Launch: antigravity
+Workspace: $WORKSPACE_DIR"
+    else
+        log_info "${C_GREEN}${C_BOLD}🎉 Demo Complete!${C_RESET}"
+        log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
+        log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+    fi
+    trap - EXIT INT TERM
+    exit 0
+}
 print_usage() {
     echo -e "${C_BOLD}Antigravity Manager v${SCRIPT_VERSION}${C_RESET}"
     echo -e "${C_DIM}Usage:${C_RESET} $0 [OPTION]"
@@ -706,20 +720,7 @@ case "$ACTION" in
         echo ""
         interactive_menu
         echo ""
-        run_cmd_ui "Faking installation via choice $choice..." sleep 2
-        run_cmd_ui "Configuring Chrome path..." sleep 1
-        echo ""
-        if command -v gum >/dev/null 2>&1; then
-            gum style --border double --border-foreground 46 --padding "1 2" "🎉 Demo Complete!
-Launch: antigravity
-Workspace: $WORKSPACE_DIR"
-        else
-            log_info "${C_GREEN}${C_BOLD}🎉 Demo Complete!${C_RESET}"
-            log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
-            log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
-        fi
-        trap - EXIT INT TERM
-        exit 0
+        run_demo_spinners
         ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then
@@ -741,7 +742,7 @@ Workspace: $WORKSPACE_DIR"
             4) save_manager_locally ;;
             5) do_remove ;;
             6) remove_manager_script ;;
-            7) exec "$0" --demo-ui ;;
+            7) echo ""; run_demo_spinners ;;
             8) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
         esac
         ;;
