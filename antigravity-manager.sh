@@ -711,7 +711,9 @@ case "$ACTION" in
             log_error "Cannot use --json without specifying an explicit headless install method (e.g. --auto)"
             exit 1
         fi
-        log_info "${C_BLUE}${C_BOLD}========== 🚀 Google Antigravity Setup v${SCRIPT_VERSION} ==========${C_RESET}"
+        
+        echo -e "\n  ${C_BLUE}${C_BOLD}🚀 Google Antigravity Setup v${SCRIPT_VERSION}${C_RESET}"
+        echo -e "  ${C_DIM}──────────────────────────────────────────${C_RESET}"
         print_system_info
         echo ""
         
