@@ -39,6 +39,13 @@ graph LR
 | Fedora/RHEL | DNF | Tarball |
 | Other Linux | Tarball | Tarball |
 
+### Manual Tarball Download
+If you prefer to download the tarball directly without using the installer:
+```bash
+curl -fSsL "https://antigravity.google/download/linux" -o Antigravity.tar.gz
+```
+Or grab it from the [official download page](https://antigravity.google/download/linux) — scroll to the bottom and click **"here"** under _"You can download the source tarball"_.
+
 ## 🛠️ Troubleshooting
 If you encounter `curl: (23) Failed writing body`, it usually means you need to update `curl` or try downloading the file manually.
 If `antigravity` is not found after install, try reopening your terminal or running `source ~/.bashrc`.
