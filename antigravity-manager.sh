@@ -78,28 +78,85 @@ detect_distro() {
     fi
 }
 
-check_deps() {
-    echo -e "${C_CYAN}🔍 Checking dependencies...${C_RESET}"
-    # Get glibc version safely (fixes the broken pipe and double-print error)
-    GLIBC_VERSION=$(ldd --version 2>/dev/null | awk 'NR==1 {print $NF}')
-    echo -e "   Detected glibc: ${C_BOLD}$GLIBC_VERSION${C_RESET}"
-    
-    # Simple version check (split by dot)
-    MAJOR=$(echo "$GLIBC_VERSION" | cut -d. -f1)
-    MINOR=$(echo "$GLIBC_VERSION" | cut -d. -f2)
-    
-    if [ "$MAJOR" -lt 2 ] || { [ "$MAJOR" -eq 2 ] && [ "$MINOR" -lt 28 ]; }; then
-        echo -e "${C_YELLOW}⚠️  Warning: Your glibc version ($GLIBC_VERSION) is lower than the recommended 2.28.${C_RESET}"
-        echo -e "   Antigravity might not run correctly."
-    fi
+check_brew() {
+    command -v brew >/dev/null 2>&1
 }
 
 detect_platform() {
     PLATFORM=$(uname -s)
+    ARCH=$(uname -m)
+    HAS_BREW="no"
+    HAS_APT="no"
+    HAS_DNF="no"
+    DISTRO_PRETTY="Unknown"
+    GLIBC_VERSION=""
+    RECOMMENDED="3"  # default to tarball
+
+    # Detect Homebrew
+    if check_brew; then
+        HAS_BREW="yes"
+    fi
+
+    if [ "$PLATFORM" = "Darwin" ]; then
+        DISTRO_PRETTY="macOS $(sw_vers -productVersion 2>/dev/null || echo '')"
+        if [ "$HAS_BREW" = "yes" ]; then
+            RECOMMENDED="2"
+        else
+            RECOMMENDED="3"
+        fi
+    else
+        # Linux detection
+        detect_distro
+        if [ -f /etc/os-release ]; then
+            # shellcheck disable=SC1091
+            DISTRO_PRETTY=$(. /etc/os-release && echo "${PRETTY_NAME:-$ID}")
+        fi
+
+        if command -v apt >/dev/null 2>&1; then
+            HAS_APT="yes"
+        fi
+        if command -v dnf >/dev/null 2>&1; then
+            HAS_DNF="yes"
+        fi
+
+        # Get glibc version safely
+        GLIBC_VERSION=$(ldd --version 2>/dev/null | awk 'NR==1 {print $NF}')
+
+        # Recommend based on what's available
+        if [ "$HAS_APT" = "yes" ] || [ "$HAS_DNF" = "yes" ]; then
+            RECOMMENDED="1"
+        elif [ "$HAS_BREW" = "yes" ]; then
+            RECOMMENDED="2"
+        else
+            RECOMMENDED="3"
+        fi
+    fi
 }
 
-check_brew() {
-    command -v brew >/dev/null 2>&1
+print_system_info() {
+    echo -e "${C_CYAN}╭─────────────────────────────────────────╮${C_RESET}"
+    echo -e "${C_CYAN}│${C_RESET}  ${C_BOLD}System Detection${C_RESET}                         ${C_CYAN}│${C_RESET}"
+    echo -e "${C_CYAN}├─────────────────────────────────────────┤${C_RESET}"
+    echo -e "${C_CYAN}│${C_RESET}  OS:        ${C_BOLD}$DISTRO_PRETTY${C_RESET}"
+    echo -e "${C_CYAN}│${C_RESET}  Arch:      ${C_BOLD}$ARCH${C_RESET}"
+    if [ -n "$GLIBC_VERSION" ]; then
+        echo -e "${C_CYAN}│${C_RESET}  glibc:     ${C_BOLD}$GLIBC_VERSION${C_RESET}"
+    fi
+    echo -e "${C_CYAN}│${C_RESET}  Homebrew:  $([ "$HAS_BREW" = "yes" ] && echo -e "${C_GREEN}found${C_RESET}" || echo -e "${C_YELLOW}not found${C_RESET}")"
+    echo -e "${C_CYAN}│${C_RESET}  APT:       $([ "$HAS_APT" = "yes" ] && echo -e "${C_GREEN}found${C_RESET}" || echo -e "${C_YELLOW}not found${C_RESET}")"
+    echo -e "${C_CYAN}│${C_RESET}  DNF:       $([ "$HAS_DNF" = "yes" ] && echo -e "${C_GREEN}found${C_RESET}" || echo -e "${C_YELLOW}not found${C_RESET}")"
+    echo -e "${C_CYAN}╰─────────────────────────────────────────╯${C_RESET}"
+
+    # glibc warning
+    if [ -n "$GLIBC_VERSION" ]; then
+        local MAJOR MINOR
+        MAJOR=$(echo "$GLIBC_VERSION" | cut -d. -f1)
+        MINOR=$(echo "$GLIBC_VERSION" | cut -d. -f2)
+        if [ "$MAJOR" -lt 2 ] || { [ "$MAJOR" -eq 2 ] && [ "$MINOR" -lt 28 ]; }; then
+            echo -e "${C_YELLOW}⚠️  glibc $GLIBC_VERSION is below the recommended 2.28 — Antigravity may not run.${C_RESET}"
+        fi
+    fi
+    echo ""
 }
 
 install_brew() {
@@ -287,15 +344,11 @@ elif [ "$1" = "--install" ] || [ -z "$1" ]; then
     echo -e "${C_BLUE}${C_BOLD}==========================================${C_RESET}"
     echo -e "${C_CYAN}${C_BOLD}        🚀 Google Antigravity Setup${C_RESET}"
     echo -e "${C_BLUE}${C_BOLD}==========================================${C_RESET}"
-    check_deps
     echo ""
     detect_platform
+    print_system_info
     echo -e "${C_BOLD}What would you like to do?${C_RESET}"
-    if [ "$PLATFORM" = "Darwin" ]; then
-        echo -e "  ${C_YELLOW}Detected: macOS — we recommend Option 2${C_RESET}"
-    else
-        echo -e "  ${C_YELLOW}Detected: Linux — we recommend Option 1 or 2${C_RESET}"
-    fi
+    echo -e "  ${C_GREEN}★ We recommend Option ${RECOMMENDED} for your system.${C_RESET}"
     echo -e "  ${C_CYAN}1)${C_RESET} Install via Standard Repository ${C_GREEN}(Best for Linux updates, requires sudo)${C_RESET}"
     echo -e "  ${C_CYAN}2)${C_RESET} Install via Homebrew ${C_GREEN}(macOS/Linux, no sudo needed)${C_RESET}"
     echo -e "  ${C_CYAN}3)${C_RESET} Install via Standalone Tarball ${C_YELLOW}(Installs to ~/.local, no sudo needed)${C_RESET}"
