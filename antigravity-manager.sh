@@ -100,7 +100,7 @@ detect_platform() {
     if [ "$PLATFORM" = "Darwin" ]; then
         DISTRO_PRETTY="macOS $(sw_vers -productVersion 2>/dev/null || echo '')"
         if [ "$HAS_BREW" = "yes" ]; then
-            RECOMMENDED="2"
+            RECOMMENDED="1"
         else
             RECOMMENDED="3"
         fi
@@ -122,10 +122,10 @@ detect_platform() {
         # Get glibc version safely
         GLIBC_VERSION=$(ldd --version 2>/dev/null | awk 'NR==1 {print $NF}')
 
-        # Recommend based on what's available
-        if [ "$HAS_APT" = "yes" ] || [ "$HAS_DNF" = "yes" ]; then
+        # Recommend based on what's available: brew > apt/dnf > tarball
+        if [ "$HAS_BREW" = "yes" ]; then
             RECOMMENDED="1"
-        elif [ "$HAS_BREW" = "yes" ]; then
+        elif [ "$HAS_APT" = "yes" ] || [ "$HAS_DNF" = "yes" ]; then
             RECOMMENDED="2"
         else
             RECOMMENDED="3"
@@ -134,29 +134,24 @@ detect_platform() {
 }
 
 print_system_info() {
-    echo -e "${C_CYAN}╭─────────────────────────────────────────╮${C_RESET}"
-    echo -e "${C_CYAN}│${C_RESET}  ${C_BOLD}System Detection${C_RESET}                         ${C_CYAN}│${C_RESET}"
-    echo -e "${C_CYAN}├─────────────────────────────────────────┤${C_RESET}"
-    echo -e "${C_CYAN}│${C_RESET}  OS:        ${C_BOLD}$DISTRO_PRETTY${C_RESET}"
-    echo -e "${C_CYAN}│${C_RESET}  Arch:      ${C_BOLD}$ARCH${C_RESET}"
-    if [ -n "$GLIBC_VERSION" ]; then
-        echo -e "${C_CYAN}│${C_RESET}  glibc:     ${C_BOLD}$GLIBC_VERSION${C_RESET}"
-    fi
-    echo -e "${C_CYAN}│${C_RESET}  Homebrew:  $([ "$HAS_BREW" = "yes" ] && echo -e "${C_GREEN}found${C_RESET}" || echo -e "${C_YELLOW}not found${C_RESET}")"
-    echo -e "${C_CYAN}│${C_RESET}  APT:       $([ "$HAS_APT" = "yes" ] && echo -e "${C_GREEN}found${C_RESET}" || echo -e "${C_YELLOW}not found${C_RESET}")"
-    echo -e "${C_CYAN}│${C_RESET}  DNF:       $([ "$HAS_DNF" = "yes" ] && echo -e "${C_GREEN}found${C_RESET}" || echo -e "${C_YELLOW}not found${C_RESET}")"
-    echo -e "${C_CYAN}╰─────────────────────────────────────────╯${C_RESET}"
+    # Compact one-line system summary
+    local PKGS=""
+    [ "$HAS_BREW" = "yes" ] && PKGS="${PKGS}brew "
+    [ "$HAS_APT" = "yes" ]  && PKGS="${PKGS}apt "
+    [ "$HAS_DNF" = "yes" ]  && PKGS="${PKGS}dnf "
+    [ -z "$PKGS" ] && PKGS="none "
 
-    # glibc warning
+    echo -e "  ${C_CYAN}▸${C_RESET} ${C_BOLD}${DISTRO_PRETTY}${C_RESET} (${ARCH})$([ -n "$GLIBC_VERSION" ] && echo " · glibc ${GLIBC_VERSION}") · pkg: ${C_GREEN}${PKGS}${C_RESET}"
+
+    # glibc warning (only if problematic)
     if [ -n "$GLIBC_VERSION" ]; then
         local MAJOR MINOR
         MAJOR=$(echo "$GLIBC_VERSION" | cut -d. -f1)
         MINOR=$(echo "$GLIBC_VERSION" | cut -d. -f2)
         if [ "$MAJOR" -lt 2 ] || { [ "$MAJOR" -eq 2 ] && [ "$MINOR" -lt 28 ]; }; then
-            echo -e "${C_YELLOW}⚠️  glibc $GLIBC_VERSION is below the recommended 2.28 — Antigravity may not run.${C_RESET}"
+            echo -e "  ${C_YELLOW}⚠ glibc $GLIBC_VERSION < 2.28 — Antigravity may not work${C_RESET}"
         fi
     fi
-    echo ""
 }
 
 install_brew() {
@@ -341,31 +336,26 @@ elif [ "$1" = "--help" ]; then
     print_usage
     exit 0
 elif [ "$1" = "--install" ] || [ -z "$1" ]; then
-    echo -e "${C_BLUE}${C_BOLD}==========================================${C_RESET}"
-    echo -e "${C_CYAN}${C_BOLD}        🚀 Google Antigravity Setup${C_RESET}"
-    echo -e "${C_BLUE}${C_BOLD}==========================================${C_RESET}"
-    echo ""
+    echo -e "${C_BLUE}${C_BOLD}========== 🚀 Google Antigravity Setup ==========${C_RESET}"
     detect_platform
     print_system_info
-    echo -e "${C_BOLD}What would you like to do?${C_RESET}"
-    echo -e "  ${C_GREEN}★ We recommend Option ${RECOMMENDED} for your system.${C_RESET}"
-    echo -e "  ${C_CYAN}1)${C_RESET} Install via Standard Repository ${C_GREEN}(Best for Linux updates, requires sudo)${C_RESET}"
-    echo -e "  ${C_CYAN}2)${C_RESET} Install via Homebrew ${C_GREEN}(macOS/Linux, no sudo needed)${C_RESET}"
-    echo -e "  ${C_CYAN}3)${C_RESET} Install via Standalone Tarball ${C_YELLOW}(Installs to ~/.local, no sudo needed)${C_RESET}"
-    echo -e "  ${C_CYAN}4)${C_RESET} Install/Update this Manager script locally"
-    echo -e "  ${C_CYAN}5)${C_RESET} Remove/Uninstall an existing Antigravity setup"
-    echo -e "  ${C_CYAN}6)${C_RESET} Remove the Antigravity Manager script"
+    echo ""
+    echo -e "${C_BOLD}Select an install method${C_RESET} ${C_GREEN}(★ = recommended)${C_RESET}"
+    echo -e "  ${C_CYAN}1)${C_RESET} Homebrew      $([ "$RECOMMENDED" = "1" ] && echo -e "${C_GREEN}★${C_RESET}  ") ${C_GREEN}cross-platform, no sudo${C_RESET}"
+    echo -e "  ${C_CYAN}2)${C_RESET} System Repo   $([ "$RECOMMENDED" = "2" ] && echo -e "${C_GREEN}★${C_RESET}  ") ${C_GREEN}APT/DNF, auto-updates, needs sudo${C_RESET}"
+    echo -e "  ${C_CYAN}3)${C_RESET} Tarball       $([ "$RECOMMENDED" = "3" ] && echo -e "${C_GREEN}★${C_RESET}  ") ${C_YELLOW}manual, installs to ~/.local${C_RESET}"
+    echo -e "  ${C_CYAN}4)${C_RESET} Save manager  ${C_CYAN}add 'antigravity-manager' command${C_RESET}"
+    echo -e "  ${C_CYAN}5)${C_RESET} Uninstall     ${C_RED}remove Antigravity${C_RESET}"
+    echo -e "  ${C_CYAN}6)${C_RESET} Remove manager"
     echo -e "  ${C_CYAN}7)${C_RESET} Cancel"
-    
-    # Safely print the prompt and read the input from the tty
-    echo -ne "${C_BOLD}Select an option [1-7]: ${C_RESET}"
+    echo -ne "${C_BOLD}Pick [1-7]: ${C_RESET}"
     read choice < /dev/tty
 
     echo "" # Add a blank line for breathing room
 
     case "$choice" in
-        1) install_repo; echo ""; save_manager_locally ;;
-        2) install_brew; echo ""; save_manager_locally ;;
+        1) install_brew; echo ""; save_manager_locally ;;
+        2) install_repo; echo ""; save_manager_locally ;;
         3) do_install_tarball; echo ""; save_manager_locally ;;
         4) save_manager_locally ;;
         5) do_remove ;;
