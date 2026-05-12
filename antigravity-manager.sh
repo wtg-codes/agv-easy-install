@@ -358,7 +358,8 @@ print_system_info() {
     local PKG_DISPLAY
     if [ -z "$PKGS" ]; then PKG_DISPLAY="${C_YELLOW}none${C_RESET}"; else PKG_DISPLAY="${C_GREEN}${PKGS}${C_RESET}"; fi
 
-    log_info "  ${C_CYAN}▸${C_RESET} ${C_BOLD}${DISTRO_PRETTY}${C_RESET} (${ARCH})$([ -n "$GLIBC_VERSION" ] && echo " · glibc ${GLIBC_VERSION}") · pkg: ${PKG_DISPLAY}"
+    log_info "  ${C_CYAN}OS:${C_RESET}   ${C_BOLD}${DISTRO_PRETTY}${C_RESET}"
+    log_info "  ${C_CYAN}SYS:${C_RESET}  ${ARCH}$([ -n "$GLIBC_VERSION" ] && echo " · glibc ${GLIBC_VERSION}") · pkg: ${PKG_DISPLAY}"
 
     if [ -n "$GLIBC_VERSION" ]; then
         local MAJOR MINOR
@@ -368,6 +369,21 @@ print_system_info() {
             log_warn "glibc $GLIBC_VERSION < 2.28 — Antigravity may not work"
         fi
     fi
+}
+
+print_banner() {
+    local mode="$1"
+    echo -e "${C_CYAN}"
+    cat << 'BANNER_EOF'
+     ___        __  _                     _ __       
+    /   |  ____/ /_(_)___ __________ __   (_) /___  __
+   / /| | / __ \ __/ / _ \/ ___/ __ \ /| / / / __ \/ /
+  / ___ |/ / / / /_/ / / / / / / / / / |/ / / /_/ / / 
+ /_/  |_/_/ /_/\__/_/\__,_/_/ /_/ /_/|___/_/\____/_/  
+BANNER_EOF
+    echo -e "${C_RESET}"
+    echo -e "  ${C_BLUE}${C_BOLD}Google Antigravity Setup v${SCRIPT_VERSION}${C_RESET} ${mode}"
+    echo -e "  ${C_DIM}────────────────────────────────────────────────────────${C_RESET}"
 }
 
 install_brew() {
@@ -587,15 +603,16 @@ interactive_menu() {
         "Save manager (add 'antigravity-manager' command)"
         "Uninstall (remove Antigravity)"
         "Remove mgr (remove this script)"
+        "Demo UI (Test animations without installing)"
         "Cancel"
     )
-    # Menu has options [1-7]
+    # Menu has options [1-8]
     if command -v gum >/dev/null 2>&1; then
         CHOICE=$(gum choose --cursor="❯ " --selected="${options[$((RECOMMENDED-1))]}" "${options[@]}")
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-7]: " num < /dev/tty
+        read -r -p "Select option [1-8]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Homebrew" ;;
             2) CHOICE="System Repo" ;;
@@ -603,7 +620,8 @@ interactive_menu() {
             4) CHOICE="Save manager" ;;
             5) CHOICE="Uninstall" ;;
             6) CHOICE="Remove mgr" ;;
-            7) CHOICE="Cancel" ;;
+            7) CHOICE="Demo UI" ;;
+            8) CHOICE="Cancel" ;;
             *) CHOICE="Cancel" ;;
         esac
     fi
@@ -615,8 +633,9 @@ interactive_menu() {
         "Save manager"*) choice=4 ;;
         "Uninstall"*) choice=5 ;;
         "Remove mgr"*) choice=6 ;;
-        "Cancel"*) choice=7 ;;
-        *) choice=7 ;;
+        "Demo UI"*) choice=7 ;;
+        "Cancel"*) choice=8 ;;
+        *) choice=8 ;;
     esac
 }
 
@@ -682,8 +701,7 @@ case "$ACTION" in
     repo) install_repo; save_manager_locally ;;
     tarball) do_install_tarball; save_manager_locally ;;
     demo_ui)
-        echo -e "\n  ${C_BLUE}${C_BOLD}🚀 Google Antigravity Setup v${SCRIPT_VERSION}${C_RESET} [DEMO MODE]"
-        echo -e "  ${C_DIM}──────────────────────────────────────────${C_RESET}"
+        print_banner "[DEMO MODE]"
         print_system_info
         echo ""
         interactive_menu
@@ -709,8 +727,7 @@ Workspace: $WORKSPACE_DIR"
             exit 1
         fi
         
-        echo -e "\n  ${C_BLUE}${C_BOLD}🚀 Google Antigravity Setup v${SCRIPT_VERSION}${C_RESET}"
-        echo -e "  ${C_DIM}──────────────────────────────────────────${C_RESET}"
+        print_banner ""
         print_system_info
         echo ""
         
@@ -724,7 +741,8 @@ Workspace: $WORKSPACE_DIR"
             4) save_manager_locally ;;
             5) do_remove ;;
             6) remove_manager_script ;;
-            7) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+            7) exec "$0" --demo-ui ;;
+            8) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
         esac
         ;;
 esac

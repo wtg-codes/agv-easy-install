@@ -96,7 +96,7 @@ gate_2() {
     check "2.G12 Old \$0 bash detection gone"  "! grep -q '\"bash\"' $SCRIPT"
 
     # Menu
-    check "2.G13 Menu has 7 options"           "grep -q '\[1-7\]' $SCRIPT"
+    check "2.G13 Menu has 8 options"           "grep -q '\[1-8\]' $SCRIPT"
     check "2.G14 Auto-detect suggestion"       "grep -qiE 'Detected|Recommended|recommend' $SCRIPT"
 }
 
