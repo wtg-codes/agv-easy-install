@@ -630,7 +630,7 @@ interactive_menu() {
     )
     # Menu has options [1-8]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum choose --cursor="❯ " --selected="${options[$((RECOMMENDED-1))]}" "${options[@]}")
+        CHOICE=$(gum choose --cursor="❯ " --selected="${options[$((RECOMMENDED-1))]}" "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
@@ -782,7 +782,7 @@ start_sandbox_mode() {
     RECOMMENDED=1
     
     while true; do
-        clear
+        clear || true
         print_banner "[SANDBOX MODE]"
         print_system_info
         echo ""
@@ -821,7 +821,6 @@ case "$ACTION" in
         echo ""
         
         interactive_menu
-        choice=$?
     
         case "$choice" in
             1) install_brew; save_manager_locally ;;
