@@ -10,15 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install -r requirements.txt
 
       - name: Scrape latest URL
         id: scrape
@@ -27,10 +27,31 @@ jobs:
           echo "LATEST_URL=$LATEST_URL" >> $GITHUB_ENV
           echo "url=$LATEST_URL" >> $GITHUB_OUTPUT
 
+      - name: Validate URL and Compute SHA-256
+        if: env.LATEST_URL != ''
+        run: |
+          # 3.4 Validate URL
+          curl -fSsL --head "${{ env.LATEST_URL }}"
+          
+          # 3.7 Download and compute SHA-256
+          TMP_TAR=$(mktemp)
+          curl -fSsL "${{ env.LATEST_URL }}" -o "$TMP_TAR"
+          NEW_SHA=$(sha256sum "$TMP_TAR" | awk '{print $1}')
+          rm -f "$TMP_TAR"
+          echo "NEW_SHA=$NEW_SHA" >> $GITHUB_ENV
+
       - name: Update antigravity-manager.sh
         if: env.LATEST_URL != ''
         run: |
-          sed -i "s|DOWNLOAD_URL=.*|DOWNLOAD_URL=\"${{ env.LATEST_URL }}\"|" antigravity-manager.sh
+          OLD_URL=$(grep -oP '^DOWNLOAD_URL="\K[^"]+' antigravity-manager.sh)
+          echo "OLD_URL=$OLD_URL" >> $GITHUB_ENV
+          # 3.5 Use # as sed delimiter
+          sed -i "s#^DOWNLOAD_URL=.*#DOWNLOAD_URL=\"${{ env.LATEST_URL }}\"#" antigravity-manager.sh
+          sed -i "s#^KNOWN_SHA256=.*#KNOWN_SHA256=\"${{ env.NEW_SHA }}\"#" antigravity-manager.sh
+
+      - name: Lint script
+        if: env.LATEST_URL != ''
+        run: shellcheck -e SC1091,SC2162 antigravity-manager.sh
 
       - name: Commit and push changes
         if: env.LATEST_URL != ''
@@ -39,6 +60,10 @@ jobs:
           git config --local user.name "GitHub Action"
           git add antigravity-manager.sh
           if ! git diff --cached --quiet; then
-            git commit -m "chore: nightly update of Antigravity download URL"
+            # 3.8 Improve commit message
+            git commit -m "chore: nightly update of Antigravity download URL
+            
+            From: ${{ env.OLD_URL }}
+            To:   ${{ env.LATEST_URL }}"
             git push
           fi

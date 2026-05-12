@@ -12,6 +12,8 @@ C_BOLD='\033[1m'
 C_RESET='\033[0m'
 
 # Configuration
+SCRIPT_VERSION="1.1.0"
+KNOWN_SHA256="0000000000000000000000000000000000000000000000000000000000000000"
 DOWNLOAD_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
 MANAGER_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh"
 
@@ -42,10 +44,10 @@ save_manager_locally() {
     mkdir -p "$BIN_DIR"
     
     # Smart copy: Prevent overwriting local tests with older GitHub versions
-    if [ -f "$0" ] && [[ "$0" != *"bash"* ]]; then
+    if [ -f "$0" ] && [ -r "$0" ]; then
         cp "$0" "$BIN_DIR/antigravity-manager"
     else
-        curl -sL "$MANAGER_URL" -o "$BIN_DIR/antigravity-manager"
+        curl -fSsL "$MANAGER_URL" -o "$BIN_DIR/antigravity-manager"
     fi
     
     chmod +x "$BIN_DIR/antigravity-manager"
@@ -68,8 +70,9 @@ remove_manager_script() {
 detect_distro() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
-        DISTRO=$ID
-        DISTRO_LIKE=$ID_LIKE
+        DISTRO="$ID"
+        # shellcheck disable=SC2034
+        DISTRO_LIKE="$ID_LIKE"
     else
         DISTRO="unknown"
     fi
@@ -82,12 +85,44 @@ check_deps() {
     echo -e "   Detected glibc: ${C_BOLD}$GLIBC_VERSION${C_RESET}"
     
     # Simple version check (split by dot)
-    MAJOR=$(echo $GLIBC_VERSION | cut -d. -f1)
-    MINOR=$(echo $GLIBC_VERSION | cut -d. -f2)
+    MAJOR=$(echo "$GLIBC_VERSION" | cut -d. -f1)
+    MINOR=$(echo "$GLIBC_VERSION" | cut -d. -f2)
     
     if [ "$MAJOR" -lt 2 ] || { [ "$MAJOR" -eq 2 ] && [ "$MINOR" -lt 28 ]; }; then
         echo -e "${C_YELLOW}⚠️  Warning: Your glibc version ($GLIBC_VERSION) is lower than the recommended 2.28.${C_RESET}"
         echo -e "   Antigravity might not run correctly."
+    fi
+}
+
+detect_platform() {
+    PLATFORM=$(uname -s)
+}
+
+check_brew() {
+    command -v brew >/dev/null 2>&1
+}
+
+install_brew() {
+    echo -e "${C_MAG}🚀 Installing Antigravity via Homebrew...${C_RESET}"
+    if ! check_brew; then
+        echo -e "${C_RED}❌ Homebrew is not installed.${C_RESET}"
+        echo -e "   ${C_YELLOW}Falling back to Tarball installation...${C_RESET}"
+        do_install_tarball
+        return
+    fi
+    
+    if [ "$PLATFORM" = "Darwin" ]; then
+        if ! brew install --cask antigravity; then
+            echo -e "${C_RED}❌ Formula not found or installation failed.${C_RESET}"
+            echo -e "   ${C_YELLOW}Falling back to Tarball installation...${C_RESET}"
+            do_install_tarball
+        fi
+    else
+        if ! brew install antigravity; then
+            echo -e "${C_RED}❌ Formula not found or installation failed.${C_RESET}"
+            echo -e "   ${C_YELLOW}Falling back to Tarball installation...${C_RESET}"
+            do_install_tarball
+        fi
     fi
 }
 
@@ -119,6 +154,7 @@ install_repo() {
 name=Antigravity RPM Repository
 baseurl=https://us-central1-yum.pkg.dev/projects/antigravity-auto-updater-dev/antigravity-rpm
 enabled=1
+# Set gpgcheck=0 because Artifact Registry doesn't support RPM upstream signing yet
 gpgcheck=0
 EOL
             sudo dnf makecache
@@ -139,9 +175,16 @@ do_install_tarball() {
     mkdir -p "$BIN_DIR" "$APP_DIR" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$(dirname "$DESKTOP_FILE_SYS")"
 
     TMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TMP_DIR"' EXIT
 
     echo -e "${C_BLUE}⬇️  Downloading Antigravity...${C_RESET}"
-    curl -sL "$DOWNLOAD_URL" -o "$TMP_DIR/Antigravity.tar.gz"
+    curl -fSsL "$DOWNLOAD_URL" -o "$TMP_DIR/Antigravity.tar.gz"
+
+    echo -e "${C_BLUE}🔐 Verifying checksum...${C_RESET}"
+    if ! echo "$KNOWN_SHA256  $TMP_DIR/Antigravity.tar.gz" | sha256sum -c -; then
+        echo -e "${C_RED}❌ Checksum verification failed!${C_RESET}"
+        exit 1
+    fi
 
     echo -e "${C_BLUE}📦 Extracting archive...${C_RESET}"
     tar -xzf "$TMP_DIR/Antigravity.tar.gz" -C "$APP_DIR" --strip-components=1
@@ -162,22 +205,29 @@ Type=Application
 Categories=Development;IDE;
 EOF
 
-    echo -e "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
-    cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
-    chmod +x "$DESKTOP_FILE_USER"
-    
-    if command -v gio &> /dev/null; then
-        echo -e "${C_CYAN}🛡️  Marking desktop shortcut as trusted...${C_RESET}"
-        gio set "$DESKTOP_FILE_USER" metadata::trusted true || true
-    fi
+    if [ "$PLATFORM" != "Darwin" ]; then
+        echo -e "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
+        if command -v xdg-user-dir &> /dev/null; then
+            DESKTOP_DIR=$(xdg-user-dir DESKTOP)
+        else
+            DESKTOP_DIR="$HOME/Desktop"
+        fi
+        DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
+        cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+        chmod +x "$DESKTOP_FILE_USER"
+        
+        if command -v gio &> /dev/null; then
+            echo -e "${C_CYAN}🛡️  Marking desktop shortcut as trusted...${C_RESET}"
+            gio set "$DESKTOP_FILE_USER" metadata::trusted true || true
+        fi
 
-    # Refresh app menu
-    if command -v update-desktop-database &> /dev/null; then
-        update-desktop-database "$HOME/.local/share/applications" || true
+        # Refresh app menu
+        if command -v update-desktop-database &> /dev/null; then
+            update-desktop-database "$HOME/.local/share/applications" || true
+        fi
     fi
 
     echo -e "${C_CYAN}🧹 Cleaning up...${C_RESET}"
-    rm -rf "$TMP_DIR"
 
     echo -e "${C_GREEN}🎉 Installation Complete!${C_RESET}"
     echo -e "Your workspace is ready at: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
@@ -193,6 +243,12 @@ do_remove() {
     elif command -v dnf &> /dev/null && [ -f /etc/yum.repos.d/antigravity.repo ]; then
         sudo dnf remove -y antigravity || true
         sudo rm -f /etc/yum.repos.d/antigravity.repo
+    elif check_brew; then
+        if [ "$PLATFORM" = "Darwin" ]; then
+            brew uninstall --cask antigravity || true
+        else
+            brew uninstall antigravity || true
+        fi
     fi
 
     # Cleanup standalone files
@@ -213,41 +269,60 @@ print_usage() {
     echo "Options:"
     echo "  --install   Run the interactive installation wizard."
     echo "  --remove    Uninstall Antigravity."
+    echo "  --version   Show version information."
+    echo "  --help      Show this help message."
 }
 
-if [ "$1" == "--remove" ]; then
+if [ "$1" = "--remove" ]; then
+    detect_platform
     do_remove
     exit 0
-elif [ "$1" == "--install" ] || [ -z "$1" ]; then
+elif [ "$1" = "--version" ]; then
+    echo "Antigravity Manager v$SCRIPT_VERSION"
+    exit 0
+elif [ "$1" = "--help" ]; then
+    print_usage
+    exit 0
+elif [ "$1" = "--install" ] || [ -z "$1" ]; then
     echo -e "${C_BLUE}${C_BOLD}==========================================${C_RESET}"
     echo -e "${C_CYAN}${C_BOLD}        🚀 Google Antigravity Setup${C_RESET}"
     echo -e "${C_BLUE}${C_BOLD}==========================================${C_RESET}"
     check_deps
     echo ""
+    detect_platform
     echo -e "${C_BOLD}What would you like to do?${C_RESET}"
-    echo -e "  ${C_CYAN}1)${C_RESET} Install via Standard Repository ${C_GREEN}(Best for updates, requires sudo)${C_RESET}"
-    echo -e "  ${C_CYAN}2)${C_RESET} Install via Standalone Tarball ${C_YELLOW}(Installs to ~/.local, no sudo needed)${C_RESET}"
-    echo -e "  ${C_CYAN}3)${C_RESET} Install/Update this Manager script locally"
-    echo -e "  ${C_CYAN}4)${C_RESET} Remove/Uninstall an existing Antigravity setup"
-    echo -e "  ${C_CYAN}5)${C_RESET} Remove the Antigravity Manager script"
-    echo -e "  ${C_CYAN}6)${C_RESET} Cancel"
+    if [ "$PLATFORM" = "Darwin" ]; then
+        echo -e "  ${C_YELLOW}Detected: macOS — we recommend Option 2${C_RESET}"
+    else
+        echo -e "  ${C_YELLOW}Detected: Linux — we recommend Option 1 or 2${C_RESET}"
+    fi
+    echo -e "  ${C_CYAN}1)${C_RESET} Install via Standard Repository ${C_GREEN}(Best for Linux updates, requires sudo)${C_RESET}"
+    echo -e "  ${C_CYAN}2)${C_RESET} Install via Homebrew ${C_GREEN}(macOS/Linux, no sudo needed)${C_RESET}"
+    echo -e "  ${C_CYAN}3)${C_RESET} Install via Standalone Tarball ${C_YELLOW}(Installs to ~/.local, no sudo needed)${C_RESET}"
+    echo -e "  ${C_CYAN}4)${C_RESET} Install/Update this Manager script locally"
+    echo -e "  ${C_CYAN}5)${C_RESET} Remove/Uninstall an existing Antigravity setup"
+    echo -e "  ${C_CYAN}6)${C_RESET} Remove the Antigravity Manager script"
+    echo -e "  ${C_CYAN}7)${C_RESET} Cancel"
     
     # Safely print the prompt and read the input from the tty
-    echo -ne "${C_BOLD}Select an option [1-6]: ${C_RESET}"
+    echo -ne "${C_BOLD}Select an option [1-7]: ${C_RESET}"
     read choice < /dev/tty
 
     echo "" # Add a blank line for breathing room
 
-    case $choice in
+    case "$choice" in
         1) install_repo; echo ""; save_manager_locally ;;
-        2) do_install_tarball; echo ""; save_manager_locally ;;
-        3) save_manager_locally ;;
-        4) do_remove ;;
-        5) remove_manager_script ;;
+        2) install_brew; echo ""; save_manager_locally ;;
+        3) do_install_tarball; echo ""; save_manager_locally ;;
+        4) save_manager_locally ;;
+        5) do_remove ;;
+        6) remove_manager_script ;;
         "Google"|"google"|"GOOGLE")
             echo -e "${C_MAG}🎓 Easter Egg Found! Opening the Course Catalog Lab...${C_RESET}"
-            if command -v xdg-open &> /dev/null; then
-                xdg-open "https://wtg-codes.github.io/course-catalog/" &> /dev/null
+            if [ "$PLATFORM" = "Darwin" ]; then
+                open "https://wtg-codes.github.io/course-catalog/" >/dev/null 2>&1 || echo -e "${C_YELLOW}Please open this link in your browser: https://wtg-codes.github.io/course-catalog/${C_RESET}"
+            elif command -v xdg-open >/dev/null 2>&1; then
+                xdg-open "https://wtg-codes.github.io/course-catalog/" >/dev/null 2>&1 || echo -e "${C_YELLOW}Please open this link in your browser: https://wtg-codes.github.io/course-catalog/${C_RESET}"
             else
                 echo -e "${C_YELLOW}Please open this link in your browser: https://wtg-codes.github.io/course-catalog/${C_RESET}"
             fi

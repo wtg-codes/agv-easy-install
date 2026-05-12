@@ -1,8 +1,13 @@
+"""
+Scrapes the latest Antigravity tarball URL.
+"""
 import re
 import requests
 import sys
 
-def scrape_url():
+from typing import Optional
+
+def scrape_url() -> Optional[str]:
     # Attempting to find the latest URL by checking common sources or patterns
     # Since the main page is dynamic, we'll try to find it via a known update channel if possible.
     # For now, we use a heuristic or check for the latest version in the JS assets if we can find them.
@@ -23,15 +28,27 @@ def scrape_url():
             js_resp = requests.get(js_url, timeout=10)
             found = re.search(r'https://edgedl\.me\.gvt1\.com/[^"]+Antigravity\.tar\.gz', js_resp.text)
             if found:
-                return found.group(0)
+                url_candidate = found.group(0)
+                try:
+                    head_resp = requests.head(url_candidate, timeout=10, allow_redirects=True)
+                    if head_resp.status_code == 200:
+                        return url_candidate
+                except Exception as e:
+                    print(f"HEAD validation failed: {e}", file=sys.stderr)
 
         # If not found in JS, try searching for the pattern in the whole page just in case
         found = re.search(r'https://edgedl\.me\.gvt1\.com/[^"]+Antigravity\.tar\.gz', content)
         if found:
-            return found.group(0)
+            url_candidate = found.group(0)
+            try:
+                head_resp = requests.head(url_candidate, timeout=10, allow_redirects=True)
+                if head_resp.status_code == 200:
+                    return url_candidate
+            except Exception as e:
+                print(f"HEAD validation failed: {e}", file=sys.stderr)
 
     except Exception as e:
-        print(f"Error scraping: {e}")
+        print(f"Error scraping: {e}", file=sys.stderr)
 
     return None
 
