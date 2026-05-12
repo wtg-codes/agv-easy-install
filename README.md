@@ -25,11 +25,22 @@ Paste the command, pick an option, and you're up and running.
 curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh" | bash
 ```
 
-**Option C — Homebrew** *(macOS & Linux)*
+**Option C — Advanced (Headless / Automation)**
 
+The script supports non-interactive execution for CI/CD and provisioning tools:
 ```bash
-brew install --cask antigravity   # macOS
-brew install antigravity           # Linux
+# Auto-detect and install without prompts
+curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh" | bash -s -- --auto
+
+# Or force a specific method
+bash antigravity-manager.sh --install-brew
+bash antigravity-manager.sh --install-repo
+bash antigravity-manager.sh --install-tarball
+
+# Additional options
+bash antigravity-manager.sh --verbose  # Print detailed logs
+bash antigravity-manager.sh --quiet    # Suppress non-error output
+bash antigravity-manager.sh --remove   # Uninstall
 ```
 
 ---
@@ -55,6 +66,7 @@ The installer detects your OS and package manager, then recommends the best meth
 | **macOS** | Homebrew | — | Tarball is Linux-only; Homebrew required |
 | **Ubuntu / Debian / Mint / Kali** | APT | Tarball | Auto-updates via system repo |
 | **Fedora / RHEL / CentOS / Amazon Linux** | DNF | Tarball | Auto-updates via system repo |
+| **Bluefin / Silverblue / Atomic Linux** | Homebrew | Tarball | Avoids layering system packages |
 | **Other Linux** | Tarball | — | Manual updates only |
 
 <details>

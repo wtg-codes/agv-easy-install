@@ -7,11 +7,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **Interactive TUI Menu:** The interactive installer now uses a sleek arrow-key menu instead of raw text prompts.
+- **Async Loading Spinners:** Long-running operations like `tar` and `apt` now feature non-blocking visual spinners.
+- **Auto PATH Injection:** The installer can now automatically inject `~/.local/bin` into `~/.bashrc`, `~/.zshrc`, or `config.fish`.
+- **JSON Output Mode:** Added `--json` flag to emit a single machine-readable status object instead of colored logs.
+- **Headless Mode:** Added `--auto`, `--install-brew`, `--install-repo`, and `--install-tarball` flags for non-interactive automation.
+- **Logging System:** Added robust logging to `/tmp/antigravity-install.log` with `--verbose` and `--quiet` flags.
+- **State Management:** Added an `install.json` state file to track the install method for perfectly clean uninstalls.
+- **Dependency Checks:** Script now fails fast if `curl`, `tar`, `awk`, or `grep` are missing.
+
+### Changed
+- **Rollbacks:** The system repository installer now gracefully cleans up broken repository keys and list files if `apt/dnf install` fails.
+
 ### Fixed
 - Bootstrapped `KNOWN_SHA256` to the real tarball checksum — standalone installs no longer fail out of the box.
 - Removed macOS tarball fallbacks (the standalone tarball is `linux-x64` only).
 
 ### Docs
+- Documented new headless CLI flags in `README.md`.
 - Clarified in README and landing page that the tarball path is Linux-only.
 - Added `CHANGELOG.md`.
 
