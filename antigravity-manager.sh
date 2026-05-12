@@ -630,6 +630,7 @@ print_usage() {
     echo "  --install-repo    Headless System Repo install"
     echo "  --install-tarball Headless Tarball install"
     echo "  --remove          Uninstall Antigravity"
+    echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
     echo "  --verbose         Enable verbose logging"
     echo "  --quiet           Suppress non-error output"
@@ -647,6 +648,7 @@ for arg in "$@"; do
         --install-repo) ACTION="repo"; AUTO=1 ;;
         --install-tarball) ACTION="tarball"; AUTO=1 ;;
         --remove) ACTION="remove" ;;
+        --demo-ui) ACTION="demo_ui" ;;
         --json) JSON_OUT=1; QUIET=1 ;;
         --verbose) VERBOSE=1 ;;
         --quiet) QUIET=1 ;;
@@ -679,6 +681,28 @@ case "$ACTION" in
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     tarball) do_install_tarball; save_manager_locally ;;
+    demo_ui)
+        echo -e "\n  ${C_BLUE}${C_BOLD}🚀 Google Antigravity Setup v${SCRIPT_VERSION}${C_RESET} [DEMO MODE]"
+        echo -e "  ${C_DIM}──────────────────────────────────────────${C_RESET}"
+        print_system_info
+        echo ""
+        interactive_menu
+        echo ""
+        run_cmd_ui "Faking installation via choice $choice..." sleep 2
+        run_cmd_ui "Configuring Chrome path..." sleep 1
+        echo ""
+        if command -v gum >/dev/null 2>&1; then
+            gum style --border double --border-foreground 46 --padding "1 2" "🎉 Demo Complete!
+Launch: antigravity
+Workspace: $WORKSPACE_DIR"
+        else
+            log_info "${C_GREEN}${C_BOLD}🎉 Demo Complete!${C_RESET}"
+            log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
+            log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+        fi
+        trap - EXIT INT TERM
+        exit 0
+        ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then
             log_error "Cannot use --json without specifying an explicit headless install method (e.g. --auto)"
