@@ -163,16 +163,21 @@ install_brew() {
     echo -e "${C_MAG}🚀 Installing Antigravity via Homebrew...${C_RESET}"
     if ! check_brew; then
         echo -e "${C_RED}❌ Homebrew is not installed.${C_RESET}"
-        echo -e "   ${C_YELLOW}Falling back to Tarball installation...${C_RESET}"
-        do_install_tarball
+        if [ "$PLATFORM" = "Darwin" ]; then
+            echo -e "   ${C_RED}Tarball fallback is not supported on macOS. Exiting.${C_RESET}"
+            exit 1
+        else
+            echo -e "   ${C_YELLOW}Falling back to Tarball installation...${C_RESET}"
+            do_install_tarball
+        fi
         return
     fi
     
     if [ "$PLATFORM" = "Darwin" ]; then
         if ! brew install --cask antigravity; then
             echo -e "${C_RED}❌ Formula not found or installation failed.${C_RESET}"
-            echo -e "   ${C_YELLOW}Falling back to Tarball installation...${C_RESET}"
-            do_install_tarball
+            echo -e "   ${C_RED}Tarball fallback is not supported on macOS. Exiting.${C_RESET}"
+            exit 1
         fi
     else
         if ! brew install antigravity; then
@@ -221,8 +226,13 @@ EOL
             ;;
         *)
             echo -e "${C_RED}❌ Distribution $DISTRO not explicitly supported for repo install.${C_RESET}"
-            echo -e "   ${C_YELLOW}Falling back to Tarball installation...${C_RESET}"
-            do_install_tarball
+            if [ "$PLATFORM" = "Darwin" ]; then
+                echo -e "   ${C_RED}Tarball fallback is not supported on macOS. Exiting.${C_RESET}"
+                exit 1
+            else
+                echo -e "   ${C_YELLOW}Falling back to Tarball installation...${C_RESET}"
+                do_install_tarball
+            fi
             ;;
     esac
 }

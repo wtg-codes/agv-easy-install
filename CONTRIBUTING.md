@@ -1,15 +1,47 @@
-# Contributing to agv-easy-install
+# Contributing to `agv-easy-install`
 
-Thank you for your interest in contributing!
+Thanks for your interest in improving the installer! Here's how to get started.
 
-## How to Contribute
+---
 
-1. Fork the repository
-2. Create a new branch for your feature or bugfix
-3. Make your changes and ensure they follow the project's rules (see `AGENTS.md`)
-4. Run tests before submitting: `bash tests/run_gates.sh --phase all`
-5. Submit a Pull Request
+## 🔀 Workflow
 
-## Pull Request Guidelines
+1. **Fork** the repository and **clone** your fork.
+2. **Create a branch** from `main` (e.g. `fix/tarball-checksum`).
+3. **Make your changes** — follow the rules in [`AGENTS.md`](AGENTS.md).
+4. **Run the gate tests** before pushing:
+   ```bash
+   bash tests/run_gates.sh --phase all
+   ```
+5. **Open a Pull Request** using the provided template.
 
-Please use the provided PR template and make sure all tests pass.
+---
+
+## ✅ Before You Submit
+
+- [ ] `shellcheck -e SC1091,SC2162 antigravity-manager.sh` passes cleanly
+- [ ] `bash -n antigravity-manager.sh` reports no syntax errors
+- [ ] `python3 -m py_compile scrape_latest.py` succeeds
+- [ ] All relevant phase gates pass
+- [ ] If you changed menu options in the script, you updated `docs/index.html` to match
+
+---
+
+## 📐 Style Guide
+
+| File | Rules |
+|---|---|
+| `antigravity-manager.sh` | Double-quote all variables · `curl -fSsL` · `trap` cleanup for temp files |
+| `docs/index.html` | Tailwind CDN (no build step) · Pin CDN versions · `textContent` only (no `innerHTML`) |
+| `scrape_latest.py` | Type hints · Errors to `stderr` · Deps in `requirements.txt` |
+| CI workflows | Pin action versions (`@v4`+) · `#` as `sed` delimiter |
+
+---
+
+## 📚 Key Files
+
+| File | What it does |
+|---|---|
+| [`AGENTS.md`](AGENTS.md) | Full rules and architecture context |
+| [`tests/run_gates.sh`](tests/run_gates.sh) | Automated gate tests for all phases |
+| [`docs/architecture/`](docs/architecture/) | Critique, retort, and implementation plan |
