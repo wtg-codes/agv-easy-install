@@ -34,7 +34,7 @@ graph LR
 
 | Platform | Recommended Method | Fallback |
 |----------|-------------------|----------|
-| macOS | Homebrew | Tarball |
+| macOS | Homebrew | None |
 | Ubuntu/Debian | APT | Tarball |
 | Fedora/RHEL | DNF | Tarball |
 | Other Linux | Tarball | Tarball |
