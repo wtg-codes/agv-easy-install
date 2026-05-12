@@ -66,6 +66,7 @@ The installer detects your OS and package manager, then recommends the best meth
 | **macOS** | Homebrew | — | Tarball is Linux-only; Homebrew required |
 | **Ubuntu / Debian / Mint / Kali** | APT | Tarball | Auto-updates via system repo |
 | **Fedora / RHEL / CentOS / Amazon Linux** | DNF | Tarball | Auto-updates via system repo |
+| **Bluefin / Silverblue / Atomic Linux** | Homebrew | Tarball | Avoids layering system packages |
 | **Other Linux** | Tarball | — | Manual updates only |
 
 <details>

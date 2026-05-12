@@ -254,7 +254,15 @@ detect_platform() {
 
         GLIBC_VERSION=$(ldd --version 2>/dev/null | awk 'NR==1 {print $NF}' || true)
 
-        if [ "$HAS_BREW" = "yes" ]; then RECOMMENDED="1"
+        IS_ATOMIC="no"
+        if [ -d /run/ostree-booted ] || [ "$DISTRO" = "bluefin" ] || [ "$DISTRO" = "bazzite" ]; then
+            IS_ATOMIC="yes"
+            DISTRO_PRETTY="${DISTRO_PRETTY} (Atomic)"
+        fi
+
+        if [ "$IS_ATOMIC" = "yes" ]; then
+            if [ "$HAS_BREW" = "yes" ]; then RECOMMENDED="1"; else RECOMMENDED="3"; fi
+        elif [ "$HAS_BREW" = "yes" ]; then RECOMMENDED="1"
         elif [ "$HAS_APT" = "yes" ] || [ "$HAS_DNF" = "yes" ]; then RECOMMENDED="2"
         else RECOMMENDED="3"; fi
     fi
