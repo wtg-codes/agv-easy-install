@@ -56,7 +56,7 @@ start_sandbox_mode() {
     RECOMMENDED=1
     
     while true; do
-        clear
+        clear || true
         print_banner "[SANDBOX MODE]"
         print_system_info
         echo ""
@@ -95,7 +95,6 @@ case "$ACTION" in
         echo ""
         
         interactive_menu
-        choice=$?
     
         case "$choice" in
             1) install_brew; save_manager_locally ;;
