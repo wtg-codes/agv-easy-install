@@ -35,6 +35,10 @@ jobs:
           LATEST_URL=$(python scrape_latest.py)
           echo "LATEST_URL=$LATEST_URL" >> "$GITHUB_ENV"
           echo "url=$LATEST_URL" >> "$GITHUB_OUTPUT"
+          echo "### 🔍 Scraped URL" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "$LATEST_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Validate URL and Compute SHA-256
         if: "env.LATEST_URL != ''"
@@ -48,6 +52,8 @@ jobs:
           NEW_SHA=$(sha256sum "$TMP_TAR" | awk '{print $1}')
           rm -f "$TMP_TAR"
           echo "NEW_SHA=$NEW_SHA" >> "$GITHUB_ENV"
+          echo "### ✅ Validation" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **SHA-256:** \`$NEW_SHA\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Update antigravity-manager.sh
         if: "env.LATEST_URL != ''"
@@ -58,6 +64,18 @@ jobs:
           sed -i "s#^DOWNLOAD_URL=.*#DOWNLOAD_URL=\"$LATEST_URL\"#" antigravity-manager.sh
           sed -i "s#^KNOWN_SHA256=.*#KNOWN_SHA256=\"$NEW_SHA\"#" antigravity-manager.sh
 
+      - name: Update README.md tarball URL
+        if: "env.LATEST_URL != ''"
+        run: |
+          # Update the curl command in the README (line after TARBALL_URL marker)
+          sed -i "/# TARBALL_URL/{ n; s#curl -fSsL \"[^\"]*\"#curl -fSsL \"$LATEST_URL\"# }" README.md
+
+      - name: Update docs/index.html tarball URL
+        if: "env.LATEST_URL != ''"
+        run: |
+          # Update the download link in the landing page (line after TARBALL_LINK marker)
+          sed -i "/<!-- TARBALL_LINK/{ n; s#href=\"[^\"]*\"#href=\"$LATEST_URL\"# }" docs/index.html
+
       - name: Lint script
         if: "env.LATEST_URL != ''"
         run: shellcheck -e SC1091,SC2162 antigravity-manager.sh
@@ -67,11 +85,16 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add antigravity-manager.sh
+          git add antigravity-manager.sh README.md docs/index.html
           if ! git diff --cached --quiet; then
             git commit -m "chore: nightly update of Antigravity download URL
 
           From: $OLD_URL
           To:   $LATEST_URL"
             git push
+            echo "### 📦 Commit pushed" >> "$GITHUB_STEP_SUMMARY"
+            echo "Updated script, README, and landing page." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### ℹ️ No changes" >> "$GITHUB_STEP_SUMMARY"
+            echo "URL has not changed since last run." >> "$GITHUB_STEP_SUMMARY"
           fi

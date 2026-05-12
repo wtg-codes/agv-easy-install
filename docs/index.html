@@ -258,10 +258,15 @@
                 <i data-lucide="download" class="w-6 h-6 text-indigo-400 mt-1 shrink-0"></i>
                 <div>
                     <h3 class="font-bold text-white mb-1">Need the tarball directly?</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        If the installer doesn't support your distro, you can download the tarball manually from the
-                        <a href="https://antigravity.google/download/linux" target="_blank" class="text-indigo-400 hover:text-indigo-300 underline">official download page</a> — scroll to the bottom and click <strong>"here"</strong>.
+                    <p class="text-slate-400 text-sm leading-relaxed mb-2">
+                        If the installer doesn't support your distro, download the tarball manually:
                     </p>
+                    <!-- TARBALL_LINK — kept in sync by the nightly CI workflow -->
+                    <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Download Antigravity.tar.gz
+                    </a>
+                    <p class="text-slate-500 text-xs mt-2 italic">This link is updated nightly by CI.</p>
                 </div>
             </div>
 
