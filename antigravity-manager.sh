@@ -560,22 +560,44 @@ do_remove() {
 
 render_menu() {
     local selected=$1
-    echo -e "${C_BOLD}Select an install method${C_RESET} ${C_GREEN}(★ = recommended)${C_RESET}"
+    echo -e "${C_BOLD}Select an install method${C_RESET} ${C_DIM}(★ = recommended)${C_RESET}"
+    
     local options=(
-        "Homebrew      $([ "$RECOMMENDED" = "1" ] && echo -e "${C_GREEN}★  ${C_RESET}")cross-platform, no sudo"
-        "System Repo   $([ "$RECOMMENDED" = "2" ] && echo -e "${C_GREEN}★  ${C_RESET}")APT/DNF, auto-updates, needs sudo"
-        "Tarball       $([ "$RECOMMENDED" = "3" ] && echo -e "${C_GREEN}★  ${C_RESET}")manual, installs to ~/.local"
-        "Save manager  add 'antigravity-manager' command"
-        "Uninstall     remove Antigravity"
-        "Remove mgr    remove this script"
-        "Cancel"
+        "Homebrew"          "cross-platform, no sudo"           "1"
+        "System Repo"       "APT/DNF, auto-updates, needs sudo" "2"
+        "Tarball"           "manual, installs to ~/.local"      "3"
+        "Save manager"      "add 'antigravity-manager' command" "0"
+        "Uninstall"         "remove Antigravity"                "0"
+        "Remove mgr"        "remove this script"                "0"
+        "Cancel"            "exit without changes"              "0"
     )
-    for i in "${!options[@]}"; do
-        if [ "$i" -eq "$selected" ]; then
-            echo -e "  ${C_CYAN}❯ ${C_BOLD}${options[$i]}${C_RESET}"
-        else
-            echo -e "    ${options[$i]}"
+    
+    for (( i=0; i<7; i++ )); do
+        local title="${options[$((i*3))]}"
+        local desc="${options[$((i*3+1))]}"
+        local rec="${options[$((i*3+2))]}"
+        
+        local prefix="  "
+        local title_color="${C_RESET}"
+        local desc_color="${C_DIM}"
+        local star=" "
+        
+        if [ "$rec" != "0" ] && [ "$rec" = "$RECOMMENDED" ]; then
+            star="${C_GREEN}★${C_RESET}"
         fi
+        
+        if [ "$i" -eq "$selected" ]; then
+            prefix="${C_CYAN}❯ ${C_RESET}"
+            title_color="${C_CYAN}${C_BOLD}"
+            desc_color="${C_CYAN}"
+        else
+            prefix="  "
+        fi
+        
+        local padded_title="$title"
+        while [ ${#padded_title} -lt 14 ]; do padded_title="$padded_title "; done
+        
+        echo -e "${prefix}${title_color}${padded_title}${C_RESET} ${star} ${desc_color}${desc}${C_RESET}"
     done
     echo -e "\n${C_DIM}(Use up/down arrows to move [1-7], Enter to select)${C_RESET}"
 }
