@@ -47,6 +47,29 @@ fi
 check_dependencies
 detect_platform
 
+start_sandbox_mode() {
+    export MOCK_MODE=1
+    DISTRO_PRETTY="Bluefin (Mock Sandbox)"
+    ARCH="x86_64"
+    GLIBC_VERSION="2.42"
+    PKGS="brew dnf "
+    RECOMMENDED=1
+    
+    while true; do
+        clear
+        print_banner "[SANDBOX MODE]"
+        print_system_info
+        echo ""
+        interactive_menu
+        
+        case "$choice" in
+            8) echo "Exiting Sandbox Mode."; trap - EXIT INT TERM; exit 0 ;;
+            7) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
+            *) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
+        esac
+    done
+}
+
 case "$ACTION" in
     remove) do_remove ;;
     auto)
@@ -59,12 +82,7 @@ case "$ACTION" in
     repo) install_repo; save_manager_locally ;;
     tarball) do_install_tarball; save_manager_locally ;;
     demo_ui)
-        print_banner "[DEMO MODE]"
-        print_system_info
-        echo ""
-        interactive_menu
-        echo ""
-        run_demo_spinners
+        start_sandbox_mode
         ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then
@@ -86,7 +104,7 @@ case "$ACTION" in
             4) save_manager_locally ;;
             5) do_remove ;;
             6) remove_manager_script ;;
-            7) echo ""; run_demo_spinners ;;
+            7) echo ""; start_sandbox_mode ;;
             8) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
         esac
         ;;
