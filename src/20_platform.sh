@@ -28,8 +28,16 @@ inject_path() {
         log_info "✅ Added ~/.local/bin to $shell_rc automatically."
     else
         log_warn "$BIN_DIR is not in your PATH."
-        echo -ne "${C_YELLOW}Would you like to automatically add it to $shell_rc? [Y/n]: ${C_RESET}"
-        read -r add_path < /dev/tty
+        if command -v gum >/dev/null 2>&1; then
+            if gum confirm "Would you like to automatically add it to $shell_rc?"; then
+                add_path="y"
+            else
+                add_path="n"
+            fi
+        else
+            echo -ne "${C_YELLOW}Would you like to automatically add it to $shell_rc? [Y/n]: ${C_RESET}"
+            read -r add_path < /dev/tty
+        fi
         case "$add_path" in
             [nN]*) log_info "Skipping PATH injection. Please add it manually." ;;
             *)
@@ -84,8 +92,17 @@ configure_chrome_path() {
         else
             log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
             log_info "We found a valid Chrome binary at: ${C_BOLD}$chrome_path${C_RESET}"
-            echo -ne "${C_YELLOW}Would you like to automatically configure Antigravity to use this browser? [Y/n]: ${C_RESET}"
-            read -r set_chrome < /dev/tty
+            
+            if command -v gum >/dev/null 2>&1; then
+                if gum confirm "Would you like to automatically configure Antigravity to use this browser?"; then
+                    set_chrome="y"
+                else
+                    set_chrome="n"
+                fi
+            else
+                echo -ne "${C_YELLOW}Would you like to automatically configure Antigravity to use this browser? [Y/n]: ${C_RESET}"
+                read -r set_chrome < /dev/tty
+            fi
             case "$set_chrome" in
                 [nN]*) log_info "Skipping Chrome configuration." ;;
                 *) do_inject=1 ;;
@@ -215,8 +232,16 @@ print_system_info() {
 
 print_banner() {
     local mode="$1"
-    echo -e "
-  🚀 ${C_BLUE}${C_BOLD}A${C_RED}n${C_YELLOW}t${C_BLUE}i${C_GREEN}G${C_RED}r${C_BLUE}a${C_RED}v${C_YELLOW}i${C_BLUE}t${C_GREEN}y${C_RESET} ${C_BOLD}Setup v${SCRIPT_VERSION}${C_RESET} ${mode}"
-    echo -e "  ${C_DIM}──────────────────────────────────────────────────${C_RESET}"
+    echo ""
+    cat << 'BANNER_EOF'
+    [0;34m    _    [0;31m     _ [1;33m  _  [0;34m___[0;32m       [0;31m      [0;34m    _ _[0;31m      [1;33m   [0;34m    [0;32m       [0m
+    [0;34m   / \   [0;31m_ __| |[1;33m_(_)/[0;34m __[0;32m|_ __ _[0;31m_ ___ [0;34m  _(_) [0;31m|_ _  [1;33m _ [0;34m    [0;32m       [0m
+    [0;34m  / _ \ |[0;31m '_ \ _[1;33m_| | [0;34m|  [0;32m_| '__/[0;31m _` \ [0;34m\ / / |[0;31m __| |[1;33m | [0;34m|   [0;32m       [0m
+    [0;34m / ___ \|[0;31m | | | [1;33m|_| |[0;34m |_[0;32m| | | |[0;31m (_| |[0;34m\ V /| [0;31m| |_| [1;33m|_|[0;34m |  [0;32m       [0m
+    [0;34m/_/   \_\[0;31m_| |_|\[1;33m__|_|[0;34m\__[0;32m__|_|  [0;31m\__,_|[0;34m \_/ |_[0;31m|\__|\[1;33m__,[0;34m |  [0;32m       [0m
+    [0;34m         [0;31m       [1;33m     [0;34m   [0;32m       [0;31m      [0;34m       [0;31m     |[1;33m___[0;34m/   [0;32m       [0m
+BANNER_EOF
+    echo -e "      ${C_BOLD}Google Antigravity Setup v${SCRIPT_VERSION}${C_RESET} ${mode}"
+    echo -e "      ${C_DIM}──────────────────────────────────────────────────${C_RESET}"
 }
 
