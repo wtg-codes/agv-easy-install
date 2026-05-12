@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# =============================================================================
+# Google Antigravity Setup Script
+# WARNING: This file is auto-generated. Do not edit directly.
+# Edit the files in the src/ directory and run ./build.sh instead.
+# =============================================================================
 set -e
 
 # Colors for a cooler terminal output
