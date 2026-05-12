@@ -47,15 +47,33 @@ interactive_menu() {
 
 
 run_demo_spinners() {
-    run_cmd_ui "Faking installation via choice $choice..." sleep 2
-    run_cmd_ui "Configuring Chrome path..." sleep 1
+    log_info "${C_MAG}🚀 Starting mock installation...${C_RESET}"
+    run_cmd_ui "Downloading Antigravity payload..." sleep 1.5
+    run_cmd_ui "Extracting binaries..." sleep 1
     echo ""
+    log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
+    log_info "We found a valid Chrome binary at: ${C_BOLD}/usr/bin/google-chrome${C_RESET}"
+    
     if command -v gum >/dev/null 2>&1; then
-        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Demo Complete!
+        gum confirm "Would you like to automatically configure Antigravity to use this browser?" || true
+        echo ""
+        log_warn "~/.local/bin is not in your PATH."
+        gum confirm "Would you like to automatically add it to ~/.bashrc?" || true
+        echo ""
+        run_cmd_ui "Applying configuration..." sleep 1
+        echo ""
+        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Mock Installation Complete!
 Launch: antigravity
 Workspace: $WORKSPACE_DIR"
     else
-        log_info "${C_GREEN}${C_BOLD}🎉 Demo Complete!${C_RESET}"
+        echo -ne "${C_YELLOW}Would you like to automatically configure Antigravity to use this browser? [Y/n]: ${C_RESET}"
+        read -r _ < /dev/tty || true
+        echo ""
+        log_warn "~/.local/bin is not in your PATH."
+        echo -ne "${C_YELLOW}Would you like to automatically add it to ~/.bashrc? [Y/n]: ${C_RESET}"
+        read -r _ < /dev/tty || true
+        echo ""
+        log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"
         log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
         log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
     fi
