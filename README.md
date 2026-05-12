@@ -42,9 +42,10 @@ graph LR
 ### Manual Tarball Download
 If you prefer to download the tarball directly without using the installer:
 ```bash
-curl -fSsL "https://antigravity.google/download/linux" -o Antigravity.tar.gz
+# TARBALL_URL — kept in sync by the nightly CI workflow
+curl -fSsL "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz" -o Antigravity.tar.gz
 ```
-Or grab it from the [official download page](https://antigravity.google/download/linux) — scroll to the bottom and click **"here"** under _"You can download the source tarball"_.
+> **Note:** This URL is updated nightly by CI. If the download fails, run the installer script instead — it always has the latest link.
 
 ## 🛠️ Troubleshooting
 If you encounter `curl: (23) Failed writing body`, it usually means you need to update `curl` or try downloading the file manually.
