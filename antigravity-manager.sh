@@ -374,14 +374,30 @@ detect_platform() {
 
 print_system_info() {
     local PKGS=""
-    [ "$HAS_BREW" = "yes" ] && PKGS="${PKGS}brew "
-    [ "$HAS_APT" = "yes" ]  && PKGS="${PKGS}apt "
-    [ "$HAS_DNF" = "yes" ]  && PKGS="${PKGS}dnf "
+    [ "$HAS_BREW" = "yes" ] && PKGS="${PKGS}Homebrew, "
+    [ "$HAS_APT" = "yes" ]  && PKGS="${PKGS}APT, "
+    [ "$HAS_DNF" = "yes" ]  && PKGS="${PKGS}DNF, "
+    PKGS="${PKGS%, }"
+    
     local PKG_DISPLAY
-    if [ -z "$PKGS" ]; then PKG_DISPLAY="${C_YELLOW}none${C_RESET}"; else PKG_DISPLAY="${C_GREEN}${PKGS}${C_RESET}"; fi
+    if [ -z "$PKGS" ]; then PKG_DISPLAY="${C_YELLOW}None Found${C_RESET}"; else PKG_DISPLAY="${C_GREEN}${PKGS}${C_RESET}"; fi
+
+    local AGV_STATUS="${C_YELLOW}Not Installed${C_RESET}"
+    if command -v antigravity >/dev/null 2>&1; then
+        local p
+        p=$(command -v antigravity)
+        if [[ "$p" == *".local/bin"* ]]; then AGV_STATUS="${C_GREEN}Installed (Tarball)${C_RESET}"
+        elif [[ "$p" == *"brew"* ]]; then AGV_STATUS="${C_GREEN}Installed (Homebrew)${C_RESET}"
+        elif [[ "$p" == "/usr/bin/"* ]]; then AGV_STATUS="${C_GREEN}Installed (System Repo)${C_RESET}"
+        else AGV_STATUS="${C_GREEN}Installed ($p)${C_RESET}"; fi
+    elif [ -f "$HOME/.local/bin/antigravity" ]; then
+        AGV_STATUS="${C_GREEN}Installed (Tarball - Not in PATH)${C_RESET}"
+    fi
 
     log_info "  ${C_CYAN}OS:${C_RESET}   ${C_BOLD}${DISTRO_PRETTY}${C_RESET}"
-    log_info "  ${C_CYAN}SYS:${C_RESET}  ${ARCH}$([ -n "$GLIBC_VERSION" ] && echo " · glibc ${GLIBC_VERSION}") · pkg: ${PKG_DISPLAY}"
+    log_info "  ${C_CYAN}SYS:${C_RESET}  ${ARCH}$([ -n "$GLIBC_VERSION" ] && echo " · glibc ${GLIBC_VERSION}")"
+    log_info "  ${C_CYAN}PKG:${C_RESET}  ${PKG_DISPLAY}"
+    log_info "  ${C_CYAN}AGV:${C_RESET}  ${AGV_STATUS}"
 
     if [ -n "$GLIBC_VERSION" ]; then
         local MAJOR MINOR
