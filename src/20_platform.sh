@@ -226,15 +226,14 @@ print_system_info() {
     # --- Build recommendation label ---
     local REC_LABEL=""
     case "$RECOMMENDED" in
-        1) REC_LABEL="${C_GREEN}★ Homebrew${C_RESET} ${C_DIM}— recommended for this system${C_RESET}" ;;
-        2) REC_LABEL="${C_GREEN}★ System Repo${C_RESET} ${C_DIM}— recommended for this system${C_RESET}" ;;
-        3) REC_LABEL="${C_GREEN}★ Tarball${C_RESET} ${C_DIM}— recommended for this system${C_RESET}" ;;
+        1) REC_LABEL="${C_GREEN}★ Homebrew${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
+        2) REC_LABEL="${C_GREEN}★ System Repo${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
+        3) REC_LABEL="${C_GREEN}★ Tarball${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
     esac
 
-    # --- Print dashboard ---
-    log_info "  ${C_CYAN}OS:${C_RESET}    ${C_BOLD}${DISTRO_PRETTY}${C_RESET} ${C_DIM}(${ARCH})${C_RESET}"
-    log_info "  ${C_CYAN}AGV:${C_RESET}   ${AGV_STATUS}"
-    log_info "  ${C_CYAN}Best:${C_RESET}  ${REC_LABEL}"
+    # --- Print dashboard (2 lines) ---
+    log_info "  ${C_BOLD}${DISTRO_PRETTY}${C_RESET} ${C_DIM}(${ARCH})${C_RESET}  ·  ${C_CYAN}AGV:${C_RESET} ${AGV_STATUS}"
+    log_info "  ${C_CYAN}Recommended:${C_RESET} ${REC_LABEL}"
 
     # --- Warnings (only shown when relevant) ---
     if [ -n "$GLIBC_VERSION" ]; then
@@ -249,7 +248,11 @@ print_system_info() {
 
 print_banner() {
     local mode="$1"
+    local rows
+    rows=$(tput lines 2>/dev/null || echo 24)
+
     echo ""
+    if [ "$rows" -ge 30 ]; then
     cat << 'BANNER_EOF'
     [0;34m    _    [0;31m     _ [1;33m  _  [0;34m___[0;32m       [0;31m      [0;34m    _ _[0;31m      [1;33m   [0;34m    [0;32m       [0m
     [0;34m   / \   [0;31m_ __| |[1;33m_(_)/[0;34m __[0;32m|_ __ _[0;31m_ ___ [0;34m  _(_) [0;31m|_ _  [1;33m _ [0;34m    [0;32m       [0m
@@ -258,9 +261,13 @@ print_banner() {
     [0;34m/_/   \_\[0;31m_| |_|\[1;33m__|_|[0;34m\__[0;32m__|_|  [0;31m\__,_|[0;34m \_/ |_[0;31m|\__|\[1;33m__,[0;34m |  [0;32m       [0m
     [0;34m         [0;31m       [1;33m     [0;34m   [0;32m       [0;31m      [0;34m       [0;31m     |[1;33m___[0;34m/   [0;32m       [0m
 BANNER_EOF
-    echo -e "      ${C_BOLD}AGV Easy Install v${SCRIPT_VERSION}${C_RESET} ${mode}"
-    echo -e "      ${C_DIM}Unofficial Google Antigravity setup by wtg-codes${C_RESET}"
-    echo -e "      ${C_CYAN}https://github.com/wtg-codes/agv-easy-install${C_RESET}"
-    echo -e "      ${C_DIM}──────────────────────────────────────────────────${C_RESET}"
+        echo -e "      ${C_BOLD}AGV Easy Install v${SCRIPT_VERSION}${C_RESET} ${mode}"
+        echo -e "      ${C_DIM}Unofficial Antigravity setup · wtg-codes · github.com/wtg-codes/agv-easy-install${C_RESET}"
+    else
+        # Compact banner for standard 80x24 terminals
+        echo -e "  ${C_BLUE}${C_BOLD}A${C_RED}n${C_YELLOW}t${C_BLUE}i${C_GREEN}G${C_RED}r${C_BLUE}a${C_RED}v${C_YELLOW}i${C_BLUE}t${C_GREEN}y${C_RESET}  ${C_BOLD}AGV Easy Install v${SCRIPT_VERSION}${C_RESET} ${mode}"
+        echo -e "  ${C_DIM}Unofficial Antigravity setup · wtg-codes · github.com/wtg-codes/agv-easy-install${C_RESET}"
+    fi
+    echo -e "  ${C_DIM}──────────────────────────────────────────────────────────────────────────${C_RESET}"
 }
 
