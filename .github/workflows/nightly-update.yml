@@ -49,15 +49,31 @@ jobs:
           python update_config.py versions.json src/00_config.sh
           ./build.sh
           
-          # Extract the new Linux URL for README patching
-          LATEST_URL=$(grep -oP '^LINUX_X64_URL="\K[^"]+' src/00_config.sh)
-          echo "LATEST_URL=$LATEST_URL" >> "$GITHUB_ENV"
+          # Extract URLs for patching
+          LINUX_X64_URL=$(grep -oP '^LINUX_X64_URL="\K[^"]+' src/00_config.sh)
+          MAC_ARM64_URL=$(grep -oP '^MAC_ARM64_URL="\K[^"]+' src/00_config.sh)
+          MAC_X64_URL=$(grep -oP '^MAC_X64_URL="\K[^"]+' src/00_config.sh)
+          WIN_X64_URL=$(grep -oP '^WIN_X64_URL="\K[^"]+' src/00_config.sh)
+          WIN_ARM64_URL=$(grep -oP '^WIN_ARM64_URL="\K[^"]+' src/00_config.sh)
           
-          # Update the README curl command
-          sed -i "/# TARBALL_URL/{ n; s#curl -fSsL \"[^\"]*\"#curl -fSsL \"$LATEST_URL\"# }" README.md
+          # Set LATEST_URL for legacy steps and commit message
+          echo "LATEST_URL=$LINUX_X64_URL" >> "$GITHUB_ENV"
           
-          # Update the docs/index.html download link
-          sed -i "/<!-- TARBALL_LINK/{ n; s#href=\"[^\"]*\"#href=\"$LATEST_URL\"# }" docs/index.html
+          # Update the README curl command (uses LINUX_X64_URL)
+          sed -i "/# TARBALL_URL/{ n; s#curl -fSsL \"[^\"]*\"#curl -fSsL \"$LINUX_X64_URL\"# }" README.md
+          
+          # Update README binary links
+          sed -i "s#- \*\*Linux (x64)\*\*: \[Antigravity.tar.gz\]([^)]*)#- **Linux (x64)**: [Antigravity.tar.gz]($LINUX_X64_URL)#" README.md
+          sed -i "s#- \*\*macOS (Apple Silicon)\*\*: \[Antigravity.dmg (arm64)\]([^)]*)#- **macOS (Apple Silicon)**: [Antigravity.dmg (arm64)]($MAC_ARM64_URL)#" README.md
+          sed -i "s#- \*\*macOS (Intel)\*\*: \[Antigravity.dmg (x64)\]([^)]*)#- **macOS (Intel)**: [Antigravity.dmg (x64)]($MAC_X64_URL)#" README.md
+          sed -i "s#- \*\*Windows (x64)\*\*: \[Antigravity.exe\]([^)]*)#- **Windows (x64)**: [Antigravity.exe]($WIN_X64_URL)#" README.md
+          sed -i "s#- \*\*Windows (ARM64)\*\*: \[Antigravity.exe\]([^)]*)#- **Windows (ARM64)**: [Antigravity.exe]($WIN_ARM64_URL)#" README.md
+          
+          # Update the docs/index.html download links
+          sed -i "/<!-- TARBALL_LINK_LINUX/{ n; s#href=\"[^\"]*\"#href=\"$LINUX_X64_URL\"# }" docs/index.html
+          sed -i "/<!-- TARBALL_LINK_MAC_ARM/{ n; s#href=\"[^\"]*\"#href=\"$MAC_ARM64_URL\"# }" docs/index.html
+          sed -i "/<!-- TARBALL_LINK_MAC_X64/{ n; s#href=\"[^\"]*\"#href=\"$MAC_X64_URL\"# }" docs/index.html
+          sed -i "/<!-- TARBALL_LINK_WIN/{ n; s#href=\"[^\"]*\"#href=\"$WIN_X64_URL\"# }" docs/index.html
 
       - name: Lint script
         run: shellcheck -e SC1091,SC2162 antigravity-manager.sh
