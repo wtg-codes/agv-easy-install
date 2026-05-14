@@ -147,6 +147,7 @@ start_sandbox_mode() {
 
 # ── Interactive flow (normal mode) ──────────────────────────────
 run_interactive() {
+    clear || true
     print_banner ""
     print_system_info
     main_menu

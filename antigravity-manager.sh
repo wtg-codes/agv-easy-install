@@ -810,7 +810,7 @@ main_menu() {
     )
     # Main menu has 3 options [1-3]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum filter --height=10 --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
+        CHOICE=$(gum filter --height=5 --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
@@ -1185,6 +1185,7 @@ start_sandbox_mode() {
 
 # ── Interactive flow (normal mode) ──────────────────────────────
 run_interactive() {
+    clear || true
     print_banner ""
     print_system_info
     main_menu
