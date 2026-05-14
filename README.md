@@ -4,12 +4,14 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"></a>
 </p>
 
-# 🚀 Google Antigravity — Easy Install
+# 🚀 AGV Easy Install
 
-> **One command. Any shell. We get you coding.**
+> **Unofficial Google Antigravity setup by [wtg-codes](https://github.com/wtg-codes).**
+> One command. Any shell. We get you coding.
 
-A cross-platform installer toolkit for [Google Antigravity](https://antigravity.google).
-Paste the command, pick an option, and you're up and running.
+<p align="center">
+  <img src="docs/images/main_menu.png" alt="AGV Easy Install — Main Menu" width="680">
+</p>
 
 ---
 
@@ -42,7 +44,32 @@ bash antigravity-manager.sh --verbose  # Print detailed logs
 bash antigravity-manager.sh --quiet    # Suppress non-error output
 bash antigravity-manager.sh --remove   # Uninstall
 bash antigravity-manager.sh --json     # Output single JSON object on completion
+bash antigravity-manager.sh --demo-ui  # Sandbox mode — test the UI without installing
 ```
+
+---
+
+## 🖥️ What You'll See
+
+The installer uses a hierarchical menu system — pick a category, then choose your method.
+
+**1. Choose your install method →** The ★ marks the recommended option for your system.
+
+<p align="center">
+  <img src="docs/images/install_submenu.png" alt="Install method sub-menu" width="680">
+</p>
+
+**2. Cleanup options →** Uninstall, manage the script, or try Demo UI mode.
+
+<p align="center">
+  <img src="docs/images/cleanup_submenu.png" alt="Cleanup sub-menu" width="680">
+</p>
+
+**3. Demo UI (sandbox mode)** — Test the full installation experience without changing your system.
+
+<p align="center">
+  <img src="docs/images/mock_install.png" alt="Demo UI mock install flow" width="680">
+</p>
 
 ---
 

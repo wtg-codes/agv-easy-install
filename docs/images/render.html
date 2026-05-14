@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<title>AGV Easy Install — Screenshot Source</title>
+<style>
+/* This page exists solely to generate docs/images/*.png via capture.py.
+   Do not link to it from the site — it is a build tool. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #1a1a2e; display: flex; flex-direction: column; align-items: center; padding: 40px; gap: 60px; font-family: system-ui; }
+.terminal {
+  background: #0d1117;
+  border-radius: 12px;
+  width: 720px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.titlebar {
+  background: #161b22;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot.r { background: #ff5f57; }
+.dot.y { background: #febc2e; }
+.dot.g { background: #28c840; }
+.titlebar span { color: #8b949e; font-size: 13px; margin-left: 8px; }
+.content {
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #c9d1d9;
+  white-space: pre;
+}
+.blue { color: #58a6ff; }
+.red { color: #f85149; }
+.yellow { color: #d29922; }
+.green { color: #3fb950; }
+.cyan { color: #39d2e0; }
+.magenta { color: #bc8cff; }
+.dim { color: #6e7681; }
+.bold { font-weight: bold; color: #e6edf3; }
+.cursor { color: #3fb950; font-weight: bold; }
+</style>
+</head><body>
+
+<!-- SHOT 1: Main Menu -->
+<div id="shot1" class="terminal">
+<div class="titlebar">
+  <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+  <span>antigravity-manager.sh</span>
+</div>
+<div class="content">
+<span class="blue">    _    </span><span class="red">     _ </span><span class="yellow">  _  </span><span class="blue">___</span><span class="green">       </span><span class="red">      </span><span class="blue">    _ _</span><span class="red">      </span><span class="yellow">   </span><span class="blue">    </span>
+<span class="blue">   / \   </span><span class="red">_ __| |</span><span class="yellow">_(_)/</span><span class="blue"> __</span><span class="green">|_ __ _</span><span class="red">_ ___ </span><span class="blue">  _(_) </span><span class="red">|_ _  </span><span class="yellow"> _ </span><span class="blue">    </span>
+<span class="blue">  / _ \ |</span><span class="red"> '_ \ _</span><span class="yellow">_| | </span><span class="blue">|  </span><span class="green">_| '__/</span><span class="red"> _` \ </span><span class="blue">\ / / |</span><span class="red"> __| |</span><span class="yellow"> | </span><span class="blue">|   </span>
+<span class="blue"> / ___ \|</span><span class="red"> | | | </span><span class="yellow">|_| |</span><span class="blue"> |_</span><span class="green">| | | |</span><span class="red"> (_| |</span><span class="blue">\ V /| </span><span class="red">| |_| </span><span class="yellow">|_|</span><span class="blue"> |  </span>
+<span class="blue">/_/   \_\</span><span class="red">_| |_|\</span><span class="yellow">__|_|</span><span class="blue">\__</span><span class="green">__|_|  </span><span class="red">\__,_|</span><span class="blue"> \_/ |_</span><span class="red">|\__|\</span><span class="yellow">__,</span><span class="blue"> |  </span>
+<span class="blue">         </span><span class="red">       </span><span class="yellow">     </span><span class="blue">   </span><span class="green">       </span><span class="red">      </span><span class="blue">       </span><span class="red">     |</span><span class="yellow">___</span><span class="blue">/   </span>
+      <span class="bold">AGV Easy Install v1.2.0</span>
+      <span class="dim">github.com/wtg-codes/agv-easy-install</span>
+      <span class="dim">──────────────────────────────────────────────────</span>
+  <span class="cyan">OS:</span>   <span class="bold">Bluefin (Version: 43.20260505) (Atomic)</span> <span class="dim">(x86_64)</span>
+  <span class="cyan">AGV:</span>  <span class="green">✓ Installed</span> <span class="dim">(Tarball)</span>
+  <span class="cyan">Best:</span> <span class="green">★ Homebrew</span> <span class="dim">(best for this system)</span>
+
+<span class="green">Choose:</span>
+<span class="cursor">❯ Cancel</span>
+  Choose Antigravity install method  →
+  Antigravity cleanup options  →
+</div>
+</div>
+
+<!-- SHOT 2: Install Sub-Menu -->
+<div id="shot2" class="terminal">
+<div class="titlebar">
+  <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+  <span>Choose install method</span>
+</div>
+<div class="content">
+<span class="green">Choose:</span>
+<span class="cursor">❯ Back</span>
+  <span class="green">★</span> Homebrew (cross-platform, no sudo)
+  System Repo (APT/DNF, needs sudo)
+  Tarball (manual, installs to ~/.local)
+
+<span class="dim">←↓↑→ navigate • enter submit</span>
+</div>
+</div>
+
+<!-- SHOT 3: Cleanup Sub-Menu -->
+<div id="shot3" class="terminal">
+<div class="titlebar">
+  <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+  <span>Cleanup options</span>
+</div>
+<div class="content">
+<span class="green">Choose:</span>
+<span class="cursor">❯ Back</span>
+  Uninstall Antigravity
+  Save manager (add 'antigravity-manager' command)
+  Remove manager (delete this script)
+  Demo UI (sandbox mode)
+
+<span class="dim">←↓↑→ navigate • enter submit</span>
+</div>
+</div>
+
+<!-- SHOT 4: Mock Install Flow -->
+<div id="shot4" class="terminal">
+<div class="titlebar">
+  <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+  <span>Demo UI — mock install</span>
+</div>
+<div class="content">
+<span class="magenta">🚀 Starting mock installation via Homebrew...</span>
+  <span class="green">⠋</span> Downloading Antigravity payload...
+  <span class="green">✓</span> Extracting binaries...
+
+<span class="yellow">⚠ Antigravity occasionally fails to find Chrome when installed via Brew or Tarball.</span>
+  We found a valid Chrome binary at: <span class="bold">/usr/bin/google-chrome</span>
+
+  <span class="bold">Would you like to automatically configure</span>
+  <span class="bold">Antigravity to use this browser?</span>
+
+        <span class="bold">Yes</span>   No
+
+  <span class="green">✓</span> Applying configuration...
+
+╔══════════════════════════════════════╗
+║  🎉 Mock Installation Complete!      ║
+║  Launch: antigravity                 ║
+║  Workspace: ~/antigravity-workspace  ║
+╚══════════════════════════════════════╝
+
+<span class="dim">Press Enter to continue...</span>
+</div>
+</div>
+
+</body></html>
