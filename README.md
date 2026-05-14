@@ -37,11 +37,13 @@ curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/an
 # Or force a specific method
 bash antigravity-manager.sh --install-brew
 bash antigravity-manager.sh --install-repo
-bash antigravity-manager.sh --install-tarball
+bash antigravity-manager.sh --install-binary
 
 # Additional options
 bash antigravity-manager.sh --verbose  # Print detailed logs
 bash antigravity-manager.sh --quiet    # Suppress non-error output
+bash antigravity-manager.sh --check    # Verify existing installation health
+bash antigravity-manager.sh --update   # Force update of this manager script
 bash antigravity-manager.sh --remove   # Uninstall
 bash antigravity-manager.sh --json     # Output single JSON object on completion
 bash antigravity-manager.sh --demo-ui  # Sandbox mode — test the UI without installing
@@ -80,7 +82,7 @@ graph LR
     A["🖥️ User Terminal"] -->|"curl \| bash"| B("antigravity-manager.sh")
     B -->|"Option 1"| C["🍺 Homebrew"]
     B -->|"Option 2"| D["📦 APT / DNF"]
-    B -->|"Option 3"| E["📁 Standalone Tarball"]
+    B -->|"Option 3"| E["📁 Official Binary (.tar.gz, .dmg, .exe)"]
 ```
 
 The installer detects your OS and package manager, then recommends the best method automatically.
@@ -89,21 +91,20 @@ The installer detects your OS and package manager, then recommends the best meth
 
 ## 💻 Supported Platforms
 
-| Platform | Status | Method | Notes |
-|---|---|---|---|
-| **Ubuntu / Debian / Mint / Kali** | ✅ Tested | APT or Tarball | Primary development target |
-| **Fedora / RHEL / CentOS** | ✅ Tested | DNF or Tarball | Auto-updates via system repo |
-| **Bluefin / Silverblue / Atomic Linux** | ✅ Tested | Homebrew or Tarball | Avoids layering; primary dev machine |
-| **macOS** | ⚠️ Beta | Homebrew | Script runs but not fully validated — see [Roadmap](#-roadmap) |
-| **Crostini (ChromeOS)** | ⚠️ Beta | APT / Tarball | Debian container; Chrome host detection |
-| **Windows (WSL)** | ⚠️ Beta | Tarball / APT | WSL2 Ubuntu; GUI shortcuts skipped |
-| **Windows (Git Bash)** | ❌ Blocked | — | Redirects user to WSL2 |
+We support **Linux (APT/DNF/Atomic)**, **macOS (Homebrew/DMG)**, and **Windows (WSL2/Native)**.
+The script automatically detects your environment and recommends the best installation path.
+
+For detailed platform-specific architecture, see our documentation:
+- [Linux Support Notes](docs/architecture/platform-linux.md)
+- [macOS Support Notes (Beta)](docs/architecture/platform-macos.md)
+- [Windows & WSL2 Notes (Beta)](docs/architecture/platform-windows.md)
+- [ChromeOS Crostini Notes (Beta)](docs/architecture/platform-crostini.md)
 
 <details>
-<summary>📥 Manual tarball download (Linux only)</summary>
+<summary>📥 Manual binary download (Linux only)</summary>
 
 ```bash
-# This URL is updated nightly by CI
+# TARBALL_URL
 curl -fSsL "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz" \
   -o Antigravity.tar.gz
 ```
@@ -114,73 +115,33 @@ curl -fSsL "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/
 
 ---
 
-## 📁 Install Locations (Tarball)
+## 📁 Install Locations (Official Binary)
 
 | Item | Path |
 |---|---|
-| Application | `~/.local/lib/antigravity` |
+| Application | `~/.local/lib/antigravity` (Linux) / `/Applications` (macOS) |
 | Binary | `~/.local/bin/antigravity` |
 | Manager | `~/.local/bin/antigravity-manager` |
 | Workspace | `~/my-antigravity-work` |
 
 ---
 
-## 🛠️ Troubleshooting
+## 🛠️ Troubleshooting & Architecture
 
-| Problem | Fix |
-|---|---|
-| `curl: (23) Failed writing body` | Update `curl`, or download the tarball manually |
-| `antigravity: command not found` | Close and reopen your terminal, or run `source ~/.bashrc` (Linux) / `source ~/.zprofile` (macOS) |
-| Homebrew formula not found | Run the installer and choose Tarball instead |
-| macOS: `gum` fails to download | Ensure `curl` works and you have internet. The script falls back to a plain text menu. |
-| macOS: `.desktop` file error | Expected — `.desktop` files are Linux-only. The script should skip this on macOS. File an issue if it doesn't. |
+Having issues? Curious how the installer works under the hood?
 
----
+- **[Implementation Plan & Architecture](docs/architecture/implementation_plan.md)**
+- **[Homebrew Install Details](docs/architecture/install-homebrew.md)**
+- **[System Repo Install Details](docs/architecture/install-repo.md)**
+- **[Official Binary Install Details](docs/architecture/install-tarball.md)**
 
-## 🗺️ Roadmap
-
-> **Philosophy:** If you can get to a shell and paste a command, we help you install.
-> The bash script **is** the cross-platform tool — each new OS adds a detection path.
-
-### ✅ Done
-
-| Feature | Notes |
-|---|---|
-| Linux APT / DNF install | Ubuntu, Debian, Fedora, RHEL |
-| Standalone tarball install | Any Linux with glibc ≥ 2.28 |
-| Homebrew install path | Linux + macOS (code exists) |
-| SHA-256 integrity checks | Verifies tarball before extraction |
-| Hierarchical gum TUI | Cancel-first, sub-menus, sandbox mode |
-| Auto-detection + recommendation | OS, package manager, existing install |
-| Windows / WSL2 detection | Detects MSYS2 (hard block), guides to WSL2 |
-| ChromeOS / Crostini detection | Detects milestone, garcon, auto-suggests APT |
-
-### ⚠️ In Progress — macOS
-
-| Task | Status |
-|---|---|
-| `gum` bootstrap on macOS (arm64 + x86_64) | 🔍 Needs testing |
-| Skip `.desktop` file creation on Darwin | ✅ Done |
-| `open` vs `xdg-open` for easter egg | ✅ Done |
-| `shasum -a 256` fallback for tarball verification | ✅ Done |
-| PATH setup for `~/.zprofile` vs `~/.bashrc` | ✅ Done |
-| Tarball fallback with Gatekeeper `xattr` warning | ✅ Done |
-| Homebrew formula actually installs Antigravity on macOS | 🔍 Needs testing |
-| End-to-end test on macOS Sonoma / Sequoia | ❌ Not yet done |
-
-### 📋 Planned
-
-| Feature | Notes |
-|---|---|
-| Official binary installers (macOS / Windows) | Scrape official release site for platform-specific binaries |
-| macOS `.dmg` download fallback | For users without Homebrew |
-| CI gate tests on macOS | ✅ Done — `ci.yml` runs on `macos-latest` |
+If `curl` fails, ensure you have an active internet connection. If the `gum` UI fails to download, the script gracefully falls back to a plain text menu.
 
 ---
 
 ## 📝 Changelog
 
-See **[CHANGELOG.md](CHANGELOG.md)** for release history.
+See **[CHANGELOG.md](CHANGELOG.md)** for release history and recent updates.
 
 ---
 
