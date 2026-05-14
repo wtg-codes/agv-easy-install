@@ -94,7 +94,7 @@ configure_chrome_path() {
         if [ "$AUTO" -eq 1 ] || [ "$JSON_OUT" -eq 1 ]; then
             do_inject=1
         else
-            log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
+            log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Binary."
             log_info "We found a valid Chrome binary at: ${C_BOLD}$chrome_path${C_RESET}"
             
             if command -v gum >/dev/null 2>&1; then
@@ -179,7 +179,7 @@ detect_platform() {
     HAS_DNF="no"
     DISTRO_PRETTY="Unknown"
     GLIBC_VERSION=""
-    RECOMMENDED="3"  # default to tarball
+    RECOMMENDED="3"  # default to binary
 
     if check_brew; then
         HAS_BREW="yes"
@@ -235,7 +235,7 @@ print_system_info() {
     if command -v antigravity >/dev/null 2>&1; then
         local p
         p=$(command -v antigravity)
-        if [[ "$p" == *".local/bin"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(Tarball)${C_RESET}"
+        if [[ "$p" == *".local/bin"* ]] || [[ "$p" == *"/Applications/"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(Binary)${C_RESET}"
         elif [[ "$p" == *"brew"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(Homebrew)${C_RESET}"
         elif [[ "$p" == "/usr/bin/"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(System Repo)${C_RESET}"
         else AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}($p)${C_RESET}"; fi
@@ -248,7 +248,7 @@ print_system_info() {
     case "$RECOMMENDED" in
         1) REC_LABEL="${C_GREEN}★ Homebrew${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
         2) REC_LABEL="${C_GREEN}★ System Repo${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
-        3) REC_LABEL="${C_GREEN}★ Tarball${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
+        3) REC_LABEL="${C_GREEN}★ Official Binary${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
     esac
 
     # --- Print dashboard ---

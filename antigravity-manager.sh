@@ -19,8 +19,20 @@ C_RESET='\033[0m'
 
 # Configuration
 SCRIPT_VERSION="0.2.2"
-KNOWN_SHA256="5232a4048ff4fa15685d9a981ba4fba573e297f3efc9b76f638e794baf775725"
-DOWNLOAD_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+LINUX_X64_SHA256="5232a4048ff4fa15685d9a981ba4fba573e297f3efc9b76f638e794baf775725"
+LINUX_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+
+MAC_X64_SHA256="4ec781e8e94ec714c307a06c4ce925bf761dd0e610ba45e173747fbbe3423ad6"
+MAC_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-x64/Antigravity.dmg"
+
+MAC_ARM64_SHA256="caa35ad282741cc9350fb6234e9b86aef54cd4d2f75715a21ef27180182aa50f"
+MAC_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-arm/Antigravity.dmg"
+
+WIN_X64_SHA256="3874fc761e5c90b3edf8e0365f506ce22241a88f6881cea09713b3f472c4f6ed"
+WIN_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-x64/Antigravity.exe"
+
+WIN_ARM64_SHA256="a14aa1971ad801131adcb12afe216522aadea176c141c4b5d793d216bfe02101"
+WIN_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-arm64/Antigravity.exe"
 MANAGER_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh"
 
 # Directories
@@ -257,7 +269,7 @@ configure_chrome_path() {
         if [ "$AUTO" -eq 1 ] || [ "$JSON_OUT" -eq 1 ]; then
             do_inject=1
         else
-            log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
+            log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Binary."
             log_info "We found a valid Chrome binary at: ${C_BOLD}$chrome_path${C_RESET}"
             
             if command -v gum >/dev/null 2>&1; then
@@ -342,7 +354,7 @@ detect_platform() {
     HAS_DNF="no"
     DISTRO_PRETTY="Unknown"
     GLIBC_VERSION=""
-    RECOMMENDED="3"  # default to tarball
+    RECOMMENDED="3"  # default to binary
 
     if check_brew; then
         HAS_BREW="yes"
@@ -398,7 +410,7 @@ print_system_info() {
     if command -v antigravity >/dev/null 2>&1; then
         local p
         p=$(command -v antigravity)
-        if [[ "$p" == *".local/bin"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(Tarball)${C_RESET}"
+        if [[ "$p" == *".local/bin"* ]] || [[ "$p" == *"/Applications/"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(Binary)${C_RESET}"
         elif [[ "$p" == *"brew"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(Homebrew)${C_RESET}"
         elif [[ "$p" == "/usr/bin/"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(System Repo)${C_RESET}"
         else AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}($p)${C_RESET}"; fi
@@ -411,7 +423,7 @@ print_system_info() {
     case "$RECOMMENDED" in
         1) REC_LABEL="${C_GREEN}★ Homebrew${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
         2) REC_LABEL="${C_GREEN}★ System Repo${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
-        3) REC_LABEL="${C_GREEN}★ Tarball${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
+        3) REC_LABEL="${C_GREEN}★ Official Binary${C_RESET} ${C_DIM}(best for this system)${C_RESET}" ;;
     esac
 
     # --- Print dashboard ---
@@ -451,21 +463,23 @@ install_brew() {
     log_info "${C_MAG}🚀 Installing Antigravity via Homebrew...${C_RESET}"
     if ! check_brew; then
         log_error "Homebrew is not installed."
-        log_warn "Falling back to Tarball installation..."
-        do_install_tarball
+        log_warn "Falling back to official Binary installation..."
+        do_install_binary
         return
     fi
     
     if [ "$PLATFORM" = "Darwin" ]; then
         if ! run_cmd_ui "Brewing Antigravity..." brew install --cask antigravity; then
             log_error "Formula not found or installation failed."
-            exit 1
+            log_warn "Falling back to official Binary installation..."
+            do_install_binary
+            return
         fi
     else
         if ! run_cmd_ui "Brewing Antigravity..." brew install antigravity; then
             log_error "Formula not found or installation failed."
-            log_warn "Falling back to Tarball installation..."
-            do_install_tarball
+            log_warn "Falling back to official Binary installation..."
+            do_install_binary
             return
         fi
     fi
@@ -516,8 +530,8 @@ EOL
         *)
             log_error "Distribution $DISTRO not explicitly supported for repo install."
             if [ "$PLATFORM" = "Darwin" ]; then exit 1; fi
-            log_warn "Falling back to Tarball installation..."
-            do_install_tarball
+            log_warn "Falling back to official Binary installation..."
+            do_install_binary
             return
             ;;
     esac
@@ -526,45 +540,88 @@ EOL
     echo '{"method": "repo", "version": "'"$SCRIPT_VERSION"'"}' > "$STATE_FILE"
 }
 
-do_install_tarball() {
-    JSON_METHOD="tarball"
+do_install_binary() {
+    JSON_METHOD="binary"
+    local target_url=""
+    local target_sha=""
+    local install_type=""
+    local file_ext=""
+
+    # Determine target based on platform and architecture
+    if [ "$PLATFORM" = "Linux" ]; then
+        target_url="$LINUX_X64_URL"
+        target_sha="$LINUX_X64_SHA256"
+        install_type="tarball"
+        file_ext="tar.gz"
+    elif [ "$PLATFORM" = "Darwin" ]; then
+        install_type="dmg"
+        file_ext="dmg"
+        if [ "$ARCH" = "arm64" ]; then
+            target_url="$MAC_ARM64_URL"
+            target_sha="$MAC_ARM64_SHA256"
+        else
+            target_url="$MAC_X64_URL"
+            target_sha="$MAC_X64_SHA256"
+        fi
+    elif [ "$WSL_DISTRO_NAME" != "" ] || [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "cygwin" ]; then
+        install_type="exe"
+        file_ext="exe"
+        # Assuming Windows x64 for WSL host by default, ARM WSL is rare but could check ARCH
+        if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+            target_url="$WIN_ARM64_URL"
+            target_sha="$WIN_ARM64_SHA256"
+        else
+            target_url="$WIN_X64_URL"
+            target_sha="$WIN_X64_SHA256"
+        fi
+    else
+        log_error "Unsupported platform for binary installation."
+        exit 1
+    fi
+
     local sha_cmd=""
     if command -v sha256sum >/dev/null 2>&1; then
         sha_cmd="sha256sum"
     elif command -v shasum >/dev/null 2>&1; then
         sha_cmd="shasum -a 256"
     else
-        log_error "sha256sum or shasum is required for tarball install but was not found."
+        log_error "sha256sum or shasum is required but was not found."
         exit 1
     fi
 
-    log_info "${C_MAG}🚀 Starting Google Antigravity Standalone (Tarball) Installation...${C_RESET}"
-    log_info "${C_CYAN}📁 Preparing directories...${C_RESET}"
-    mkdir -p "$BIN_DIR" "$APP_DIR" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$(dirname "$DESKTOP_FILE_SYS")"
-
+    log_info "${C_MAG}🚀 Starting Google Antigravity Official Binary Installation...${C_RESET}"
+    
     TMP_DIR=$(mktemp -d)
-    # We still have our main EXIT trap, so we need to clean this specifically or append to trap
     trap 'rm -rf "$TMP_DIR"; exit_handler' EXIT INT TERM
+    local dl_target="$TMP_DIR/Antigravity.$file_ext"
 
     if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
-        run_cmd curl -fSL "$DOWNLOAD_URL" -o "$TMP_DIR/Antigravity.tar.gz"
+        run_cmd curl -fSL "$target_url" -o "$dl_target"
     else
-        log_info "${C_BLUE}⬇️  Downloading Antigravity (~218 MB)...${C_RESET}"
-        curl -fSL --progress-bar "$DOWNLOAD_URL" -o "$TMP_DIR/Antigravity.tar.gz"
+        log_info "${C_BLUE}⬇️  Downloading Antigravity...${C_RESET}"
+        curl -fSL --progress-bar "$target_url" -o "$dl_target"
     fi
 
     log_info "${C_BLUE}🔐 Verifying checksum...${C_RESET}"
-    if ! echo "$KNOWN_SHA256  $TMP_DIR/Antigravity.tar.gz" | $sha_cmd -c - >/dev/null 2>&1; then
+    if ! echo "$target_sha  $dl_target" | $sha_cmd -c - >/dev/null 2>&1; then
         log_error "Checksum verification failed!"
         exit 1
     fi
 
-    gum spin --spinner dot --title "Extracting archive..." -- tar -xzf "$TMP_DIR/Antigravity.tar.gz" -C "$APP_DIR" --strip-components=1
+    if [ "$install_type" = "tarball" ]; then
+        log_info "${C_CYAN}📁 Preparing directories...${C_RESET}"
+        mkdir -p "$BIN_DIR" "$APP_DIR" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$(dirname "$DESKTOP_FILE_SYS")"
 
-    log_info "${C_BLUE}🔗 Creating symlink...${C_RESET}"
-    ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
+        if command -v gum >/dev/null 2>&1; then
+            gum spin --spinner dot --title "Extracting archive..." -- tar -xzf "$dl_target" -C "$APP_DIR" --strip-components=1
+        else
+            tar -xzf "$dl_target" -C "$APP_DIR" --strip-components=1
+        fi
 
-    cat << EOF > "$DESKTOP_FILE_SYS"
+        log_info "${C_BLUE}🔗 Creating symlink...${C_RESET}"
+        ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
+
+        cat << EOF > "$DESKTOP_FILE_SYS"
 [Desktop Entry]
 Version=1.0
 Name=Google Antigravity
@@ -576,38 +633,61 @@ Type=Application
 Categories=Development;IDE;
 EOF
 
-    if [ "$PLATFORM" != "Darwin" ] && ! grep -qi "microsoft" /proc/version 2>/dev/null; then
-        log_info "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
-        if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
-        DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
-        cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
-        chmod +x "$DESKTOP_FILE_USER"
-        if command -v gio &> /dev/null; then run_cmd gio set "$DESKTOP_FILE_USER" metadata::trusted true || true; fi
-        if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
-    fi
+        if ! grep -qi "microsoft" /proc/version 2>/dev/null; then
+            log_info "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
+            if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
+            DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
+            cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+            chmod +x "$DESKTOP_FILE_USER"
+            if command -v gio &> /dev/null; then run_cmd gio set "$DESKTOP_FILE_USER" metadata::trusted true || true; fi
+            if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
+        fi
 
-    echo ""
-    if command -v gum >/dev/null 2>&1; then
-        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Installation Complete!
+        echo ""
+        if command -v gum >/dev/null 2>&1; then
+            gum style --border double --border-foreground 46 --padding "1 2" "🎉 Installation Complete!
 Launch: antigravity
 Workspace: $WORKSPACE_DIR"
-    else
-        log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
-        log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
-        log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
-    fi
+        else
+            log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
+            log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
+            log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+        fi
 
-    if [ "$PLATFORM" = "Darwin" ]; then
+    elif [ "$install_type" = "dmg" ]; then
+        log_info "${C_CYAN}💿 Mounting DMG...${C_RESET}"
+        run_cmd hdiutil attach "$dl_target" -mountpoint /Volumes/Antigravity -nobrowse -quiet
+        log_info "${C_BLUE}📦 Copying to /Applications...${C_RESET}"
+        if [ -d "/Applications/Google Antigravity.app" ]; then
+            run_cmd rm -rf "/Applications/Google Antigravity.app"
+        fi
+        run_cmd cp -R "/Volumes/Antigravity/Google Antigravity.app" /Applications/
+        run_cmd hdiutil detach /Volumes/Antigravity -quiet
+
         echo ""
         log_warn "macOS Gatekeeper may block the standalone binary from running."
         log_info "If you see 'cannot be opened because the developer cannot be verified',"
         log_info "run this command to clear the quarantine flag:"
-        log_info "  ${C_BOLD}xattr -d com.apple.quarantine ~/.local/bin/antigravity${C_RESET}"
+        log_info "  ${C_BOLD}xattr -rd com.apple.quarantine '/Applications/Google Antigravity.app'${C_RESET}"
+
+        log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET} Launch from Applications folder."
+
+    elif [ "$install_type" = "exe" ]; then
+        log_info "${C_CYAN}🚀 Launching Windows Installer...${C_RESET}"
+        if command -v cmd.exe >/dev/null 2>&1; then
+            # Convert WSL path to Windows path for cmd.exe
+            win_path=$(wslpath -w "$dl_target")
+            cmd.exe /c start "" "$win_path"
+        else
+            log_error "Could not find cmd.exe to launch installer."
+            exit 1
+        fi
+        log_info "${C_GREEN}${C_BOLD}🎉 Please complete the installation in the Windows UI!${C_RESET}"
     fi
-    
+
     configure_chrome_path
     mkdir -p "$STATE_DIR"
-    echo '{"method": "tarball", "version": "'"$SCRIPT_VERSION"'"}' > "$STATE_FILE"
+    echo '{"method": "binary", "version": "'"$SCRIPT_VERSION"'"}' > "$STATE_FILE"
 }
 
 do_remove() {
@@ -640,7 +720,7 @@ do_remove() {
                     run_cmd sudo dnf remove -y antigravity || true
                     sudo rm -f /etc/yum.repos.d/antigravity.repo
                 fi ;;
-            "tarball") ;;
+            "binary"|"tarball") ;;
         esac
         rm -f "$STATE_FILE"
     else
@@ -706,18 +786,18 @@ main_menu() {
 # ── Install sub-menu ────────────────────────────────────────────
 install_submenu() {
     echo ""
-    local rec_brew="" rec_repo="" rec_tar=""
+    local rec_brew="" rec_repo="" rec_bin="  "
     case "$RECOMMENDED" in
         1) rec_brew="★ " ;;
         2) rec_repo="★ " ;;
-        3) rec_tar="★ " ;;
+        3) rec_bin="★ " ;;
     esac
 
     local options=(
         "Back"
         "${rec_brew}Homebrew (cross-platform, no sudo)"
         "${rec_repo}System Repo (APT/DNF, needs sudo)"
-        "${rec_tar}Tarball (manual, installs to ~/.local)"
+        "${rec_bin}Official Binary (manual, standalone app)"
     )
 
     if command -v gum >/dev/null 2>&1; then
@@ -729,7 +809,7 @@ install_submenu() {
             1) CHOICE="Back" ;;
             2) CHOICE="Homebrew" ;;
             3) CHOICE="System" ;;
-            4) CHOICE="Tarball" ;;
+            4) CHOICE="Official Binary" ;;
             *) CHOICE="Back" ;;
         esac
     fi
@@ -738,7 +818,7 @@ install_submenu() {
         "Back"*) choice="back" ;;
         *"Homebrew"*) choice="brew" ;;
         *"System"*) choice="repo" ;;
-        *"Tarball"*) choice="tarball" ;;
+        *"Binary"*) choice="binary" ;;
         *) choice="back" ;;
     esac
 }
@@ -784,16 +864,16 @@ run_mock_action() {
     local action="$1"
 
     case "$action" in
-        brew|repo|tarball)
+        brew|repo|binary)
             local method="Homebrew"
             [ "$action" = "repo" ] && method="System Repo"
-            [ "$action" = "tarball" ] && method="Tarball"
+            [ "$action" = "binary" ] && method="Official Binary"
 
             log_info "${C_MAG}🚀 Starting mock installation via ${method}...${C_RESET}"
             run_cmd_ui "Downloading Antigravity payload..." sleep 1.5
             run_cmd_ui "Extracting binaries..." sleep 1
             echo ""
-            log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
+            log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Binary."
             log_info "We found a valid Chrome binary at: ${C_BOLD}/usr/bin/google-chrome${C_RESET}"
 
             # shellcheck disable=SC2088
@@ -853,7 +933,7 @@ print_usage() {
     echo "  --auto            Headless auto-install"
     echo "  --install-brew    Headless Homebrew install"
     echo "  --install-repo    Headless System Repo install"
-    echo "  --install-tarball Headless Tarball install"
+    echo "  --install-binary  Headless Official Binary install"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -871,7 +951,7 @@ for arg in "$@"; do
         --auto) ACTION="auto"; AUTO=1 ;;
         --install-brew) ACTION="brew"; AUTO=1 ;;
         --install-repo) ACTION="repo"; AUTO=1 ;;
-        --install-tarball) ACTION="tarball"; AUTO=1 ;;
+        --install-binary) ACTION="binary"; AUTO=1 ;;
         --remove) ACTION="remove" ;;
         --demo-ui) ACTION="demo_ui" ;;
         --json) JSON_OUT=1; QUIET=1 ;;
@@ -944,7 +1024,7 @@ run_interactive() {
             case "$choice" in
                 brew) install_brew; save_manager_locally ;;
                 repo) install_repo; save_manager_locally ;;
-                tarball) do_install_tarball; save_manager_locally ;;
+                binary) do_install_binary; save_manager_locally ;;
                 back) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
             esac
             ;;
@@ -968,11 +1048,11 @@ case "$ACTION" in
         log_info "${C_MAG}🚀 Starting headless auto-install...${C_RESET}"
         if [ "$RECOMMENDED" = "1" ]; then install_brew; save_manager_locally
         elif [ "$RECOMMENDED" = "2" ]; then install_repo; save_manager_locally
-        else do_install_tarball; save_manager_locally
+        else do_install_binary; save_manager_locally
         fi ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
-    tarball) do_install_tarball; save_manager_locally ;;
+    binary) do_install_binary; save_manager_locally ;;
     demo_ui) start_sandbox_mode ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then

@@ -3,21 +3,23 @@ install_brew() {
     log_info "${C_MAG}🚀 Installing Antigravity via Homebrew...${C_RESET}"
     if ! check_brew; then
         log_error "Homebrew is not installed."
-        log_warn "Falling back to Tarball installation..."
-        do_install_tarball
+        log_warn "Falling back to official Binary installation..."
+        do_install_binary
         return
     fi
     
     if [ "$PLATFORM" = "Darwin" ]; then
         if ! run_cmd_ui "Brewing Antigravity..." brew install --cask antigravity; then
             log_error "Formula not found or installation failed."
-            exit 1
+            log_warn "Falling back to official Binary installation..."
+            do_install_binary
+            return
         fi
     else
         if ! run_cmd_ui "Brewing Antigravity..." brew install antigravity; then
             log_error "Formula not found or installation failed."
-            log_warn "Falling back to Tarball installation..."
-            do_install_tarball
+            log_warn "Falling back to official Binary installation..."
+            do_install_binary
             return
         fi
     fi
@@ -68,8 +70,8 @@ EOL
         *)
             log_error "Distribution $DISTRO not explicitly supported for repo install."
             if [ "$PLATFORM" = "Darwin" ]; then exit 1; fi
-            log_warn "Falling back to Tarball installation..."
-            do_install_tarball
+            log_warn "Falling back to official Binary installation..."
+            do_install_binary
             return
             ;;
     esac
@@ -78,45 +80,88 @@ EOL
     echo '{"method": "repo", "version": "'"$SCRIPT_VERSION"'"}' > "$STATE_FILE"
 }
 
-do_install_tarball() {
-    JSON_METHOD="tarball"
+do_install_binary() {
+    JSON_METHOD="binary"
+    local target_url=""
+    local target_sha=""
+    local install_type=""
+    local file_ext=""
+
+    # Determine target based on platform and architecture
+    if [ "$PLATFORM" = "Linux" ]; then
+        target_url="$LINUX_X64_URL"
+        target_sha="$LINUX_X64_SHA256"
+        install_type="tarball"
+        file_ext="tar.gz"
+    elif [ "$PLATFORM" = "Darwin" ]; then
+        install_type="dmg"
+        file_ext="dmg"
+        if [ "$ARCH" = "arm64" ]; then
+            target_url="$MAC_ARM64_URL"
+            target_sha="$MAC_ARM64_SHA256"
+        else
+            target_url="$MAC_X64_URL"
+            target_sha="$MAC_X64_SHA256"
+        fi
+    elif [ "$WSL_DISTRO_NAME" != "" ] || [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "cygwin" ]; then
+        install_type="exe"
+        file_ext="exe"
+        # Assuming Windows x64 for WSL host by default, ARM WSL is rare but could check ARCH
+        if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+            target_url="$WIN_ARM64_URL"
+            target_sha="$WIN_ARM64_SHA256"
+        else
+            target_url="$WIN_X64_URL"
+            target_sha="$WIN_X64_SHA256"
+        fi
+    else
+        log_error "Unsupported platform for binary installation."
+        exit 1
+    fi
+
     local sha_cmd=""
     if command -v sha256sum >/dev/null 2>&1; then
         sha_cmd="sha256sum"
     elif command -v shasum >/dev/null 2>&1; then
         sha_cmd="shasum -a 256"
     else
-        log_error "sha256sum or shasum is required for tarball install but was not found."
+        log_error "sha256sum or shasum is required but was not found."
         exit 1
     fi
 
-    log_info "${C_MAG}🚀 Starting Google Antigravity Standalone (Tarball) Installation...${C_RESET}"
-    log_info "${C_CYAN}📁 Preparing directories...${C_RESET}"
-    mkdir -p "$BIN_DIR" "$APP_DIR" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$(dirname "$DESKTOP_FILE_SYS")"
-
+    log_info "${C_MAG}🚀 Starting Google Antigravity Official Binary Installation...${C_RESET}"
+    
     TMP_DIR=$(mktemp -d)
-    # We still have our main EXIT trap, so we need to clean this specifically or append to trap
     trap 'rm -rf "$TMP_DIR"; exit_handler' EXIT INT TERM
+    local dl_target="$TMP_DIR/Antigravity.$file_ext"
 
     if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
-        run_cmd curl -fSL "$DOWNLOAD_URL" -o "$TMP_DIR/Antigravity.tar.gz"
+        run_cmd curl -fSL "$target_url" -o "$dl_target"
     else
-        log_info "${C_BLUE}⬇️  Downloading Antigravity (~218 MB)...${C_RESET}"
-        curl -fSL --progress-bar "$DOWNLOAD_URL" -o "$TMP_DIR/Antigravity.tar.gz"
+        log_info "${C_BLUE}⬇️  Downloading Antigravity...${C_RESET}"
+        curl -fSL --progress-bar "$target_url" -o "$dl_target"
     fi
 
     log_info "${C_BLUE}🔐 Verifying checksum...${C_RESET}"
-    if ! echo "$KNOWN_SHA256  $TMP_DIR/Antigravity.tar.gz" | $sha_cmd -c - >/dev/null 2>&1; then
+    if ! echo "$target_sha  $dl_target" | $sha_cmd -c - >/dev/null 2>&1; then
         log_error "Checksum verification failed!"
         exit 1
     fi
 
-    gum spin --spinner dot --title "Extracting archive..." -- tar -xzf "$TMP_DIR/Antigravity.tar.gz" -C "$APP_DIR" --strip-components=1
+    if [ "$install_type" = "tarball" ]; then
+        log_info "${C_CYAN}📁 Preparing directories...${C_RESET}"
+        mkdir -p "$BIN_DIR" "$APP_DIR" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$(dirname "$DESKTOP_FILE_SYS")"
 
-    log_info "${C_BLUE}🔗 Creating symlink...${C_RESET}"
-    ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
+        if command -v gum >/dev/null 2>&1; then
+            gum spin --spinner dot --title "Extracting archive..." -- tar -xzf "$dl_target" -C "$APP_DIR" --strip-components=1
+        else
+            tar -xzf "$dl_target" -C "$APP_DIR" --strip-components=1
+        fi
 
-    cat << EOF > "$DESKTOP_FILE_SYS"
+        log_info "${C_BLUE}🔗 Creating symlink...${C_RESET}"
+        ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
+
+        cat << EOF > "$DESKTOP_FILE_SYS"
 [Desktop Entry]
 Version=1.0
 Name=Google Antigravity
@@ -128,38 +173,61 @@ Type=Application
 Categories=Development;IDE;
 EOF
 
-    if [ "$PLATFORM" != "Darwin" ] && ! grep -qi "microsoft" /proc/version 2>/dev/null; then
-        log_info "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
-        if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
-        DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
-        cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
-        chmod +x "$DESKTOP_FILE_USER"
-        if command -v gio &> /dev/null; then run_cmd gio set "$DESKTOP_FILE_USER" metadata::trusted true || true; fi
-        if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
-    fi
+        if ! grep -qi "microsoft" /proc/version 2>/dev/null; then
+            log_info "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
+            if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
+            DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
+            cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+            chmod +x "$DESKTOP_FILE_USER"
+            if command -v gio &> /dev/null; then run_cmd gio set "$DESKTOP_FILE_USER" metadata::trusted true || true; fi
+            if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
+        fi
 
-    echo ""
-    if command -v gum >/dev/null 2>&1; then
-        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Installation Complete!
+        echo ""
+        if command -v gum >/dev/null 2>&1; then
+            gum style --border double --border-foreground 46 --padding "1 2" "🎉 Installation Complete!
 Launch: antigravity
 Workspace: $WORKSPACE_DIR"
-    else
-        log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
-        log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
-        log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
-    fi
+        else
+            log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
+            log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
+            log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+        fi
 
-    if [ "$PLATFORM" = "Darwin" ]; then
+    elif [ "$install_type" = "dmg" ]; then
+        log_info "${C_CYAN}💿 Mounting DMG...${C_RESET}"
+        run_cmd hdiutil attach "$dl_target" -mountpoint /Volumes/Antigravity -nobrowse -quiet
+        log_info "${C_BLUE}📦 Copying to /Applications...${C_RESET}"
+        if [ -d "/Applications/Google Antigravity.app" ]; then
+            run_cmd rm -rf "/Applications/Google Antigravity.app"
+        fi
+        run_cmd cp -R "/Volumes/Antigravity/Google Antigravity.app" /Applications/
+        run_cmd hdiutil detach /Volumes/Antigravity -quiet
+
         echo ""
         log_warn "macOS Gatekeeper may block the standalone binary from running."
         log_info "If you see 'cannot be opened because the developer cannot be verified',"
         log_info "run this command to clear the quarantine flag:"
-        log_info "  ${C_BOLD}xattr -d com.apple.quarantine ~/.local/bin/antigravity${C_RESET}"
+        log_info "  ${C_BOLD}xattr -rd com.apple.quarantine '/Applications/Google Antigravity.app'${C_RESET}"
+
+        log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET} Launch from Applications folder."
+
+    elif [ "$install_type" = "exe" ]; then
+        log_info "${C_CYAN}🚀 Launching Windows Installer...${C_RESET}"
+        if command -v cmd.exe >/dev/null 2>&1; then
+            # Convert WSL path to Windows path for cmd.exe
+            win_path=$(wslpath -w "$dl_target")
+            cmd.exe /c start "" "$win_path"
+        else
+            log_error "Could not find cmd.exe to launch installer."
+            exit 1
+        fi
+        log_info "${C_GREEN}${C_BOLD}🎉 Please complete the installation in the Windows UI!${C_RESET}"
     fi
-    
+
     configure_chrome_path
     mkdir -p "$STATE_DIR"
-    echo '{"method": "tarball", "version": "'"$SCRIPT_VERSION"'"}' > "$STATE_FILE"
+    echo '{"method": "binary", "version": "'"$SCRIPT_VERSION"'"}' > "$STATE_FILE"
 }
 
 do_remove() {
@@ -192,7 +260,7 @@ do_remove() {
                     run_cmd sudo dnf remove -y antigravity || true
                     sudo rm -f /etc/yum.repos.d/antigravity.repo
                 fi ;;
-            "tarball") ;;
+            "binary"|"tarball") ;;
         esac
         rm -f "$STATE_FILE"
     else

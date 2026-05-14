@@ -148,7 +148,7 @@
 
 ## 📋 Planned — Features
 
-- [ ] **Official Binary Installers (macOS / Windows)**: Scrape the official release site for macOS (`mac-x64`, `mac-arm64`) and Windows (`windows-x64`) binaries alongside the Linux tarball. Add `DOWNLOAD_URL` and `KNOWN_SHA256` constants for each.
+- [x] **Official Binary Installers (macOS / Windows)**: Scrape the official release site for macOS (`mac-x64`, `mac-arm64`) and Windows (`windows-x64`) binaries alongside the Linux tarball. Add `DOWNLOAD_URL` and `KNOWN_SHA256` constants for each.
 - [ ] Offer official binaries as an install option, and set it as the recommended default on macOS and Windows (keeping Homebrew / WSL Tarball as secondary options).
 - [ ] macOS `.dmg` download fallback (for users without Homebrew)
 - [x] Automated CI testing on macOS (GitHub Actions macOS runner)

@@ -5,7 +5,7 @@ print_usage() {
     echo "  --auto            Headless auto-install"
     echo "  --install-brew    Headless Homebrew install"
     echo "  --install-repo    Headless System Repo install"
-    echo "  --install-tarball Headless Tarball install"
+    echo "  --install-binary  Headless Official Binary install"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -23,7 +23,7 @@ for arg in "$@"; do
         --auto) ACTION="auto"; AUTO=1 ;;
         --install-brew) ACTION="brew"; AUTO=1 ;;
         --install-repo) ACTION="repo"; AUTO=1 ;;
-        --install-tarball) ACTION="tarball"; AUTO=1 ;;
+        --install-binary) ACTION="binary"; AUTO=1 ;;
         --remove) ACTION="remove" ;;
         --demo-ui) ACTION="demo_ui" ;;
         --json) JSON_OUT=1; QUIET=1 ;;
@@ -96,7 +96,7 @@ run_interactive() {
             case "$choice" in
                 brew) install_brew; save_manager_locally ;;
                 repo) install_repo; save_manager_locally ;;
-                tarball) do_install_tarball; save_manager_locally ;;
+                binary) do_install_binary; save_manager_locally ;;
                 back) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
             esac
             ;;
@@ -120,11 +120,11 @@ case "$ACTION" in
         log_info "${C_MAG}🚀 Starting headless auto-install...${C_RESET}"
         if [ "$RECOMMENDED" = "1" ]; then install_brew; save_manager_locally
         elif [ "$RECOMMENDED" = "2" ]; then install_repo; save_manager_locally
-        else do_install_tarball; save_manager_locally
+        else do_install_binary; save_manager_locally
         fi ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
-    tarball) do_install_tarball; save_manager_locally ;;
+    binary) do_install_binary; save_manager_locally ;;
     demo_ui) start_sandbox_mode ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then

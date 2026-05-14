@@ -43,18 +43,18 @@ main_menu() {
 # ── Install sub-menu ────────────────────────────────────────────
 install_submenu() {
     echo ""
-    local rec_brew="" rec_repo="" rec_tar=""
+    local rec_brew="" rec_repo="" rec_bin="  "
     case "$RECOMMENDED" in
         1) rec_brew="★ " ;;
         2) rec_repo="★ " ;;
-        3) rec_tar="★ " ;;
+        3) rec_bin="★ " ;;
     esac
 
     local options=(
         "Back"
         "${rec_brew}Homebrew (cross-platform, no sudo)"
         "${rec_repo}System Repo (APT/DNF, needs sudo)"
-        "${rec_tar}Tarball (manual, installs to ~/.local)"
+        "${rec_bin}Official Binary (manual, standalone app)"
     )
 
     if command -v gum >/dev/null 2>&1; then
@@ -66,7 +66,7 @@ install_submenu() {
             1) CHOICE="Back" ;;
             2) CHOICE="Homebrew" ;;
             3) CHOICE="System" ;;
-            4) CHOICE="Tarball" ;;
+            4) CHOICE="Official Binary" ;;
             *) CHOICE="Back" ;;
         esac
     fi
@@ -75,7 +75,7 @@ install_submenu() {
         "Back"*) choice="back" ;;
         *"Homebrew"*) choice="brew" ;;
         *"System"*) choice="repo" ;;
-        *"Tarball"*) choice="tarball" ;;
+        *"Binary"*) choice="binary" ;;
         *) choice="back" ;;
     esac
 }
@@ -121,16 +121,16 @@ run_mock_action() {
     local action="$1"
 
     case "$action" in
-        brew|repo|tarball)
+        brew|repo|binary)
             local method="Homebrew"
             [ "$action" = "repo" ] && method="System Repo"
-            [ "$action" = "tarball" ] && method="Tarball"
+            [ "$action" = "binary" ] && method="Official Binary"
 
             log_info "${C_MAG}🚀 Starting mock installation via ${method}...${C_RESET}"
             run_cmd_ui "Downloading Antigravity payload..." sleep 1.5
             run_cmd_ui "Extracting binaries..." sleep 1
             echo ""
-            log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
+            log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Binary."
             log_info "We found a valid Chrome binary at: ${C_BOLD}/usr/bin/google-chrome${C_RESET}"
 
             # shellcheck disable=SC2088
