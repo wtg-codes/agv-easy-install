@@ -926,6 +926,58 @@ Workspace: $WORKSPACE_DIR"
             ;;
     esac
 }
+do_health_check() {
+    log_info "${C_MAG}🔍 Running Google Antigravity Health Check...${C_RESET}"
+    echo ""
+
+    local passed=0
+    local failed=0
+
+    check_status() {
+        if eval "$2" > /dev/null 2>&1; then
+            echo -e "  ${C_GREEN}✅ $1${C_RESET}"
+            passed=$((passed + 1))
+        else
+            echo -e "  ${C_RED}❌ $1${C_RESET}"
+            failed=$((failed + 1))
+        fi
+    }
+
+    # 1. Antigravity Binary
+    local bin_path=""
+    if command -v antigravity >/dev/null 2>&1; then
+        bin_path=$(command -v antigravity)
+        check_status "Antigravity binary found in PATH ($bin_path)" "true"
+    else
+        # check macos standard path
+        if [ -d "/Applications/Google Antigravity.app" ]; then
+            bin_path="/Applications/Google Antigravity.app/Contents/MacOS/Google Antigravity"
+            check_status "Antigravity binary found in Applications" "test -x '$bin_path'"
+        else
+            check_status "Antigravity binary found in PATH" "false"
+        fi
+    fi
+
+    # 2. Chrome/Chromium installation
+    if [ -n "$chrome_path" ] && [ -x "$chrome_path" ]; then
+        check_status "Chrome/Chromium found ($chrome_path)" "true"
+    else
+        check_status "Chrome/Chromium found" "false"
+    fi
+
+    # 3. State file
+    check_status "Installation state file exists ($STATE_FILE)" "test -f '$STATE_FILE'"
+
+    # 4. Workspace
+    check_status "Default workspace exists ($WORKSPACE_DIR)" "test -d '$WORKSPACE_DIR'"
+
+    echo ""
+    if [ "$failed" -eq 0 ]; then
+        log_info "${C_GREEN}${C_BOLD}🎉 Health check passed! Your installation is healthy.${C_RESET}"
+    else
+        log_warn "${C_BOLD}$failed issue(s) detected.${C_RESET} You may need to run the installer again."
+    fi
+}
 print_usage() {
     echo -e "${C_BOLD}Antigravity Manager v${SCRIPT_VERSION}${C_RESET}"
     echo -e "${C_DIM}Usage:${C_RESET} $0 [OPTION]"
@@ -939,6 +991,9 @@ print_usage() {
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
     echo "  --verbose         Enable verbose logging"
     echo "  --quiet           Suppress non-error output"
+    echo "  --check           Verify existing installation health"
+    echo "  --update          Force update of this manager script"
+    echo "  --no-update       Skip checking for manager updates"
     echo "  --version         Show version"
     echo "  --help            Show this help"
 }
@@ -957,6 +1012,9 @@ for arg in "$@"; do
         --json) JSON_OUT=1; QUIET=1 ;;
         --verbose) VERBOSE=1 ;;
         --quiet) QUIET=1 ;;
+        --check) ACTION="check" ;;
+        --update) ACTION="update" ;;
+        --no-update) NO_UPDATE=1 ;;
         --version) ACTION="version" ;;
         --help) ACTION="help" ;;
     esac
@@ -974,6 +1032,62 @@ fi
 
 check_dependencies
 detect_platform
+
+# ── Auto-Update Mechanism ───────────────────────────────────────
+check_for_updates() {
+    if [ "${NO_UPDATE:-0}" -eq 1 ] || [ "${MOCK_MODE:-0}" -eq 1 ]; then return 0; fi
+    # Skip if running locally without internet (we check quietly)
+    if ! curl -fSsL --head "$MANAGER_URL" >/dev/null 2>&1; then return 0; fi
+
+    local remote_version
+    remote_version=$(curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/src/00_config.sh" | grep '^SCRIPT_VERSION=' | cut -d'"' -f2)
+    
+    if [ -n "$remote_version" ] && [ "$remote_version" != "$SCRIPT_VERSION" ]; then
+        # Simple string comparison (assumes semver format like 0.2.2)
+        # Bash string comparison is sufficient unless version jumps digit places e.g. 0.9.0 -> 0.10.0
+        # For a robust approach we could use awk or just always update if !=
+        log_info "${C_BLUE}🔄 A newer version of the installer is available ($remote_version). Updating...${C_RESET}"
+        
+        # We need to securely download the new script and replace ourselves
+        local temp_script
+        temp_script=$(mktemp)
+        if curl -fSsL "$MANAGER_URL" -o "$temp_script" && bash -n "$temp_script"; then
+            if [ -w "$0" ]; then
+                cp "$temp_script" "$0"
+                chmod +x "$0"
+                rm -f "$temp_script"
+                log_info "${C_GREEN}✅ Update successful! Restarting...${C_RESET}"
+                echo ""
+                exec "$0" "$@" # Restart with the same arguments!
+            elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+                sudo cp "$temp_script" "$0"
+                sudo chmod +x "$0"
+                rm -f "$temp_script"
+                log_info "${C_GREEN}✅ Update successful! Restarting...${C_RESET}"
+                echo ""
+                exec "$0" "$@"
+            else
+                log_warn "New version available, but current script is read-only. Run with --no-update to suppress this message."
+            fi
+        else
+            log_error "Failed to download update. Continuing with current version."
+        fi
+        rm -f "$temp_script"
+    fi
+}
+
+# If user forced an update
+if [ "$ACTION" = "update" ]; then
+    log_info "Forcing update check..."
+    check_for_updates
+    log_info "You are on the latest version ($SCRIPT_VERSION)."
+    exit 0
+fi
+
+# Automatically check for updates before wizard or headless modes unless json is expected
+if [ "$JSON_OUT" -eq 0 ]; then
+    check_for_updates "$@"
+fi
 
 # ── Sandbox mode (loops forever, all actions mocked) ────────────
 start_sandbox_mode() {
@@ -1053,6 +1167,7 @@ case "$ACTION" in
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary; save_manager_locally ;;
+    check) do_health_check ;;
     demo_ui) start_sandbox_mode ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then

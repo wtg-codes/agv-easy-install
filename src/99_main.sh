@@ -11,6 +11,9 @@ print_usage() {
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
     echo "  --verbose         Enable verbose logging"
     echo "  --quiet           Suppress non-error output"
+    echo "  --check           Verify existing installation health"
+    echo "  --update          Force update of this manager script"
+    echo "  --no-update       Skip checking for manager updates"
     echo "  --version         Show version"
     echo "  --help            Show this help"
 }
@@ -29,6 +32,9 @@ for arg in "$@"; do
         --json) JSON_OUT=1; QUIET=1 ;;
         --verbose) VERBOSE=1 ;;
         --quiet) QUIET=1 ;;
+        --check) ACTION="check" ;;
+        --update) ACTION="update" ;;
+        --no-update) NO_UPDATE=1 ;;
         --version) ACTION="version" ;;
         --help) ACTION="help" ;;
     esac
@@ -46,6 +52,62 @@ fi
 
 check_dependencies
 detect_platform
+
+# ── Auto-Update Mechanism ───────────────────────────────────────
+check_for_updates() {
+    if [ "${NO_UPDATE:-0}" -eq 1 ] || [ "${MOCK_MODE:-0}" -eq 1 ]; then return 0; fi
+    # Skip if running locally without internet (we check quietly)
+    if ! curl -fSsL --head "$MANAGER_URL" >/dev/null 2>&1; then return 0; fi
+
+    local remote_version
+    remote_version=$(curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/src/00_config.sh" | grep '^SCRIPT_VERSION=' | cut -d'"' -f2)
+    
+    if [ -n "$remote_version" ] && [ "$remote_version" != "$SCRIPT_VERSION" ]; then
+        # Simple string comparison (assumes semver format like 0.2.2)
+        # Bash string comparison is sufficient unless version jumps digit places e.g. 0.9.0 -> 0.10.0
+        # For a robust approach we could use awk or just always update if !=
+        log_info "${C_BLUE}🔄 A newer version of the installer is available ($remote_version). Updating...${C_RESET}"
+        
+        # We need to securely download the new script and replace ourselves
+        local temp_script
+        temp_script=$(mktemp)
+        if curl -fSsL "$MANAGER_URL" -o "$temp_script" && bash -n "$temp_script"; then
+            if [ -w "$0" ]; then
+                cp "$temp_script" "$0"
+                chmod +x "$0"
+                rm -f "$temp_script"
+                log_info "${C_GREEN}✅ Update successful! Restarting...${C_RESET}"
+                echo ""
+                exec "$0" "$@" # Restart with the same arguments!
+            elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+                sudo cp "$temp_script" "$0"
+                sudo chmod +x "$0"
+                rm -f "$temp_script"
+                log_info "${C_GREEN}✅ Update successful! Restarting...${C_RESET}"
+                echo ""
+                exec "$0" "$@"
+            else
+                log_warn "New version available, but current script is read-only. Run with --no-update to suppress this message."
+            fi
+        else
+            log_error "Failed to download update. Continuing with current version."
+        fi
+        rm -f "$temp_script"
+    fi
+}
+
+# If user forced an update
+if [ "$ACTION" = "update" ]; then
+    log_info "Forcing update check..."
+    check_for_updates
+    log_info "You are on the latest version ($SCRIPT_VERSION)."
+    exit 0
+fi
+
+# Automatically check for updates before wizard or headless modes unless json is expected
+if [ "$JSON_OUT" -eq 0 ]; then
+    check_for_updates "$@"
+fi
 
 # ── Sandbox mode (loops forever, all actions mocked) ────────────
 start_sandbox_mode() {
@@ -125,6 +187,7 @@ case "$ACTION" in
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary; save_manager_locally ;;
+    check) do_health_check ;;
     demo_ui) start_sandbox_mode ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then

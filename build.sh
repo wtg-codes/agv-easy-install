@@ -20,6 +20,7 @@ cat src/10_utils.sh \
     src/20_platform.sh \
     src/30_installers.sh \
     src/40_ui.sh \
+    src/50_health.sh \
     src/99_main.sh >> "$OUT_FILE"
 
 chmod +x "$OUT_FILE"

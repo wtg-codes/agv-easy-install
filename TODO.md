@@ -81,7 +81,7 @@
 ### Validation Needed (Code Exists)
 - [ ] `gum` bootstrap on macOS (arm64 binary download)
 - [ ] `gum` bootstrap on macOS (x86_64 binary download)
-- [ ] Skip `.desktop` file creation on Darwin — code at `src/30_installers.sh:131`
+- [x] Skip `.desktop` file creation on Darwin — code at `src/30_installers.sh:131`
 - [ ] Chrome detection at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
 - [ ] `brew install --cask antigravity` actually works
 - [ ] `brew uninstall --cask antigravity` cleanup
@@ -149,11 +149,11 @@
 ## 📋 Planned — Features
 
 - [x] **Official Binary Installers (macOS / Windows)**: Scrape the official release site for macOS (`mac-x64`, `mac-arm64`) and Windows (`windows-x64`) binaries alongside the Linux tarball. Add `DOWNLOAD_URL` and `KNOWN_SHA256` constants for each.
-- [ ] Offer official binaries as an install option, and set it as the recommended default on macOS and Windows (keeping Homebrew / WSL Tarball as secondary options).
-- [ ] macOS `.dmg` download fallback (for users without Homebrew)
+- [x] Offer official binaries as an install option, and set it as the recommended default on macOS and Windows (keeping Homebrew / WSL Tarball as secondary options).
+- [x] macOS `.dmg` download fallback (for users without Homebrew)
 - [x] Automated CI testing on macOS (GitHub Actions macOS runner)
-- [ ] Auto-update mechanism for the manager script itself
-- [ ] `--check` flag to verify existing installation health
+- [x] Auto-update mechanism for the manager script itself
+- [x] `--check` flag to verify existing installation health
 - [ ] Localization / i18n (stretch goal)
 
 ---
