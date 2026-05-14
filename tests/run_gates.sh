@@ -42,11 +42,11 @@ check() {
 # =============================================================================
 gate_0() {
     echo -e "\n${CYAN}${BOLD}=== Phase 0 Gate: Documentation Bootstrap ===${RESET}"
-    check "0.G1 critique.md exists"            'test -s docs/architecture/critique.md'
-    check "0.G2 retort.md exists"              'test -s docs/architecture/retort.md'
-    check "0.G3 implementation_plan.md exists"  'test -s docs/architecture/implementation_plan.md'
-    check "0.G4 run_gates.sh exists"           'test -f tests/run_gates.sh'
-    check "0.G5 AGENTS.md exists"              'test -s AGENTS.md'
+    check "0.G1 TODO.md exists"                 'test -s TODO.md'
+    check "0.G2 implementation_plan.md exists"   'test -s docs/architecture/implementation_plan.md'
+    check "0.G3 run_gates.sh exists"            'test -f tests/run_gates.sh'
+    check "0.G4 AGENTS.md exists"               'test -s AGENTS.md'
+    check "0.G5 AGENTS.md has TODO rule"        'grep -q "TODO.md" AGENTS.md'
 }
 
 # =============================================================================
@@ -95,7 +95,7 @@ gate_2() {
     # Old patterns removed
     check "2.G12 Old \$0 bash detection gone"  "! grep -q '\"bash\"' $SCRIPT"
 
-    # Menu — hierarchical: main_menu → install_submenu / manage_submenu
+    # Menu — hierarchical: main_menu → install_submenu / cleanup_submenu
     check "2.G13 Hierarchical menu system"      "grep -q 'main_menu' $SCRIPT && grep -q 'install_submenu' $SCRIPT && grep -q 'cleanup_submenu' $SCRIPT"
     check "2.G14 Auto-detect suggestion"       "grep -qiE 'Detected|Recommended|recommend' $SCRIPT"
 }
@@ -153,6 +153,35 @@ gate_4() {
 }
 
 # =============================================================================
+# Phase 5 — Bundler Architecture & Screenshot Tooling
+# =============================================================================
+gate_5() {
+    echo -e "\n${CYAN}${BOLD}=== Phase 5 Gate: Bundler & Tooling ===${RESET}"
+
+    # Source-first architecture
+    check "5.G1  build.sh exists"               "test -x build.sh"
+    check "5.G2  src/ directory exists"          "test -d src"
+    check "5.G3  src has config module"          "test -f src/00_config.sh"
+    check "5.G4  src has UI module"              "test -f src/40_ui.sh"
+    check "5.G5  src has main module"            "test -f src/99_main.sh"
+    check "5.G6  build.sh produces output"       "./build.sh > /dev/null 2>&1 && test -s antigravity-manager.sh"
+
+    # Demo mode
+    check "5.G7  --demo-ui flag exists"          "grep -q '\-\-demo-ui' antigravity-manager.sh"
+    check "5.G8  sandbox loop exists"            "grep -q 'start_sandbox_mode' antigravity-manager.sh"
+
+    # Screenshot tooling
+    check "5.G9  render.html exists"             "test -f docs/images/render.html"
+    check "5.G10 capture.py exists"              "test -f docs/images/capture.py"
+    check "5.G11 main_menu.png exists"           "test -f docs/images/main_menu.png"
+    check "5.G12 install_submenu.png exists"     "test -f docs/images/install_submenu.png"
+    check "5.G13 cleanup_submenu.png exists"     "test -f docs/images/cleanup_submenu.png"
+
+    # AGENTS.md has src/ in file map
+    check "5.G14 AGENTS.md documents src/"       "grep -q 'src/' AGENTS.md"
+}
+
+# =============================================================================
 # Runner
 # =============================================================================
 print_summary() {
@@ -179,6 +208,7 @@ usage() {
     echo "  --phase 2     Run Phase 2 gate (Shell Hardening + Homebrew)"
     echo "  --phase 3     Run Phase 3 gate (Pipeline Fixes)"
     echo "  --phase 4     Run Phase 4 gate (Docs & Polish)"
+    echo "  --phase 5     Run Phase 5 gate (Bundler & Tooling)"
     echo "  --phase all   Run all gates sequentially"
     exit 1
 }
@@ -201,7 +231,7 @@ echo -e "${BOLD}agv-easy-install — Phase Gate Runner${RESET}"
 echo -e "Working directory: ${REPO_DIR}"
 
 if [ "$PHASE" = "all" ]; then
-    for p in 0 1 2 3 4; do
+    for p in 0 1 2 3 4 5; do
         gate_"$p"
     done
 else

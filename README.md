@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS-blue?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/platform-linux%20(tested)%20%7C%20macOS%20(beta)-blue?style=flat-square" alt="Platform">
   <a href="https://github.com/wtg-codes/agv-easy-install/actions/workflows/nightly-update.yml"><img src="https://img.shields.io/github/actions/workflow/status/wtg-codes/agv-easy-install/nightly-update.yml?label=nightly%20sync&style=flat-square" alt="Nightly Sync"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"></a>
 </p>
@@ -89,13 +89,15 @@ The installer detects your OS and package manager, then recommends the best meth
 
 ## 💻 Supported Platforms
 
-| Platform | Recommended Method | Fallback | Notes |
+| Platform | Status | Method | Notes |
 |---|---|---|---|
-| **macOS** | Homebrew | — | Tarball is Linux-only; Homebrew required |
-| **Ubuntu / Debian / Mint / Kali** | APT | Tarball | Auto-updates via system repo |
-| **Fedora / RHEL / CentOS / Amazon Linux** | DNF | Tarball | Auto-updates via system repo |
-| **Bluefin / Silverblue / Atomic Linux** | Homebrew | Tarball | Avoids layering system packages |
-| **Other Linux** | Tarball | — | Manual updates only |
+| **Ubuntu / Debian / Mint / Kali** | ✅ Tested | APT or Tarball | Primary development target |
+| **Fedora / RHEL / CentOS** | ✅ Tested | DNF or Tarball | Auto-updates via system repo |
+| **Bluefin / Silverblue / Atomic Linux** | ✅ Tested | Homebrew or Tarball | Avoids layering; primary dev machine |
+| **macOS** | ⚠️ Beta | Homebrew | Script runs but not fully validated — see [Roadmap](#-roadmap) |
+| **Crostini (ChromeOS)** | 📋 Planned | Tarball | Debian container; needs testing |
+| **Windows (WSL)** | 📋 Planned | Tarball | WSL2 Ubuntu; needs testing |
+| **Windows (Git Bash)** | 📋 Planned | — | May need significant work |
 
 <details>
 <summary>📥 Manual tarball download (Linux only)</summary>
@@ -128,8 +130,10 @@ curl -fSsL "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/
 | Problem | Fix |
 |---|---|
 | `curl: (23) Failed writing body` | Update `curl`, or download the tarball manually |
-| `antigravity: command not found` | Close and reopen your terminal, or run `source ~/.bashrc` |
-| Homebrew formula not found | Run the installer script and choose Option 3 (Tarball) on Linux |
+| `antigravity: command not found` | Close and reopen your terminal, or run `source ~/.bashrc` (Linux) / `source ~/.zprofile` (macOS) |
+| Homebrew formula not found | Run the installer and choose Tarball instead |
+| macOS: `gum` fails to download | Ensure `curl` works and you have internet. The script falls back to a plain text menu. |
+| macOS: `.desktop` file error | Expected — `.desktop` files are Linux-only. The script should skip this on macOS. File an issue if it doesn't. |
 
 ---
 
@@ -138,14 +142,37 @@ curl -fSsL "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/
 > **Philosophy:** If you can get to a shell and paste a command, we help you install.
 > The bash script **is** the cross-platform tool — each new OS adds a detection path.
 
-| Milestone | Status |
+### ✅ Done
+
+| Feature | Notes |
 |---|---|
-| Linux repos (APT / DNF) | ✅ Done |
-| Standalone tarball | ✅ Done |
-| Homebrew (macOS + Linux) | ✅ Done |
-| SHA-256 integrity checks | ✅ Done |
-| Windows — WSL / Git Bash detection | 📋 Planned |
-| macOS `.dmg` download fallback | 📋 Planned |
+| Linux APT / DNF install | Ubuntu, Debian, Fedora, RHEL |
+| Standalone tarball install | Any Linux with glibc ≥ 2.28 |
+| Homebrew install path | Linux + macOS (code exists) |
+| SHA-256 integrity checks | Verifies tarball before extraction |
+| Hierarchical gum TUI | Cancel-first, sub-menus, sandbox mode |
+| Auto-detection + recommendation | OS, package manager, existing install |
+
+### ⚠️ In Progress — macOS
+
+| Task | Status |
+|---|---|
+| `gum` bootstrap on macOS (arm64 + x86_64) | 🔍 Needs testing |
+| Skip `.desktop` file creation on Darwin | ✅ Code exists — needs validation |
+| `open` vs `xdg-open` for easter egg | ✅ Code exists — needs validation |
+| PATH setup for `~/.zprofile` vs `~/.bashrc` | 🔍 Needs testing |
+| Homebrew formula actually installs Antigravity on macOS | 🔍 Needs testing |
+| End-to-end test on macOS Sonoma / Sequoia | ❌ Not yet done |
+
+### 📋 Planned
+
+| Feature | Notes |
+|---|---|
+| Crostini (ChromeOS) support | Debian container inside ChromeOS; likely works with tarball path but needs testing |
+| Windows — WSL2 detection | Detect WSL, guide user to install via Ubuntu layer |
+| Windows — Git Bash | May need curl/tar workarounds; lowest priority |
+| macOS `.dmg` download fallback | For users without Homebrew |
+| Automated CI testing on macOS | GitHub Actions macOS runner for smoke tests |
 
 ---
 

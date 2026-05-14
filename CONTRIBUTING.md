@@ -23,7 +23,7 @@ Thanks for your interest in improving the installer! Here's how to get started.
 - [ ] `bash -n antigravity-manager.sh` reports no syntax errors
 - [ ] `python3 -m py_compile scrape_latest.py` succeeds
 - [ ] All relevant phase gates pass
-- [ ] If you changed menu options in the script, you updated `docs/index.html` to match
+- [ ] If you changed menu options, you updated `docs/index.html` and ran `python3 docs/images/capture.py` to regenerate screenshots
 
 ---
 
@@ -43,9 +43,26 @@ Thanks for your interest in improving the installer! Here's how to get started.
 | File | What it does |
 |---|---|
 | [`AGENTS.md`](AGENTS.md) | Full rules and architecture context |
+| [`TODO.md`](TODO.md) | Pending work — update every session |
 | [`tests/run_gates.sh`](tests/run_gates.sh) | Automated gate tests for all phases |
-| [`docs/architecture/`](docs/architecture/) | Critique, retort, and implementation plan |
+| [`docs/architecture/`](docs/architecture/) | Implementation plan and architecture docs |
 
 ## Development
 
-The `antigravity-manager.sh` file is bundled from the `src/` directory. **Do not edit it directly**. Edit the files in `src/` and run `./build.sh` to compile your changes before committing.
+The `antigravity-manager.sh` file is bundled from the `src/` directory. **Do not edit it directly.**
+
+```bash
+# 1. Edit files in src/
+# 2. Compile
+./build.sh
+# 3. Verify
+bash tests/run_gates.sh --phase all
+```
+
+If you changed the interactive menus, also update the screenshots:
+
+```bash
+# Edit docs/images/render.html to match the new menu text
+# Then regenerate the PNGs:
+python3 docs/images/capture.py
+```
