@@ -1,6 +1,6 @@
 # AGV Easy Install — Implementation Plan
 
-> **Last updated:** 2026-05-13 · Branch: `feat-bash-bundler`
+> **Last updated:** 2026-05-13 · Branch: `feat-platform-extensions`
 > This is a living document. It reflects the current architecture and roadmap.
 > For pending work items, see [`TODO.md`](../../TODO.md) in the project root.
 
@@ -126,23 +126,31 @@ See [`TODO.md`](../../TODO.md) for the detailed, structured task list. Key areas
 
 > 📄 **[platform-macos.md](platform-macos.md)** — full architecture reference
 
-Key items: `sha256sum` → `shasum -a 256` fallback, shell-aware PATH setup (`~/.zprofile` for Zsh), platform-aware URL opener, end-to-end testing on Apple Silicon + Intel.
+**Completed:** `shasum -a 256` fallback, `~/.zprofile` PATH injection, tarball fallback unblocked, Gatekeeper `xattr` warning, platform-aware URL opener (easter egg).
+**Remaining:** End-to-end testing on Apple Silicon + Intel hardware, `gum` arm64 bootstrap validation, Homebrew cask formula testing.
 
-### Crostini (ChromeOS)
+### Crostini (ChromeOS) — ⚠️ Beta
 
 > 📄 **[platform-crostini.md](platform-crostini.md)** — full architecture reference
 
-Key items: detect via `/dev/.cros_milestone`, handle Chrome-not-in-container (use `garcon-url-handler`), test on ARM Chromebooks. Low effort — Crostini is Debian, so most code works already.
+**Completed:** `/dev/.cros_milestone` detection, ChromeOS milestone in system info dashboard, `garcon-url-handler` Chrome-not-in-container warning.
+**Remaining:** End-to-end testing on ChromeOS hardware (x86_64 and ARM), `gum` arm64 bootstrap on Chromebooks.
 
-### Windows (WSL2 + Git Bash)
+### Windows (WSL2 + Git Bash) — ⚠️ Beta
 
 > 📄 **[platform-windows.md](platform-windows.md)** — full architecture reference
 
-Key items: WSL2 detection via `$WSL_DISTRO_NAME`, skip `.desktop` in WSL, browser opening via `wslview`/`cmd.exe`. Git Bash is low priority — redirect to WSL2 instead.
+**Completed:** WSL2 detection (`/proc/version`), `(WSL)` label in dashboard, `.desktop` skip in WSL, `wslview` browser opener, MSYS2/Git Bash hard-exit redirect to WSL2.
+**Remaining:** End-to-end testing in WSL2 Ubuntu.
 
-### CI Improvements
-- GitHub Actions macOS runner for smoke tests
-- `--check` flag for installation health verification
+### Official Precompiled Binaries (macOS / Windows)
+- The current architecture pulls a standalone Linux tarball. We will expand `scrape_latest.py` and the nightly CI to scrape URLs and SHA-256 hashes for official macOS and Windows binaries.
+- The compiled script will feature new constants (`MAC_X64_URL`, `MAC_ARM64_URL`, `WIN_X64_URL`).
+- These official binaries will become the **recommended** installation path on their respective platforms, offering a more native experience while keeping current methods (Homebrew / WSL) available as fallbacks.
+
+### CI & Quality
+- ✅ GitHub Actions CI workflow (`ci.yml`) — runs phase gates on `ubuntu-latest` and `macos-latest`
+- `--check` flag for installation health verification (planned)
 
 ---
 
@@ -170,8 +178,8 @@ python3 docs/images/capture.py
 | ↳ Fedora/RHEL (DNF) | [platform-linux-dnf.md](platform-linux-dnf.md) | ✅ Tested |
 | ↳ Atomic/Immutable | [platform-linux-atomic.md](platform-linux-atomic.md) | ✅ Tested |
 | macOS | [platform-macos.md](platform-macos.md) | ⚠️ Beta |
-| Crostini (ChromeOS) | [platform-crostini.md](platform-crostini.md) | 📋 Planned |
-| Windows (WSL2 + Git Bash) | [platform-windows.md](platform-windows.md) | 📋 Planned |
+| Crostini (ChromeOS) | [platform-crostini.md](platform-crostini.md) | ⚠️ Beta |
+| Windows (WSL2 + Git Bash) | [platform-windows.md](platform-windows.md) | ⚠️ Beta |
 
 ### Install Method Docs
 

@@ -10,28 +10,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **Modern Terminal UI:** The interactive installer now features a beautiful arrow-key menu, animated spinners, and status blocks powered by an ephemeral download of `gum`.
 - **Chrome Sandbox Bypass:** Added automatic path configuration for Flatpak/Atomic Linux environments to securely connect Antigravity to the browser.
-- **Auto PATH Injection:** The installer can now automatically inject `~/.local/bin` into `~/.bashrc`, `~/.zshrc`, or `config.fish`.
+- **Auto PATH Injection:** The installer can now automatically inject `~/.local/bin` into `~/.bashrc`, `~/.zshrc`, `~/.zprofile` (macOS), or `config.fish`.
 - **JSON Output Mode:** Added `--json` flag to emit a single machine-readable status object instead of colored logs.
 - **Headless Mode:** Added `--auto`, `--install-brew`, `--install-repo`, and `--install-tarball` flags for non-interactive automation.
 - **Logging System:** Added robust logging to `/tmp/antigravity-install.log` with `--verbose` and `--quiet` flags.
 - **State Management:** Added an `install.json` state file to track the install method for perfectly clean uninstalls.
 - **Dependency Checks:** Script now fails fast if `curl`, `tar`, `awk`, or `grep` are missing.
+- **WSL2 Detection:** Detects Windows Subsystem for Linux, labels dashboard as `(WSL)`, skips `.desktop` creation, routes browser opening to `wslview`.
+- **MSYS2/Git Bash Block:** Hard-exits on MSYS2/Git Bash with a message directing users to WSL2.
+- **Crostini (ChromeOS) Detection:** Detects `/dev/.cros_milestone`, displays milestone in dashboard, warns when no Linux browser is installed in the container.
+- **macOS `shasum` Fallback:** Tarball verification now uses `shasum -a 256` on macOS when GNU `sha256sum` is unavailable.
+- **macOS Tarball Unblocked:** The tarball install path now works on macOS, with a Gatekeeper `xattr` quarantine removal instruction shown post-install.
+- **macOS PATH Fix:** PATH injection on macOS now targets `~/.zprofile` instead of `~/.zshrc`, preventing `path_helper` overwrites.
+- **Easter Egg Upgrade:** Main menu now uses `gum filter --no-strict`, allowing free-text input to trigger the hidden `Google` Course Catalog opener. Works on all platforms via `xdg-open`/`open`/`wslview`.
+- **CI Gate Tests:** Added `ci.yml` workflow to run the full 66-gate test suite on both `ubuntu-latest` and `macos-latest`.
 
 ### Changed
 - **Rollbacks:** The system repository installer now gracefully cleans up broken repository keys and list files if `apt/dnf install` fails.
 
 ### Fixed
 - Bootstrapped `KNOWN_SHA256` to the real tarball checksum — standalone installs no longer fail out of the box.
-- Removed macOS tarball fallbacks (the standalone tarball is `linux-x64` only).
 
 ### Docs
+- Updated README platform table: Crostini and WSL now show ⚠️ Beta, Git Bash shows ❌ Blocked.
+- Updated README Roadmap to reflect completed macOS, Crostini, and Windows work.
+- Updated platform badge to include WSL and ChromeOS.
 - Documented new headless CLI flags in `README.md`.
-- Clarified in README and landing page that the tarball path is Linux-only.
 - Added `CHANGELOG.md`.
 
 ---
 
-## [1.2.0] — 2026-05-12
+## [0.2.2] — 2026-05-12
 
 ### Added
 - **Homebrew install path** — `brew install --cask antigravity` (macOS) / `brew install antigravity` (Linux).

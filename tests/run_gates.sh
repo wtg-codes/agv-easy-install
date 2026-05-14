@@ -79,8 +79,8 @@ gate_2() {
 
     # UX flags
     check "2.G3  --version works"              "bash $SCRIPT --version 2>&1 | grep -qE '[0-9]+\.[0-9]+\.[0-9]+'"
-    check "2.G4  --help lists --version"       "bash $SCRIPT --help 2>&1 | grep -q '\-\-version'"
-    check "2.G5  --help lists --remove"        "bash $SCRIPT --help 2>&1 | grep -q '\-\-remove'"
+    check "2.G4  --help lists --version"       "bash $SCRIPT --help 2>&1 | grep -q -- '--version'"
+    check "2.G5  --help lists --remove"        "bash $SCRIPT --help 2>&1 | grep -q -- '--remove'"
 
     # Functions exist
     check "2.G6  detect_platform() exists"     "grep -q 'detect_platform' $SCRIPT"
@@ -167,7 +167,7 @@ gate_5() {
     check "5.G6  build.sh produces output"       "./build.sh > /dev/null 2>&1 && test -s antigravity-manager.sh"
 
     # Demo mode
-    check "5.G7  --demo-ui flag exists"          "grep -q '\-\-demo-ui' antigravity-manager.sh"
+    check "5.G7  --demo-ui flag exists"          "grep -q -- '--demo-ui' antigravity-manager.sh"
     check "5.G8  sandbox loop exists"            "grep -q 'start_sandbox_mode' antigravity-manager.sh"
 
     # Screenshot tooling

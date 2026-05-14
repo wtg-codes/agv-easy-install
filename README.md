@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-linux%20(tested)%20%7C%20macOS%20(beta)-blue?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20(beta)%20%7C%20WSL%20(beta)%20%7C%20ChromeOS%20(beta)-blue?style=flat-square" alt="Platform">
   <a href="https://github.com/wtg-codes/agv-easy-install/actions/workflows/nightly-update.yml"><img src="https://img.shields.io/github/actions/workflow/status/wtg-codes/agv-easy-install/nightly-update.yml?label=nightly%20sync&style=flat-square" alt="Nightly Sync"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"></a>
 </p>
@@ -95,9 +95,9 @@ The installer detects your OS and package manager, then recommends the best meth
 | **Fedora / RHEL / CentOS** | ✅ Tested | DNF or Tarball | Auto-updates via system repo |
 | **Bluefin / Silverblue / Atomic Linux** | ✅ Tested | Homebrew or Tarball | Avoids layering; primary dev machine |
 | **macOS** | ⚠️ Beta | Homebrew | Script runs but not fully validated — see [Roadmap](#-roadmap) |
-| **Crostini (ChromeOS)** | 📋 Planned | Tarball | Debian container; needs testing |
-| **Windows (WSL)** | 📋 Planned | Tarball | WSL2 Ubuntu; needs testing |
-| **Windows (Git Bash)** | 📋 Planned | — | May need significant work |
+| **Crostini (ChromeOS)** | ⚠️ Beta | APT / Tarball | Debian container; Chrome host detection |
+| **Windows (WSL)** | ⚠️ Beta | Tarball / APT | WSL2 Ubuntu; GUI shortcuts skipped |
+| **Windows (Git Bash)** | ❌ Blocked | — | Redirects user to WSL2 |
 
 <details>
 <summary>📥 Manual tarball download (Linux only)</summary>
@@ -152,15 +152,19 @@ curl -fSsL "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/
 | SHA-256 integrity checks | Verifies tarball before extraction |
 | Hierarchical gum TUI | Cancel-first, sub-menus, sandbox mode |
 | Auto-detection + recommendation | OS, package manager, existing install |
+| Windows / WSL2 detection | Detects MSYS2 (hard block), guides to WSL2 |
+| ChromeOS / Crostini detection | Detects milestone, garcon, auto-suggests APT |
 
 ### ⚠️ In Progress — macOS
 
 | Task | Status |
 |---|---|
 | `gum` bootstrap on macOS (arm64 + x86_64) | 🔍 Needs testing |
-| Skip `.desktop` file creation on Darwin | ✅ Code exists — needs validation |
-| `open` vs `xdg-open` for easter egg | ✅ Code exists — needs validation |
-| PATH setup for `~/.zprofile` vs `~/.bashrc` | 🔍 Needs testing |
+| Skip `.desktop` file creation on Darwin | ✅ Done |
+| `open` vs `xdg-open` for easter egg | ✅ Done |
+| `shasum -a 256` fallback for tarball verification | ✅ Done |
+| PATH setup for `~/.zprofile` vs `~/.bashrc` | ✅ Done |
+| Tarball fallback with Gatekeeper `xattr` warning | ✅ Done |
 | Homebrew formula actually installs Antigravity on macOS | 🔍 Needs testing |
 | End-to-end test on macOS Sonoma / Sequoia | ❌ Not yet done |
 
@@ -168,11 +172,9 @@ curl -fSsL "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/
 
 | Feature | Notes |
 |---|---|
-| Crostini (ChromeOS) support | Debian container inside ChromeOS; likely works with tarball path but needs testing |
-| Windows — WSL2 detection | Detect WSL, guide user to install via Ubuntu layer |
-| Windows — Git Bash | May need curl/tar workarounds; lowest priority |
+| Official binary installers (macOS / Windows) | Scrape official release site for platform-specific binaries |
 | macOS `.dmg` download fallback | For users without Homebrew |
-| Automated CI testing on macOS | GitHub Actions macOS runner for smoke tests |
+| CI gate tests on macOS | ✅ Done — `ci.yml` runs on `macos-latest` |
 
 ---
 

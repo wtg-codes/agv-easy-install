@@ -45,12 +45,13 @@
 1. **All changes must pass `shellcheck`.** Run: `shellcheck -e SC1091,SC2162 antigravity-manager.sh`
 2. **All changes must pass `bash -n`.** Run: `bash -n antigravity-manager.sh`
 3. **Always double-quote variable expansions.** `"$VAR"`, never bare `$VAR`.
+4. **Version Bumps:** Always increment the patch version in `src/00_config.sh` (e.g. `0.2.2` → `0.2.3`) when you make functional updates. Do not increment the minor or major versions unless the user requests it.
 4. **Use `curl -fSsL`**, never `curl -sL`. The `-f` flag ensures HTTP errors are not silently swallowed.
 5. **The `curl | bash` install pattern is intentional.** Do not replace it with a multi-step download-verify-execute flow. The target audience is students on ephemeral VMs. Integrity is handled by the SHA-256 check inside the script itself.
 6. **Preserve the easter egg.** The interactive menu has an undocumented `"Google"` input that opens the Course Catalog. Keep it working across platforms (`xdg-open` on Linux, `open` on macOS).
 7. **macOS awareness:** macOS support is **beta** (see Roadmap in README). The code paths exist — skip `.desktop` file creation on macOS, use `open` instead of `xdg-open` when `uname -s` is `Darwin` — but end-to-end testing is incomplete.
 8. **Cleanup:** Any function that creates temp files must use `trap ... EXIT` to clean up on failure.
-9. **Interactive menu:** The script uses a hierarchical `gum choose` menu (main → install sub-menu / cleanup sub-menu). When modifying menu options, update all three: the `gum choose` options array, the fallback `case` statement, AND the landing page's menu explanation + screenshots in `docs/index.html`. Regenerate screenshots with `python3 docs/images/capture.py`.
+9. **Interactive menu:** The script uses a `gum filter` main menu (supporting the hidden Easter Egg via free-text input) and `gum choose` sub-menus (main → install sub-menu / cleanup sub-menu). When modifying menu options, update all three: the options array, the fallback `case` statement, AND the landing page's menu explanation + screenshots in `docs/index.html`. Regenerate screenshots with `python3 docs/images/capture.py`.
 10. **Ephemeral UI Pattern:** The script uses `gum` for its modern UI elements. To preserve the zero-dependency philosophy, `gum` must ONLY be downloaded ephemerally via `bootstrap_ui()` into a temp directory and cleaned up via `trap`. Do not permanently install it via APT/DNF or alter host package managers.
 
 ### Landing Page (`docs/index.html`)
@@ -130,6 +131,7 @@ Before submitting any PR, the relevant phase gate(s) must pass.
 ├── .github/
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   └── workflows/
+│       ├── ci.yml                     ← Phase gate CI (Ubuntu + macOS)
 │       ├── deploy-pages.yml           ← Pages deployment (docs/ only)
 │       └── nightly-update.yml         ← URL + SHA-256 auto-update
 ├── docs/

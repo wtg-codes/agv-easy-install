@@ -1,6 +1,6 @@
 # TODO — AGV Easy Install
 
-> **Last updated:** 2026-05-13 · Branch: `feat-bash-bundler`
+> **Last updated:** 2026-05-13 · Branch: `feat-platform-extensions`
 > This file is the single source of truth for all pending work.
 > It MUST be updated at the end of every coding session.
 
@@ -73,9 +73,9 @@
 > See **[docs/architecture/platform-macos.md](docs/architecture/platform-macos.md)** for implementation details.
 
 ### Code Fixes Needed
-- [ ] `sha256sum` → `shasum -a 256` fallback (macOS has no `sha256sum`)
-- [ ] PATH setup: detect shell, write to `~/.zprofile` (Zsh) not `~/.bashrc`
-- [ ] Mock UI references `~/.bashrc` — should be shell-aware
+- [x] `sha256sum` → `shasum -a 256` fallback (macOS has no `sha256sum`)
+- [x] PATH setup: detect shell, write to `~/.zprofile` (Zsh) not `~/.bashrc`
+- [x] Mock UI references `~/.bashrc` — should be shell-aware
 - [x] Easter egg: implement `open` vs `xdg-open` platform-aware opener
 
 ### Validation Needed (Code Exists)
@@ -91,7 +91,7 @@
 - [ ] Full flow on macOS Sonoma (Apple Silicon)
 - [ ] Full flow on macOS Sonoma (Intel)
 - [ ] `--demo-ui` sandbox mode works
-- [ ] GitHub Actions macOS runner smoke test
+- [x] GitHub Actions macOS runner smoke test
 
 ---
 
@@ -107,7 +107,7 @@
 - [ ] Test APT install in Crostini Debian container
 - [ ] Test tarball install in Crostini
 - [ ] Test `gum` binary on ARM Chromebooks (`Linux_arm64`)
-- [ ] Document in README platform table
+- [x] Document in README platform table
 - [ ] End-to-end test on ChromeOS (x86_64)
 - [ ] End-to-end test on ChromeOS (ARM)
 
@@ -118,10 +118,10 @@
 - [x] Add WSL detection: `$WSL_DISTRO_NAME` or `uname -r | grep microsoft`
 - [x] Show "(WSL)" in system info dashboard
 - [x] Skip `.desktop` file creation in WSL
-- [ ] Browser opening: use `wslview` or `cmd.exe /c start` instead of `xdg-open`
+- [x] Browser opening: use `wslview` or `cmd.exe /c start` instead of `xdg-open`
 - [ ] Test APT install in WSL2 Ubuntu
 - [ ] Test tarball install in WSL2
-- [ ] Document in README platform table
+- [x] Document in README platform table
 
 ### Windows — Git Bash
 
@@ -129,8 +129,8 @@
 
 - [x] Add Git Bash detection: `$OSTYPE = msys` or `uname -s | grep MINGW`
 - [x] Implement graceful redirect: show message suggesting WSL2 instead
-- [ ] Verify no crashes or syntax errors when script runs
-- [ ] Document as "not supported — use WSL2" in README
+- [x] Verify no crashes or syntax errors when script runs
+- [x] Document as "not supported — use WSL2" in README
 
 ---
 
@@ -148,8 +148,10 @@
 
 ## 📋 Planned — Features
 
+- [ ] **Official Binary Installers (macOS / Windows)**: Scrape the official release site for macOS (`mac-x64`, `mac-arm64`) and Windows (`windows-x64`) binaries alongside the Linux tarball. Add `DOWNLOAD_URL` and `KNOWN_SHA256` constants for each.
+- [ ] Offer official binaries as an install option, and set it as the recommended default on macOS and Windows (keeping Homebrew / WSL Tarball as secondary options).
 - [ ] macOS `.dmg` download fallback (for users without Homebrew)
-- [ ] Automated CI testing on macOS (GitHub Actions macOS runner)
+- [x] Automated CI testing on macOS (GitHub Actions macOS runner)
 - [ ] Auto-update mechanism for the manager script itself
 - [ ] `--check` flag to verify existing installation health
 - [ ] Localization / i18n (stretch goal)
