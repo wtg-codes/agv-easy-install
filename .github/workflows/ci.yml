@@ -1,0 +1,37 @@
+name: CI Gate Tests
+
+on:
+  push:
+    branches: [ main, feat-* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  gate-tests:
+    name: Run Phase Gates (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install shellcheck
+          brew install python3
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3
+
+      - name: Run build script
+        run: ./build.sh
+
+      - name: Execute Phase Gate Runner
+        run: bash tests/run_gates.sh --phase all
