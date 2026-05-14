@@ -2,22 +2,30 @@
 main_menu() {
     bootstrap_ui
     echo ""
+    
+    local mgr_opt="Install this script locally"
+    if [ -f "$BIN_DIR/antigravity-manager" ]; then
+        mgr_opt="Remove this script locally"
+    fi
+
     local options=(
         "Cancel"
         "Choose Antigravity install method  →"
         "Antigravity cleanup options  →"
+        "$mgr_opt"
     )
-    # Main menu has 3 options [1-3]
+    # Main menu has 4 options [1-4]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum filter --height=10 --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
+        CHOICE=$(gum filter --height=8 --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-3]: " num < /dev/tty
+        read -r -p "Select option [1-4]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Cancel" ;;
             2) CHOICE="Choose" ;;
             3) CHOICE="Antigravity cleanup" ;;
+            4) CHOICE="$mgr_opt" ;;
             [Gg]oogle) CHOICE="Google" ;;
             *) CHOICE="Cancel" ;;
         esac
@@ -27,6 +35,8 @@ main_menu() {
         "Cancel"*) choice="cancel" ;;
         "Choose"*) choice="install" ;;
         "Antigravity cleanup"*) choice="cleanup" ;;
+        "Install this script"*) choice="save" ;;
+        "Remove this script"*) choice="remove_mgr" ;;
         [Gg]oogle)
             log_info "Opening Course Catalog..."
             local opener="xdg-open"

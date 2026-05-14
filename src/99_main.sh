@@ -126,6 +126,10 @@ start_sandbox_mode() {
 
         case "$choice" in
             cancel) echo "Exiting Sandbox Mode."; trap - EXIT INT TERM; exit 0 ;;
+            save|remove_mgr)
+                echo ""; run_mock_action "$choice"
+                echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
+                ;;
             install)
                 install_submenu
                 if [ "$choice" != "back" ]; then
@@ -147,12 +151,15 @@ start_sandbox_mode() {
 
 # ── Interactive flow (normal mode) ──────────────────────────────
 run_interactive() {
+    clear || true
     print_banner ""
     print_system_info
     main_menu
 
     case "$choice" in
         cancel) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+        save) save_manager_locally ;;
+        remove_mgr) remove_manager_script ;;
         install)
             install_submenu
             case "$choice" in
