@@ -4,31 +4,28 @@ main_menu() {
     echo ""
     local options=(
         "Cancel"
-        "Install Antigravity"
-        "Remove Antigravity"
-        "Manage AGV Easy Install"
+        "Choose Antigravity install method  →"
+        "Antigravity cleanup options  →"
     )
-    # Main menu has 4 options [1-4]
+    # Main menu has 3 options [1-3]
     if command -v gum >/dev/null 2>&1; then
         CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-4]: " num < /dev/tty
+        read -r -p "Select option [1-3]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Cancel" ;;
-            2) CHOICE="Install" ;;
-            3) CHOICE="Remove" ;;
-            4) CHOICE="Manage" ;;
+            2) CHOICE="Choose" ;;
+            3) CHOICE="Antigravity cleanup" ;;
             *) CHOICE="Cancel" ;;
         esac
     fi
 
     case "$CHOICE" in
         "Cancel"*) choice="cancel" ;;
-        "Install"*) choice="install" ;;
-        "Remove"*) choice="remove" ;;
-        "Manage"*) choice="manage" ;;
+        "Choose"*) choice="install" ;;
+        "Antigravity cleanup"*) choice="cleanup" ;;
         *) choice="cancel" ;;
     esac
 }
@@ -73,11 +70,12 @@ install_submenu() {
     esac
 }
 
-# ── Manage sub-menu ─────────────────────────────────────────────
-manage_submenu() {
+# ── Cleanup sub-menu ────────────────────────────────────────────
+cleanup_submenu() {
     echo ""
     local options=(
         "Back"
+        "Uninstall Antigravity"
         "Save manager (add 'antigravity-manager' command)"
         "Remove manager (delete this script)"
         "Demo UI (sandbox mode)"
@@ -87,18 +85,20 @@ manage_submenu() {
         CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
     else
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-4]: " num < /dev/tty
+        read -r -p "Select option [1-5]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
-            2) CHOICE="Save" ;;
-            3) CHOICE="Remove manager" ;;
-            4) CHOICE="Demo" ;;
+            2) CHOICE="Uninstall" ;;
+            3) CHOICE="Save" ;;
+            4) CHOICE="Remove manager" ;;
+            5) CHOICE="Demo" ;;
             *) CHOICE="Back" ;;
         esac
     fi
 
     case "$CHOICE" in
         "Back"*) choice="back" ;;
+        "Uninstall"*) choice="remove" ;;
         "Save"*) choice="save" ;;
         "Remove"*) choice="remove_mgr" ;;
         "Demo"*) choice="demo" ;;
