@@ -71,14 +71,10 @@ start_sandbox_mode() {
                     echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
                 fi
                 ;;
-            remove)
-                echo ""; run_mock_action "remove"
-                echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
-                ;;
-            manage)
-                manage_submenu
+            cleanup)
+                cleanup_submenu
                 case "$choice" in
-                    save|remove_mgr) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
+                    remove|save|remove_mgr) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
                     demo) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
                     back) ;; # loop back to main
                 esac
@@ -104,10 +100,10 @@ run_interactive() {
                 back) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
             esac
             ;;
-        remove) do_remove ;;
-        manage)
-            manage_submenu
+        cleanup)
+            cleanup_submenu
             case "$choice" in
+                remove) do_remove ;;
                 save) save_manager_locally ;;
                 remove_mgr) remove_manager_script ;;
                 demo) start_sandbox_mode ;;
