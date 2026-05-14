@@ -556,12 +556,7 @@ do_install_binary() {
     local file_ext=""
 
     # Determine target based on platform and architecture
-    if [ "$PLATFORM" = "Linux" ]; then
-        target_url="$LINUX_X64_URL"
-        target_sha="$LINUX_X64_SHA256"
-        install_type="tarball"
-        file_ext="tar.gz"
-    elif [ "$PLATFORM" = "Darwin" ]; then
+    if [ "$PLATFORM" = "Darwin" ]; then
         install_type="dmg"
         file_ext="dmg"
         if [ "$ARCH" = "arm64" ]; then
@@ -582,6 +577,11 @@ do_install_binary() {
             target_url="$WIN_X64_URL"
             target_sha="$WIN_X64_SHA256"
         fi
+    elif [ "$PLATFORM" = "Linux" ]; then
+        target_url="$LINUX_X64_URL"
+        target_sha="$LINUX_X64_SHA256"
+        install_type="tarball"
+        file_ext="tar.gz"
     else
         log_error "Unsupported platform for binary installation."
         exit 1
