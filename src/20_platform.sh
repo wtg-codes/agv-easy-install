@@ -174,6 +174,14 @@ check_brew() {
 detect_platform() {
     PLATFORM=$(uname -s)
     ARCH=$(uname -m)
+    
+    # Proper Apple Silicon detection (handles terminal running under Rosetta 2)
+    if [ "$PLATFORM" = "Darwin" ] && [ "$ARCH" = "x86_64" ]; then
+        if [ "$(sysctl -in sysctl.proc_translated)" = "1" ]; then
+            ARCH="arm64"
+        fi
+    fi
+
     HAS_BREW="no"
     HAS_APT="no"
     HAS_DNF="no"

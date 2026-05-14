@@ -314,6 +314,10 @@ do_remove() {
     fi
 
     rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+    if [ "$PLATFORM" = "Darwin" ]; then
+        rm -rf "/Applications/Google Antigravity.app"
+        rm -rf "/Applications/Antigravity.app"
+    fi
     if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
     log_info "${C_GREEN}✅ Uninstalled successfully.${C_RESET} (Note: Your code in $WORKSPACE_DIR was kept safe)."
 }

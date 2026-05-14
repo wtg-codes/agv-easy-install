@@ -127,7 +127,7 @@ bootstrap_ui() {
     
     if curl -fSsL "https://github.com/charmbracelet/gum/releases/download/v${GUM_VERSION}/${TARBALL}" | tar -xzf - -C "$GUM_DIR" 2>/dev/null; then
         local GUM_BIN
-        GUM_BIN=$(find "$GUM_DIR" -name "gum" -type f -executable | head -n 1)
+        GUM_BIN=$(find "$GUM_DIR" -name "gum" -type f | head -n 1)
         if [ -n "$GUM_BIN" ]; then
             local gum_dir_path
             gum_dir_path=$(dirname "$GUM_BIN")
@@ -349,6 +349,14 @@ check_brew() {
 detect_platform() {
     PLATFORM=$(uname -s)
     ARCH=$(uname -m)
+    
+    # Proper Apple Silicon detection (handles terminal running under Rosetta 2)
+    if [ "$PLATFORM" = "Darwin" ] && [ "$ARCH" = "x86_64" ]; then
+        if [ "$(sysctl -in sysctl.proc_translated)" = "1" ]; then
+            ARCH="arm64"
+        fi
+    fi
+
     HAS_BREW="no"
     HAS_APT="no"
     HAS_DNF="no"
@@ -774,6 +782,10 @@ do_remove() {
     fi
 
     rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+    if [ "$PLATFORM" = "Darwin" ]; then
+        rm -rf "/Applications/Google Antigravity.app"
+        rm -rf "/Applications/Antigravity.app"
+    fi
     if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
     log_info "${C_GREEN}✅ Uninstalled successfully.${C_RESET} (Note: Your code in $WORKSPACE_DIR was kept safe)."
 }

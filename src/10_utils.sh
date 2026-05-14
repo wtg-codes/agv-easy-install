@@ -68,7 +68,7 @@ bootstrap_ui() {
     
     if curl -fSsL "https://github.com/charmbracelet/gum/releases/download/v${GUM_VERSION}/${TARBALL}" | tar -xzf - -C "$GUM_DIR" 2>/dev/null; then
         local GUM_BIN
-        GUM_BIN=$(find "$GUM_DIR" -name "gum" -type f -executable | head -n 1)
+        GUM_BIN=$(find "$GUM_DIR" -name "gum" -type f | head -n 1)
         if [ -n "$GUM_BIN" ]; then
             local gum_dir_path
             gum_dir_path=$(dirname "$GUM_BIN")
