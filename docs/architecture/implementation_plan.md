@@ -1,5 +1,8 @@
 # Fix Up `agv-easy-install` — Implementation Plan
 
+> [!NOTE]
+> **Status: ✅ COMPLETED.** This plan was fully executed across Phases 0–4. It is preserved as a historical artifact documenting the original design decisions. The authoritative gate definitions now live in [`tests/run_gates.sh`](../../tests/run_gates.sh). Some gate examples below reference the old flat menu system — the actual tests have been updated to validate the current hierarchical architecture.
+
 Based on the findings from the [critique](critique.md) and [retort](retort.md), plus the goal of adding **Homebrew support** and laying groundwork for future cross-OS compatibility.
 
 **5 phases (0–4)**, each with individually testable steps, explicit exit criteria, and gate tests that must pass before moving to the next phase.

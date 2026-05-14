@@ -48,9 +48,9 @@
 4. **Use `curl -fSsL`**, never `curl -sL`. The `-f` flag ensures HTTP errors are not silently swallowed.
 5. **The `curl | bash` install pattern is intentional.** Do not replace it with a multi-step download-verify-execute flow. The target audience is students on ephemeral VMs. Integrity is handled by the SHA-256 check inside the script itself.
 6. **Preserve the easter egg.** The interactive menu has an undocumented `"Google"` input that opens the Course Catalog. Keep it working across platforms (`xdg-open` on Linux, `open` on macOS).
-7. **macOS awareness:** The script must work on macOS. Skip `.desktop` file creation on macOS. Use `open` instead of `xdg-open` when `uname -s` is `Darwin`.
+7. **macOS awareness:** macOS support is **beta** (see Roadmap in README). The code paths exist — skip `.desktop` file creation on macOS, use `open` instead of `xdg-open` when `uname -s` is `Darwin` — but end-to-end testing is incomplete.
 8. **Cleanup:** Any function that creates temp files must use `trap ... EXIT` to clean up on failure.
-9. **Interactive menu:** When modifying menu options, update the prompt range (e.g., `[1-7]`), the case statement, AND the landing page's menu explanation section in `docs/index.html`.
+9. **Interactive menu:** The script uses a hierarchical `gum choose` menu (main → install sub-menu / cleanup sub-menu). When modifying menu options, update all three: the `gum choose` options array, the fallback `case` statement, AND the landing page's menu explanation + screenshots in `docs/index.html`. Regenerate screenshots with `python3 docs/images/capture.py`.
 10. **Ephemeral UI Pattern:** The script uses `gum` for its modern UI elements. To preserve the zero-dependency philosophy, `gum` must ONLY be downloaded ephemerally via `bootstrap_ui()` into a temp directory and cleaned up via `trap`. Do not permanently install it via APT/DNF or alter host package managers.
 
 ### Landing Page (`docs/index.html`)
@@ -59,7 +59,7 @@
 2. **Pin external dependencies.** Lucide must be pinned to a specific version, never `@latest`.
 3. **Use `textContent`, never `innerHTML`** when injecting fetched content. This is a security boundary — add a comment if you touch this code.
 4. **Keep the page self-contained.** No build step, no bundler, no npm. It must work as a single HTML file served by GitHub Pages.
-5. **Menu option numbers must match the script.** If the script's menu changes, update the option explanation cards.
+5. **Menu screenshots must match the script.** If the script's menu changes, update the screenshots by editing `docs/images/render.html` and running `python3 docs/images/capture.py`.
 
 ### Python Scraper (`scrape_latest.py`)
 
@@ -103,9 +103,18 @@ Before submitting any PR, the relevant phase gate(s) must pass.
 .
 ├── AGENTS.md                          ← You are here
 ├── CONTRIBUTING.md                    ← How to contribute
+├── CHANGELOG.md                       ← Release history
 ├── LICENSE                            ← MIT
 ├── README.md                          ← User-facing docs
-├── antigravity-manager.sh             ← THE CORE PRODUCT
+├── build.sh                           ← Compiles src/ → antigravity-manager.sh
+├── antigravity-manager.sh             ← THE CORE PRODUCT (compiled — do not edit directly)
+├── src/                               ← Source modules (edit these)
+│   ├── 00_config.sh                   ← Constants, version, colors
+│   ├── 10_utils.sh                    ← Logging, cleanup, bootstrap_ui
+│   ├── 20_platform.sh                 ← detect_platform, print_system_info, print_banner
+│   ├── 30_installers.sh               ← install_brew, install_repo, do_install_tarball
+│   ├── 40_ui.sh                       ← main_menu, install_submenu, cleanup_submenu
+│   └── 99_main.sh                     ← CLI dispatch, sandbox loop, run_interactive
 ├── scrape_latest.py                   ← Nightly URL scraper
 ├── requirements.txt                   ← Python deps for scraper
 ├── .gitignore
@@ -116,10 +125,17 @@ Before submitting any PR, the relevant phase gate(s) must pass.
 │       └── nightly-update.yml         ← URL + SHA-256 auto-update
 ├── docs/
 │   ├── index.html                     ← Landing page (GitHub Pages)
+│   ├── images/                        ← Terminal UI screenshots
+│   │   ├── render.html                ← Screenshot source (HTML mockups)
+│   │   ├── capture.py                 ← Playwright script to regenerate PNGs
+│   │   ├── main_menu.png
+│   │   ├── install_submenu.png
+│   │   ├── cleanup_submenu.png
+│   │   └── mock_install.png
 │   └── architecture/
 │       ├── critique.md                ← Architectural critique
 │       ├── retort.md                  ← Response to critique
-│       └── implementation_plan.md     ← Phased fix-up plan
+│       └── implementation_plan.md     ← Phased fix-up plan (historical)
 └── tests/
     └── run_gates.sh                   ← Phase gate test runner
 ```
