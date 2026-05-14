@@ -79,18 +79,18 @@
 - [x] Easter egg: implement `open` vs `xdg-open` platform-aware opener
 
 ### Validation Needed (Code Exists)
-- [ ] `gum` bootstrap on macOS (arm64 binary download)
-- [ ] `gum` bootstrap on macOS (x86_64 binary download)
+- [x] `gum` bootstrap on macOS (arm64 binary download)
+- [x] `gum` bootstrap on macOS (x86_64 binary download)
 - [x] Skip `.desktop` file creation on Darwin — code at `src/30_installers.sh:131`
-- [ ] Chrome detection at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
-- [ ] `brew install --cask antigravity` actually works
-- [ ] `brew uninstall --cask antigravity` cleanup
-- [ ] `save_manager_locally()` in `~/.local/bin/` with correct PATH
+- [x] Chrome detection at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+- [x] `brew install --cask antigravity` actually works
+- [x] `brew uninstall --cask antigravity` cleanup
+- [x] `save_manager_locally()` in `~/.local/bin/` with correct PATH
 
 ### End-to-End Testing
-- [ ] Full flow on macOS Sonoma (Apple Silicon)
-- [ ] Full flow on macOS Sonoma (Intel)
-- [ ] `--demo-ui` sandbox mode works
+- [x] Full flow on macOS Sonoma (Apple Silicon)
+- [x] Full flow on macOS Sonoma (Intel)
+- [x] `--demo-ui` sandbox mode works
 - [x] GitHub Actions macOS runner smoke test
 
 ---
@@ -104,12 +104,12 @@
 - [x] Add Crostini detection: `test -f /dev/.cros_milestone` in `detect_platform()`
 - [x] Show ChromeOS milestone in system info dashboard
 - [x] Handle Chrome-not-in-container: detect `garcon-url-handler`
-- [ ] Test APT install in Crostini Debian container
-- [ ] Test tarball install in Crostini
-- [ ] Test `gum` binary on ARM Chromebooks (`Linux_arm64`)
+- [x] Test APT install in Crostini Debian container
+- [x] Test tarball install in Crostini
+- [x] Test `gum` binary on ARM Chromebooks (`Linux_arm64`)
 - [x] Document in README platform table
-- [ ] End-to-end test on ChromeOS (x86_64)
-- [ ] End-to-end test on ChromeOS (ARM)
+- [x] End-to-end test on ChromeOS (x86_64)
+- [x] End-to-end test on ChromeOS (ARM)
 
 ### Windows — WSL2
 
@@ -119,8 +119,8 @@
 - [x] Show "(WSL)" in system info dashboard
 - [x] Skip `.desktop` file creation in WSL
 - [x] Browser opening: use `wslview` or `cmd.exe /c start` instead of `xdg-open`
-- [ ] Test APT install in WSL2 Ubuntu
-- [ ] Test tarball install in WSL2
+- [x] Test APT install in WSL2 Ubuntu
+- [x] Test tarball install in WSL2
 - [x] Document in README platform table
 
 ### Windows — Git Bash
