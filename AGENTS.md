@@ -77,7 +77,14 @@
 ### Documentation
 
 1. **README must reflect actual capabilities.** If the script supports a new distro or platform, update the README's supported platforms table.
-2. **Architecture docs live in `docs/architecture/`.** The critique, retort, and implementation plan are versioned artifacts — update them when making architectural changes.
+2. **`TODO.md` is the single source of truth for pending work.** It lives in the project root. Update it at the end of every coding session to reflect what was completed and what remains.
+3. **Architecture docs live in `docs/architecture/`.** The `implementation_plan.md` is a living document — update it when making architectural changes.
+4. **After every session, update these files if they are affected by your changes:**
+   - `TODO.md` — check off completed items, add new items discovered
+   - `README.md` — platform table, roadmap, troubleshooting
+   - `docs/index.html` — if menus or UI changed
+   - `docs/images/render.html` + `capture.py` — if menu text changed
+   - `CHANGELOG.md` — for user-facing changes
 
 ---
 
@@ -104,6 +111,7 @@ Before submitting any PR, the relevant phase gate(s) must pass.
 ├── AGENTS.md                          ← You are here
 ├── CONTRIBUTING.md                    ← How to contribute
 ├── CHANGELOG.md                       ← Release history
+├── TODO.md                            ← Pending work (update every session)
 ├── LICENSE                            ← MIT
 ├── README.md                          ← User-facing docs
 ├── build.sh                           ← Compiles src/ → antigravity-manager.sh
@@ -133,11 +141,9 @@ Before submitting any PR, the relevant phase gate(s) must pass.
 │   │   ├── cleanup_submenu.png
 │   │   └── mock_install.png
 │   └── architecture/
-│       ├── critique.md                ← Architectural critique
-│       ├── retort.md                  ← Response to critique
-│       └── implementation_plan.md     ← Phased fix-up plan (historical)
+│       └── implementation_plan.md     ← Living architecture doc
 └── tests/
-    └── run_gates.sh                   ← Phase gate test runner
+    └── run_gates.sh                   ← Phase gate test runner (66 gates)
 ```
 
 ---

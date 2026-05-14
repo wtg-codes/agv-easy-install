@@ -43,8 +43,9 @@ Thanks for your interest in improving the installer! Here's how to get started.
 | File | What it does |
 |---|---|
 | [`AGENTS.md`](AGENTS.md) | Full rules and architecture context |
+| [`TODO.md`](TODO.md) | Pending work — update every session |
 | [`tests/run_gates.sh`](tests/run_gates.sh) | Automated gate tests for all phases |
-| [`docs/architecture/`](docs/architecture/) | Critique, retort, and implementation plan |
+| [`docs/architecture/`](docs/architecture/) | Implementation plan and architecture docs |
 
 ## Development
 

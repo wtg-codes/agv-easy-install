@@ -42,11 +42,11 @@ check() {
 # =============================================================================
 gate_0() {
     echo -e "\n${CYAN}${BOLD}=== Phase 0 Gate: Documentation Bootstrap ===${RESET}"
-    check "0.G1 critique.md exists"            'test -s docs/architecture/critique.md'
-    check "0.G2 retort.md exists"              'test -s docs/architecture/retort.md'
-    check "0.G3 implementation_plan.md exists"  'test -s docs/architecture/implementation_plan.md'
-    check "0.G4 run_gates.sh exists"           'test -f tests/run_gates.sh'
-    check "0.G5 AGENTS.md exists"              'test -s AGENTS.md'
+    check "0.G1 TODO.md exists"                 'test -s TODO.md'
+    check "0.G2 implementation_plan.md exists"   'test -s docs/architecture/implementation_plan.md'
+    check "0.G3 run_gates.sh exists"            'test -f tests/run_gates.sh'
+    check "0.G4 AGENTS.md exists"               'test -s AGENTS.md'
+    check "0.G5 AGENTS.md has TODO rule"        'grep -q "TODO.md" AGENTS.md'
 }
 
 # =============================================================================
