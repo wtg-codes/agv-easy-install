@@ -132,7 +132,7 @@ do_install_binary() {
     log_info "${C_MAG}🚀 Starting Google Antigravity Official Binary Installation...${C_RESET}"
     
     TMP_DIR=$(mktemp -d)
-    trap 'rm -rf "$TMP_DIR"; exit_handler' EXIT INT TERM
+    trap 'rm -rf "$TMP_DIR"; if [ "$PLATFORM" = "Darwin" ] && [ -d "/Volumes/Antigravity" ]; then hdiutil detach /Volumes/Antigravity -force -quiet 2>/dev/null || true; fi; exit_handler' EXIT INT TERM
     local dl_target="$TMP_DIR/Antigravity.$file_ext"
 
     if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
