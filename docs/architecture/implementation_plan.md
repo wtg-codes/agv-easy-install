@@ -159,6 +159,27 @@ python3 docs/images/capture.py
 
 ---
 
+## Architecture Reference Index
+
+### Platform Docs
+
+| Platform | Doc | Status |
+|---|---|---|
+| Linux (primary) | [platform-linux.md](platform-linux.md) | ✅ Tested |
+| macOS | [platform-macos.md](platform-macos.md) | ⚠️ Beta |
+| Crostini (ChromeOS) | [platform-crostini.md](platform-crostini.md) | 📋 Planned |
+| Windows (WSL2 + Git Bash) | [platform-windows.md](platform-windows.md) | 📋 Planned |
+
+### Install Method Docs
+
+| Method | Doc | Needs sudo? |
+|---|---|---|
+| Homebrew | [install-homebrew.md](install-homebrew.md) | No |
+| System Repo (APT/DNF) | [install-repo.md](install-repo.md) | Yes |
+| Tarball (standalone) | [install-tarball.md](install-tarball.md) | No |
+
+---
+
 ## File Map
 
 See `AGENTS.md` for the complete, authoritative file map.

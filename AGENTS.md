@@ -142,9 +142,13 @@ Before submitting any PR, the relevant phase gate(s) must pass.
 │   │   └── mock_install.png
 │   └── architecture/
 │       ├── implementation_plan.md     ← Living architecture doc
-│       ├── platform-macos.md          ← macOS support notes
+│       ├── platform-linux.md          ← Linux support notes (primary)
+│       ├── platform-macos.md          ← macOS support notes (beta)
 │       ├── platform-crostini.md       ← ChromeOS/Crostini support notes
-│       └── platform-windows.md        ← WSL2/Git Bash support notes
+│       ├── platform-windows.md        ← WSL2/Git Bash support notes
+│       ├── install-homebrew.md        ← Homebrew install method
+│       ├── install-repo.md            ← APT/DNF system repo method
+│       └── install-tarball.md         ← Tarball standalone method
 └── tests/
     └── run_gates.sh                   ← Phase gate test runner (66 gates)
 ```
