@@ -210,32 +210,33 @@ detect_platform() {
 }
 
 print_system_info() {
-    local PKGS=""
-    [ "$HAS_BREW" = "yes" ] && PKGS="${PKGS}Homebrew, "
-    [ "$HAS_APT" = "yes" ]  && PKGS="${PKGS}APT, "
-    [ "$HAS_DNF" = "yes" ]  && PKGS="${PKGS}DNF, "
-    PKGS="${PKGS%, }"
-    
-    local PKG_DISPLAY
-    if [ -z "$PKGS" ]; then PKG_DISPLAY="${C_YELLOW}None Found${C_RESET}"; else PKG_DISPLAY="${C_GREEN}${PKGS}${C_RESET}"; fi
-
+    # --- Detect AGV installation status ---
     local AGV_STATUS="${C_YELLOW}Not Installed${C_RESET}"
     if command -v antigravity >/dev/null 2>&1; then
         local p
         p=$(command -v antigravity)
-        if [[ "$p" == *".local/bin"* ]]; then AGV_STATUS="${C_GREEN}Installed (Tarball)${C_RESET}"
-        elif [[ "$p" == *"brew"* ]]; then AGV_STATUS="${C_GREEN}Installed (Homebrew)${C_RESET}"
-        elif [[ "$p" == "/usr/bin/"* ]]; then AGV_STATUS="${C_GREEN}Installed (System Repo)${C_RESET}"
-        else AGV_STATUS="${C_GREEN}Installed ($p)${C_RESET}"; fi
+        if [[ "$p" == *".local/bin"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(Tarball)${C_RESET}"
+        elif [[ "$p" == *"brew"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(Homebrew)${C_RESET}"
+        elif [[ "$p" == "/usr/bin/"* ]]; then AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}(System Repo)${C_RESET}"
+        else AGV_STATUS="${C_GREEN}✓ Installed${C_RESET} ${C_DIM}($p)${C_RESET}"; fi
     elif [ -f "$HOME/.local/bin/antigravity" ]; then
-        AGV_STATUS="${C_GREEN}Installed (Tarball - Not in PATH)${C_RESET}"
+        AGV_STATUS="${C_YELLOW}⚠ Installed but not in PATH${C_RESET}"
     fi
 
-    log_info "  ${C_CYAN}OS:${C_RESET}   ${C_BOLD}${DISTRO_PRETTY}${C_RESET}"
-    log_info "  ${C_CYAN}SYS:${C_RESET}  ${ARCH}$([ -n "$GLIBC_VERSION" ] && echo " · glibc ${GLIBC_VERSION}")"
-    log_info "  ${C_CYAN}PKG:${C_RESET}  ${PKG_DISPLAY}"
-    log_info "  ${C_CYAN}AGV:${C_RESET}  ${AGV_STATUS}"
+    # --- Build recommendation label ---
+    local REC_LABEL=""
+    case "$RECOMMENDED" in
+        1) REC_LABEL="${C_GREEN}★ Homebrew${C_RESET} ${C_DIM}— recommended for this system${C_RESET}" ;;
+        2) REC_LABEL="${C_GREEN}★ System Repo${C_RESET} ${C_DIM}— recommended for this system${C_RESET}" ;;
+        3) REC_LABEL="${C_GREEN}★ Tarball${C_RESET} ${C_DIM}— recommended for this system${C_RESET}" ;;
+    esac
 
+    # --- Print dashboard ---
+    log_info "  ${C_CYAN}OS:${C_RESET}    ${C_BOLD}${DISTRO_PRETTY}${C_RESET} ${C_DIM}(${ARCH})${C_RESET}"
+    log_info "  ${C_CYAN}AGV:${C_RESET}   ${AGV_STATUS}"
+    log_info "  ${C_CYAN}Best:${C_RESET}  ${REC_LABEL}"
+
+    # --- Warnings (only shown when relevant) ---
     if [ -n "$GLIBC_VERSION" ]; then
         local MAJOR MINOR
         MAJOR=$(echo "$GLIBC_VERSION" | cut -d. -f1)

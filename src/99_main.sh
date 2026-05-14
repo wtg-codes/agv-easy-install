@@ -52,7 +52,7 @@ start_sandbox_mode() {
     DISTRO_PRETTY="Bluefin (Mock Sandbox)"
     ARCH="x86_64"
     GLIBC_VERSION="2.42"
-    PKGS="brew dnf "
+    HAS_BREW="yes"
     RECOMMENDED=1
     
     while true; do
