@@ -556,12 +556,7 @@ do_install_binary() {
     local file_ext=""
 
     # Determine target based on platform and architecture
-    if [ "$PLATFORM" = "Linux" ]; then
-        target_url="$LINUX_X64_URL"
-        target_sha="$LINUX_X64_SHA256"
-        install_type="tarball"
-        file_ext="tar.gz"
-    elif [ "$PLATFORM" = "Darwin" ]; then
+    if [ "$PLATFORM" = "Darwin" ]; then
         install_type="dmg"
         file_ext="dmg"
         if [ "$ARCH" = "arm64" ]; then
@@ -582,6 +577,11 @@ do_install_binary() {
             target_url="$WIN_X64_URL"
             target_sha="$WIN_X64_SHA256"
         fi
+    elif [ "$PLATFORM" = "Linux" ]; then
+        target_url="$LINUX_X64_URL"
+        target_sha="$LINUX_X64_SHA256"
+        install_type="tarball"
+        file_ext="tar.gz"
     else
         log_error "Unsupported platform for binary installation."
         exit 1
@@ -600,7 +600,7 @@ do_install_binary() {
     log_info "${C_MAG}🚀 Starting Google Antigravity Official Binary Installation...${C_RESET}"
     
     TMP_DIR=$(mktemp -d)
-    trap 'rm -rf "$TMP_DIR"; exit_handler' EXIT INT TERM
+    trap 'rm -rf "$TMP_DIR"; if [ "$PLATFORM" = "Darwin" ] && [ -d "/Volumes/Antigravity" ]; then hdiutil detach /Volumes/Antigravity -force -quiet 2>/dev/null || true; fi; exit_handler' EXIT INT TERM
     local dl_target="$TMP_DIR/Antigravity.$file_ext"
 
     if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
@@ -810,7 +810,7 @@ main_menu() {
     )
     # Main menu has 3 options [1-3]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum filter --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
+        CHOICE=$(gum filter --height=10 --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
