@@ -9,7 +9,7 @@ main_menu() {
     )
     # Main menu has 3 options [1-3]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Cancel"
+        CHOICE=$(gum filter --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
@@ -18,6 +18,7 @@ main_menu() {
             1) CHOICE="Cancel" ;;
             2) CHOICE="Choose" ;;
             3) CHOICE="Antigravity cleanup" ;;
+            [Gg]oogle) CHOICE="Google" ;;
             *) CHOICE="Cancel" ;;
         esac
     fi
@@ -26,6 +27,15 @@ main_menu() {
         "Cancel"*) choice="cancel" ;;
         "Choose"*) choice="install" ;;
         "Antigravity cleanup"*) choice="cleanup" ;;
+        [Gg]oogle)
+            log_info "Opening Course Catalog..."
+            local opener="xdg-open"
+            if [ "$PLATFORM" = "Darwin" ]; then opener="open"
+            elif grep -qi "microsoft" /proc/version 2>/dev/null; then opener="wslview"
+            fi
+            run_cmd "$opener" "https://catalog.google.com" || true
+            choice="cancel"
+            ;;
         *) choice="cancel" ;;
     esac
 }
@@ -123,11 +133,16 @@ run_mock_action() {
             log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
             log_info "We found a valid Chrome binary at: ${C_BOLD}/usr/bin/google-chrome${C_RESET}"
 
+            # shellcheck disable=SC2088
+            local mock_rc="~/.bashrc"
+            # shellcheck disable=SC2088
+            if [ "$PLATFORM" = "Darwin" ]; then mock_rc="~/.zprofile"; fi
+
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Would you like to automatically configure Antigravity to use this browser?" || true
                 echo ""
                 log_warn "$HOME/.local/bin is not in your PATH."
-                gum confirm "Would you like to automatically add it to ~/.bashrc?" || true
+                gum confirm "Would you like to automatically add it to $mock_rc?" || true
                 echo ""
                 run_cmd_ui "Applying configuration..." sleep 1
                 echo ""
@@ -139,7 +154,7 @@ Workspace: $WORKSPACE_DIR"
                 read -r _ < /dev/tty || true
                 echo ""
                 log_warn "$HOME/.local/bin is not in your PATH."
-                echo -ne "${C_YELLOW}Would you like to automatically add it to ~/.bashrc? [Y/n]: ${C_RESET}"
+                echo -ne "${C_YELLOW}Would you like to automatically add it to $mock_rc? [Y/n]: ${C_RESET}"
                 read -r _ < /dev/tty || true
                 echo ""
                 log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"

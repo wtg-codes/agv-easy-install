@@ -123,16 +123,22 @@ bash tests/run_gates.sh --phase 5
 See [`TODO.md`](../../TODO.md) for the detailed, structured task list. Key areas:
 
 ### macOS Validation (Beta → Stable)
-The code paths exist but need end-to-end testing on real hardware:
-- `gum` bootstrap for arm64 + x86_64
-- `.desktop` skip, `open` vs `xdg-open`, `~/.zprofile` PATH
-- Homebrew formula validation
-- Chrome detection on macOS
 
-### New Platform Support
-- **Crostini (ChromeOS):** Debian container; tarball path likely works
-- **Windows WSL2:** Ubuntu layer; tarball path likely works
-- **Windows Git Bash:** May need significant work; lowest priority
+> 📄 **[platform-macos.md](platform-macos.md)** — full architecture reference
+
+Key items: `sha256sum` → `shasum -a 256` fallback, shell-aware PATH setup (`~/.zprofile` for Zsh), platform-aware URL opener, end-to-end testing on Apple Silicon + Intel.
+
+### Crostini (ChromeOS)
+
+> 📄 **[platform-crostini.md](platform-crostini.md)** — full architecture reference
+
+Key items: detect via `/dev/.cros_milestone`, handle Chrome-not-in-container (use `garcon-url-handler`), test on ARM Chromebooks. Low effort — Crostini is Debian, so most code works already.
+
+### Windows (WSL2 + Git Bash)
+
+> 📄 **[platform-windows.md](platform-windows.md)** — full architecture reference
+
+Key items: WSL2 detection via `$WSL_DISTRO_NAME`, skip `.desktop` in WSL, browser opening via `wslview`/`cmd.exe`. Git Bash is low priority — redirect to WSL2 instead.
 
 ### CI Improvements
 - GitHub Actions macOS runner for smoke tests
@@ -150,6 +156,30 @@ When the terminal UI changes, update the screenshots:
 python3 docs/images/capture.py
 # 3. Verify in README and landing page
 ```
+
+---
+
+## Architecture Reference Index
+
+### Platform Docs
+
+| Platform | Doc | Status |
+|---|---|---|
+| Linux (umbrella) | [platform-linux.md](platform-linux.md) | ✅ Tested |
+| ↳ Debian/Ubuntu (APT) | [platform-linux-apt.md](platform-linux-apt.md) | ✅ Tested |
+| ↳ Fedora/RHEL (DNF) | [platform-linux-dnf.md](platform-linux-dnf.md) | ✅ Tested |
+| ↳ Atomic/Immutable | [platform-linux-atomic.md](platform-linux-atomic.md) | ✅ Tested |
+| macOS | [platform-macos.md](platform-macos.md) | ⚠️ Beta |
+| Crostini (ChromeOS) | [platform-crostini.md](platform-crostini.md) | 📋 Planned |
+| Windows (WSL2 + Git Bash) | [platform-windows.md](platform-windows.md) | 📋 Planned |
+
+### Install Method Docs
+
+| Method | Doc | Needs sudo? |
+|---|---|---|
+| Homebrew | [install-homebrew.md](install-homebrew.md) | No |
+| System Repo (APT/DNF) | [install-repo.md](install-repo.md) | Yes |
+| Tarball (standalone) | [install-tarball.md](install-tarball.md) | No |
 
 ---
 

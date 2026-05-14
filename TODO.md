@@ -70,41 +70,79 @@
 ## ⚠️ In Progress — macOS (Beta)
 
 > macOS code paths exist but have NOT been end-to-end validated.
+> See **[docs/architecture/platform-macos.md](docs/architecture/platform-macos.md)** for implementation details.
 
-- [ ] `gum` bootstrap on macOS (arm64 binary URL)
-- [ ] `gum` bootstrap on macOS (x86_64 binary URL)
-- [ ] Skip `.desktop` file creation on Darwin — code exists, needs validation
-- [ ] `open` vs `xdg-open` for easter egg — code exists, needs validation
-- [ ] PATH setup writes to `~/.zprofile` (not `~/.bashrc`) on macOS
-- [ ] Homebrew formula actually installs Antigravity on macOS
-- [ ] Chrome detection works on macOS (`/Applications/Google Chrome.app/...`)
-- [ ] `save_manager_locally()` puts script in a macOS-appropriate location
-- [ ] End-to-end test on macOS Sonoma (Apple Silicon)
-- [ ] End-to-end test on macOS Sonoma (Intel)
+### Code Fixes Needed
+- [ ] `sha256sum` → `shasum -a 256` fallback (macOS has no `sha256sum`)
+- [ ] PATH setup: detect shell, write to `~/.zprofile` (Zsh) not `~/.bashrc`
+- [ ] Mock UI references `~/.bashrc` — should be shell-aware
+- [x] Easter egg: implement `open` vs `xdg-open` platform-aware opener
+
+### Validation Needed (Code Exists)
+- [ ] `gum` bootstrap on macOS (arm64 binary download)
+- [ ] `gum` bootstrap on macOS (x86_64 binary download)
+- [ ] Skip `.desktop` file creation on Darwin — code at `src/30_installers.sh:131`
+- [ ] Chrome detection at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+- [ ] `brew install --cask antigravity` actually works
+- [ ] `brew uninstall --cask antigravity` cleanup
+- [ ] `save_manager_locally()` in `~/.local/bin/` with correct PATH
+
+### End-to-End Testing
+- [ ] Full flow on macOS Sonoma (Apple Silicon)
+- [ ] Full flow on macOS Sonoma (Intel)
+- [ ] `--demo-ui` sandbox mode works
+- [ ] GitHub Actions macOS runner smoke test
 
 ---
 
 ## 📋 Planned — New Platforms
 
 ### Crostini (ChromeOS)
-- [ ] Test tarball install in Crostini Debian container
-- [ ] Detect Crostini environment (`/dev/.cros_milestone` or similar)
-- [ ] Add to `detect_platform()` output
+
+> See **[docs/architecture/platform-crostini.md](docs/architecture/platform-crostini.md)** for implementation details.
+
+- [x] Add Crostini detection: `test -f /dev/.cros_milestone` in `detect_platform()`
+- [x] Show ChromeOS milestone in system info dashboard
+- [x] Handle Chrome-not-in-container: detect `garcon-url-handler`
+- [ ] Test APT install in Crostini Debian container
+- [ ] Test tarball install in Crostini
+- [ ] Test `gum` binary on ARM Chromebooks (`Linux_arm64`)
 - [ ] Document in README platform table
-- [ ] End-to-end test on ChromeOS
+- [ ] End-to-end test on ChromeOS (x86_64)
+- [ ] End-to-end test on ChromeOS (ARM)
 
 ### Windows — WSL2
-- [ ] Detect WSL environment (`uname -r` contains `microsoft`)
-- [ ] Guide user to install via Ubuntu layer
-- [ ] Test tarball install in WSL2 Ubuntu
-- [ ] Add to `detect_platform()` output
+
+> See **[docs/architecture/platform-windows.md](docs/architecture/platform-windows.md)** for implementation details.
+
+- [x] Add WSL detection: `$WSL_DISTRO_NAME` or `uname -r | grep microsoft`
+- [x] Show "(WSL)" in system info dashboard
+- [x] Skip `.desktop` file creation in WSL
+- [ ] Browser opening: use `wslview` or `cmd.exe /c start` instead of `xdg-open`
+- [ ] Test APT install in WSL2 Ubuntu
+- [ ] Test tarball install in WSL2
 - [ ] Document in README platform table
 
 ### Windows — Git Bash
-- [ ] Investigate `curl`/`tar` availability in Git Bash
-- [ ] Determine if `gum` can run in Git Bash
-- [ ] Prototype minimal install path
-- [ ] Document known limitations
+
+> See **[docs/architecture/platform-windows.md](docs/architecture/platform-windows.md)** for implementation details.
+
+- [x] Add Git Bash detection: `$OSTYPE = msys` or `uname -s | grep MINGW`
+- [x] Implement graceful redirect: show message suggesting WSL2 instead
+- [ ] Verify no crashes or syntax errors when script runs
+- [ ] Document as "not supported — use WSL2" in README
+
+---
+
+## 🔍 Discrepancies (Docs vs. Codebase)
+
+> **Identified during Architecture Deep-Dive Review**
+
+- [x] **macOS Tarball Fallback Blocked:** `src/30_installers.sh:7` actively blocks tarball installation on Darwin, but `platform-macos.md` describes how to install and bypass Gatekeeper via `xattr`. We need to unblock this and implement the Gatekeeper quarantine bypass instructions.
+- [x] **macOS `sha256sum` Missing:** `src/30_installers.sh:88` hardcodes `sha256sum`. macOS requires `shasum -a 256`. Tarball installation will fail immediately.
+- [x] **macOS PATH Injection:** `src/20_platform.sh:8` writes the PATH to `~/.zshrc`. As per `platform-macos.md`, this should be `~/.zprofile` to avoid `path_helper` overwrites.
+- [x] **Crostini Detection Missing:** `platform-crostini.md` relies on `/dev/.cros_milestone`, but `src/20_platform.sh` does not implement this check yet.
+- [x] **Windows/MSYS2 Missing:** `platform-windows.md` mandates a hard redirect for Git Bash users, but the script currently doesn't check for `$OSTYPE = msys`.
 
 ---
 
@@ -124,3 +162,4 @@
 - [x] Keep landing page screenshots in sync with `render.html` — landing page (`docs/index.html`) references `main_menu.png`, `install_submenu.png`, `cleanup_submenu.png`; README references all 4 PNGs
 - [x] Regenerate screenshots: ran `python3 docs/images/capture.py` — 4 PNGs updated
 - [x] Gate count in implementation plan — verified: 66 gates across 6 phases
+- [x] Architecture Documentation Deep-Dive — researched and enhanced all 10 platform and install architecture documents with tool skills and background logic.

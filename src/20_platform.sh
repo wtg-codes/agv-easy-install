@@ -5,7 +5,7 @@ inject_path() {
 
     local shell_rc=""
     if [ "$PLATFORM" = "Darwin" ]; then
-        shell_rc="$HOME/.zshrc"
+        shell_rc="$HOME/.zprofile"
     elif [[ "$SHELL" == *"zsh"* ]]; then
         shell_rc="$HOME/.zshrc"
     elif [[ "$SHELL" == *"fish"* ]]; then
@@ -74,6 +74,10 @@ configure_chrome_path() {
         if [ "$PLATFORM" = "Darwin" ] && [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
             chrome_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
             log_info "  Found macOS Chrome: $chrome_path"
+        elif [ "$PLATFORM" = "Crostini" ] && command -v garcon-url-handler >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
+            log_warn "Crostini detected, but no Linux browser is installed."
+            log_info "Antigravity requires a native Linux browser to run automations."
+            log_info "Please run: ${C_BOLD}sudo apt install chromium${C_RESET}"
         else
             for cmd in google-chrome-stable google-chrome chromium chromium-browser; do
                 if command -v "$cmd" >/dev/null 2>&1; then
@@ -190,6 +194,22 @@ detect_platform() {
             # shellcheck disable=SC1091
             DISTRO_PRETTY=$(. /etc/os-release && echo "${PRETTY_NAME:-$ID}")
         fi
+        
+        if [ "$(uname -o 2>/dev/null)" = "Msys" ] || [[ "$(uname -s 2>/dev/null)" == "MINGW"* ]]; then
+            echo "ERROR: Git Bash / MSYS2 is not supported."
+            echo "Please install WSL2 (wsl --install) and run this script from an Ubuntu terminal."
+            exit 1
+        fi
+
+        if grep -qi "microsoft" /proc/version 2>/dev/null; then
+            DISTRO_PRETTY="${DISTRO_PRETTY} (WSL)"
+        elif [ -f /dev/.cros_milestone ]; then
+            PLATFORM="Crostini"
+            local MILESTONE=""
+            MILESTONE=$(cat /dev/.cros_milestone 2>/dev/null || echo "Unknown")
+            DISTRO_PRETTY="ChromeOS Crostini M${MILESTONE} (${DISTRO_PRETTY})"
+        fi
+
         if command -v apt >/dev/null 2>&1; then HAS_APT="yes"; fi
         if command -v dnf >/dev/null 2>&1; then HAS_DNF="yes"; fi
 

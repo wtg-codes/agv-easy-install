@@ -168,7 +168,7 @@ inject_path() {
 
     local shell_rc=""
     if [ "$PLATFORM" = "Darwin" ]; then
-        shell_rc="$HOME/.zshrc"
+        shell_rc="$HOME/.zprofile"
     elif [[ "$SHELL" == *"zsh"* ]]; then
         shell_rc="$HOME/.zshrc"
     elif [[ "$SHELL" == *"fish"* ]]; then
@@ -237,6 +237,10 @@ configure_chrome_path() {
         if [ "$PLATFORM" = "Darwin" ] && [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
             chrome_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
             log_info "  Found macOS Chrome: $chrome_path"
+        elif [ "$PLATFORM" = "Crostini" ] && command -v garcon-url-handler >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
+            log_warn "Crostini detected, but no Linux browser is installed."
+            log_info "Antigravity requires a native Linux browser to run automations."
+            log_info "Please run: ${C_BOLD}sudo apt install chromium${C_RESET}"
         else
             for cmd in google-chrome-stable google-chrome chromium chromium-browser; do
                 if command -v "$cmd" >/dev/null 2>&1; then
@@ -353,6 +357,22 @@ detect_platform() {
             # shellcheck disable=SC1091
             DISTRO_PRETTY=$(. /etc/os-release && echo "${PRETTY_NAME:-$ID}")
         fi
+        
+        if [ "$(uname -o 2>/dev/null)" = "Msys" ] || [[ "$(uname -s 2>/dev/null)" == "MINGW"* ]]; then
+            echo "ERROR: Git Bash / MSYS2 is not supported."
+            echo "Please install WSL2 (wsl --install) and run this script from an Ubuntu terminal."
+            exit 1
+        fi
+
+        if grep -qi "microsoft" /proc/version 2>/dev/null; then
+            DISTRO_PRETTY="${DISTRO_PRETTY} (WSL)"
+        elif [ -f /dev/.cros_milestone ]; then
+            PLATFORM="Crostini"
+            local MILESTONE=""
+            MILESTONE=$(cat /dev/.cros_milestone 2>/dev/null || echo "Unknown")
+            DISTRO_PRETTY="ChromeOS Crostini M${MILESTONE} (${DISTRO_PRETTY})"
+        fi
+
         if command -v apt >/dev/null 2>&1; then HAS_APT="yes"; fi
         if command -v dnf >/dev/null 2>&1; then HAS_DNF="yes"; fi
 
@@ -431,13 +451,8 @@ install_brew() {
     log_info "${C_MAG}🚀 Installing Antigravity via Homebrew...${C_RESET}"
     if ! check_brew; then
         log_error "Homebrew is not installed."
-        if [ "$PLATFORM" = "Darwin" ]; then
-            log_error "Tarball fallback is not supported on macOS. Exiting."
-            exit 1
-        else
-            log_warn "Falling back to Tarball installation..."
-            do_install_tarball
-        fi
+        log_warn "Falling back to Tarball installation..."
+        do_install_tarball
         return
     fi
     
@@ -513,8 +528,13 @@ EOL
 
 do_install_tarball() {
     JSON_METHOD="tarball"
-    if ! command -v sha256sum >/dev/null 2>&1; then
-        log_error "sha256sum is required for tarball install but was not found."
+    local sha_cmd=""
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha_cmd="sha256sum"
+    elif command -v shasum >/dev/null 2>&1; then
+        sha_cmd="shasum -a 256"
+    else
+        log_error "sha256sum or shasum is required for tarball install but was not found."
         exit 1
     fi
 
@@ -534,7 +554,7 @@ do_install_tarball() {
     fi
 
     log_info "${C_BLUE}🔐 Verifying checksum...${C_RESET}"
-    if ! echo "$KNOWN_SHA256  $TMP_DIR/Antigravity.tar.gz" | sha256sum -c - >/dev/null 2>&1; then
+    if ! echo "$KNOWN_SHA256  $TMP_DIR/Antigravity.tar.gz" | $sha_cmd -c - >/dev/null 2>&1; then
         log_error "Checksum verification failed!"
         exit 1
     fi
@@ -556,7 +576,7 @@ Type=Application
 Categories=Development;IDE;
 EOF
 
-    if [ "$PLATFORM" != "Darwin" ]; then
+    if [ "$PLATFORM" != "Darwin" ] && ! grep -qi "microsoft" /proc/version 2>/dev/null; then
         log_info "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
         if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
         DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
@@ -575,6 +595,14 @@ Workspace: $WORKSPACE_DIR"
         log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
         log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
         log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+    fi
+
+    if [ "$PLATFORM" = "Darwin" ]; then
+        echo ""
+        log_warn "macOS Gatekeeper may block the standalone binary from running."
+        log_info "If you see 'cannot be opened because the developer cannot be verified',"
+        log_info "run this command to clear the quarantine flag:"
+        log_info "  ${C_BOLD}xattr -d com.apple.quarantine ~/.local/bin/antigravity${C_RESET}"
     fi
     
     configure_chrome_path
@@ -644,7 +672,7 @@ main_menu() {
     )
     # Main menu has 3 options [1-3]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Cancel"
+        CHOICE=$(gum filter --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
@@ -653,6 +681,7 @@ main_menu() {
             1) CHOICE="Cancel" ;;
             2) CHOICE="Choose" ;;
             3) CHOICE="Antigravity cleanup" ;;
+            [Gg]oogle) CHOICE="Google" ;;
             *) CHOICE="Cancel" ;;
         esac
     fi
@@ -661,6 +690,15 @@ main_menu() {
         "Cancel"*) choice="cancel" ;;
         "Choose"*) choice="install" ;;
         "Antigravity cleanup"*) choice="cleanup" ;;
+        [Gg]oogle)
+            log_info "Opening Course Catalog..."
+            local opener="xdg-open"
+            if [ "$PLATFORM" = "Darwin" ]; then opener="open"
+            elif grep -qi "microsoft" /proc/version 2>/dev/null; then opener="wslview"
+            fi
+            run_cmd "$opener" "https://catalog.google.com" || true
+            choice="cancel"
+            ;;
         *) choice="cancel" ;;
     esac
 }
@@ -758,11 +796,16 @@ run_mock_action() {
             log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
             log_info "We found a valid Chrome binary at: ${C_BOLD}/usr/bin/google-chrome${C_RESET}"
 
+            # shellcheck disable=SC2088
+            local mock_rc="~/.bashrc"
+            # shellcheck disable=SC2088
+            if [ "$PLATFORM" = "Darwin" ]; then mock_rc="~/.zprofile"; fi
+
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Would you like to automatically configure Antigravity to use this browser?" || true
                 echo ""
                 log_warn "$HOME/.local/bin is not in your PATH."
-                gum confirm "Would you like to automatically add it to ~/.bashrc?" || true
+                gum confirm "Would you like to automatically add it to $mock_rc?" || true
                 echo ""
                 run_cmd_ui "Applying configuration..." sleep 1
                 echo ""
@@ -774,7 +817,7 @@ Workspace: $WORKSPACE_DIR"
                 read -r _ < /dev/tty || true
                 echo ""
                 log_warn "$HOME/.local/bin is not in your PATH."
-                echo -ne "${C_YELLOW}Would you like to automatically add it to ~/.bashrc? [Y/n]: ${C_RESET}"
+                echo -ne "${C_YELLOW}Would you like to automatically add it to $mock_rc? [Y/n]: ${C_RESET}"
                 read -r _ < /dev/tty || true
                 echo ""
                 log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"

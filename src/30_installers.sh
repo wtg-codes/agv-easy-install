@@ -3,13 +3,8 @@ install_brew() {
     log_info "${C_MAG}🚀 Installing Antigravity via Homebrew...${C_RESET}"
     if ! check_brew; then
         log_error "Homebrew is not installed."
-        if [ "$PLATFORM" = "Darwin" ]; then
-            log_error "Tarball fallback is not supported on macOS. Exiting."
-            exit 1
-        else
-            log_warn "Falling back to Tarball installation..."
-            do_install_tarball
-        fi
+        log_warn "Falling back to Tarball installation..."
+        do_install_tarball
         return
     fi
     
@@ -85,8 +80,13 @@ EOL
 
 do_install_tarball() {
     JSON_METHOD="tarball"
-    if ! command -v sha256sum >/dev/null 2>&1; then
-        log_error "sha256sum is required for tarball install but was not found."
+    local sha_cmd=""
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha_cmd="sha256sum"
+    elif command -v shasum >/dev/null 2>&1; then
+        sha_cmd="shasum -a 256"
+    else
+        log_error "sha256sum or shasum is required for tarball install but was not found."
         exit 1
     fi
 
@@ -106,7 +106,7 @@ do_install_tarball() {
     fi
 
     log_info "${C_BLUE}🔐 Verifying checksum...${C_RESET}"
-    if ! echo "$KNOWN_SHA256  $TMP_DIR/Antigravity.tar.gz" | sha256sum -c - >/dev/null 2>&1; then
+    if ! echo "$KNOWN_SHA256  $TMP_DIR/Antigravity.tar.gz" | $sha_cmd -c - >/dev/null 2>&1; then
         log_error "Checksum verification failed!"
         exit 1
     fi
@@ -128,7 +128,7 @@ Type=Application
 Categories=Development;IDE;
 EOF
 
-    if [ "$PLATFORM" != "Darwin" ]; then
+    if [ "$PLATFORM" != "Darwin" ] && ! grep -qi "microsoft" /proc/version 2>/dev/null; then
         log_info "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
         if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
         DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
@@ -147,6 +147,14 @@ Workspace: $WORKSPACE_DIR"
         log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
         log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
         log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+    fi
+
+    if [ "$PLATFORM" = "Darwin" ]; then
+        echo ""
+        log_warn "macOS Gatekeeper may block the standalone binary from running."
+        log_info "If you see 'cannot be opened because the developer cannot be verified',"
+        log_info "run this command to clear the quarantine flag:"
+        log_info "  ${C_BOLD}xattr -d com.apple.quarantine ~/.local/bin/antigravity${C_RESET}"
     fi
     
     configure_chrome_path
