@@ -276,12 +276,29 @@
                     <p class="text-slate-400 text-sm leading-relaxed mb-2">
                         If the installer doesn't support your system, download the standalone package manually:
                     </p>
-                    <!-- TARBALL_LINK — kept in sync by the nightly CI workflow -->
-                    <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors">
-                        <i data-lucide="download" class="w-4 h-4"></i>
-                        Download Antigravity.tar.gz
-                    </a>
-                    <p class="text-slate-500 text-xs mt-2 italic">This link is updated nightly by CI.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 mb-2">
+                        <!-- TARBALL_LINK_LINUX -->
+                        <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
+                            <span>Linux (x64)</span>
+                            <i data-lucide="download" class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
+                        </a>
+                        <!-- TARBALL_LINK_MAC_ARM -->
+                        <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-arm/Antigravity.dmg" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
+                            <span>macOS (Apple Silicon)</span>
+                            <i data-lucide="download" class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
+                        </a>
+                        <!-- TARBALL_LINK_MAC_X64 -->
+                        <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-x64/Antigravity.dmg" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
+                            <span>macOS (Intel)</span>
+                            <i data-lucide="download" class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
+                        </a>
+                        <!-- TARBALL_LINK_WIN -->
+                        <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-x64/Antigravity.exe" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
+                            <span>Windows (x64)</span>
+                            <i data-lucide="download" class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
+                        </a>
+                    </div>
+                    <p class="text-slate-500 text-xs mt-3 italic">These links are updated nightly by our CI pipeline.</p>
                 </div>
             </div>
 
