@@ -198,24 +198,47 @@ Workspace: $WORKSPACE_DIR"
         log_info "${C_CYAN}💿 Mounting DMG...${C_RESET}"
         run_cmd hdiutil attach "$dl_target" -mountpoint /Volumes/Antigravity -nobrowse -quiet
         log_info "${C_BLUE}📦 Copying to /Applications...${C_RESET}"
-        if [ -d "/Applications/Google Antigravity.app" ]; then
-            run_cmd rm -rf "/Applications/Google Antigravity.app"
+        
+        # Dynamically find the .app bundle inside the DMG
+        APP_NAME=$(ls -1 /Volumes/Antigravity 2>>"$LOG_FILE" | grep '\.app$' | head -n 1 || true)
+        
+        if [ -z "$APP_NAME" ]; then
+            log_error "Could not find any .app bundle inside the mounted DMG!"
+            log_info "Contents of /Volumes/Antigravity:"
+            ls -la /Volumes/Antigravity >> "$LOG_FILE" 2>&1 || true
+            run_cmd hdiutil detach /Volumes/Antigravity -quiet
+            exit 1
         fi
-        run_cmd cp -R "/Volumes/Antigravity/Google Antigravity.app" /Applications/
+        
+        log_info "  ${C_DIM}Found app bundle: $APP_NAME${C_RESET}"
+        
+        if [ -d "/Applications/$APP_NAME" ]; then
+            run_cmd rm -rf "/Applications/$APP_NAME"
+        fi
+        
+        if ! cp -R "/Volumes/Antigravity/$APP_NAME" /Applications/ >> "$LOG_FILE" 2>&1; then
+            log_error "Failed to copy $APP_NAME to /Applications. Check /tmp/antigravity-install.log for details."
+            run_cmd hdiutil detach /Volumes/Antigravity -quiet
+            exit 1
+        fi
+        
         run_cmd hdiutil detach /Volumes/Antigravity -quiet
 
         echo ""
         log_warn "macOS Gatekeeper may block the standalone binary from running."
         log_info "If you see 'cannot be opened because the developer cannot be verified',"
         log_info "run this command to clear the quarantine flag:"
-        log_info "  ${C_BOLD}xattr -rd com.apple.quarantine '/Applications/Google Antigravity.app'${C_RESET}"
+        log_info "  ${C_BOLD}xattr -rd com.apple.quarantine '/Applications/$APP_NAME'${C_RESET}"
 
         # Create CLI shim for terminal launch
         mkdir -p "$BIN_DIR"
-        if [ -f "/Applications/Google Antigravity.app/Contents/MacOS/Antigravity" ]; then
-            run_cmd ln -sf "/Applications/Google Antigravity.app/Contents/MacOS/Antigravity" "$BIN_DIR/antigravity"
-        elif [ -f "/Applications/Antigravity.app/Contents/MacOS/Antigravity" ]; then
-            run_cmd ln -sf "/Applications/Antigravity.app/Contents/MacOS/Antigravity" "$BIN_DIR/antigravity"
+        local mac_bin_path
+        mac_bin_path=$(find "/Applications/$APP_NAME/Contents/MacOS" -type f -executable | head -n 1 || true)
+        
+        if [ -n "$mac_bin_path" ] && [ -f "$mac_bin_path" ]; then
+            run_cmd ln -sf "$mac_bin_path" "$BIN_DIR/antigravity"
+        else
+            log_warn "Could not create terminal shortcut (executable not found inside $APP_NAME)."
         fi
 
         log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET} Launch from Applications folder or type 'antigravity' in terminal."
