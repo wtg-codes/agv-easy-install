@@ -95,8 +95,8 @@ gate_2() {
     # Old patterns removed
     check "2.G12 Old \$0 bash detection gone"  "! grep -q '\"bash\"' $SCRIPT"
 
-    # Menu
-    check "2.G13 Menu has 8 options"           "grep -q '\[1-8\]' $SCRIPT"
+    # Menu — hierarchical: main_menu → install_submenu / manage_submenu
+    check "2.G13 Hierarchical menu system"      "grep -q 'main_menu' $SCRIPT && grep -q 'install_submenu' $SCRIPT && grep -q 'manage_submenu' $SCRIPT"
     check "2.G14 Auto-detect suggestion"       "grep -qiE 'Detected|Recommended|recommend' $SCRIPT"
 }
 

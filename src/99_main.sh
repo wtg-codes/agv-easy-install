@@ -47,6 +47,7 @@ fi
 check_dependencies
 detect_platform
 
+# ── Sandbox mode (loops forever, all actions mocked) ────────────
 start_sandbox_mode() {
     export MOCK_MODE=1
     DISTRO_PRETTY="Bluefin (Mock Sandbox)"
@@ -54,22 +55,69 @@ start_sandbox_mode() {
     GLIBC_VERSION="2.42"
     HAS_BREW="yes"
     RECOMMENDED=1
-    
+
     while true; do
         clear || true
         print_banner "[SANDBOX MODE]"
         print_system_info
-        echo ""
-        interactive_menu
-        
+        main_menu
+
         case "$choice" in
-            8) echo "Exiting Sandbox Mode."; trap - EXIT INT TERM; exit 0 ;;
-            7) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
-            *) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
+            cancel) echo "Exiting Sandbox Mode."; trap - EXIT INT TERM; exit 0 ;;
+            install)
+                install_submenu
+                if [ "$choice" != "back" ]; then
+                    echo ""; run_mock_action "$choice"
+                    echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
+                fi
+                ;;
+            remove)
+                echo ""; run_mock_action "remove"
+                echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
+                ;;
+            manage)
+                manage_submenu
+                case "$choice" in
+                    save|remove_mgr) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
+                    demo) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
+                    back) ;; # loop back to main
+                esac
+                ;;
         esac
     done
 }
 
+# ── Interactive flow (normal mode) ──────────────────────────────
+run_interactive() {
+    print_banner ""
+    print_system_info
+    main_menu
+
+    case "$choice" in
+        cancel) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+        install)
+            install_submenu
+            case "$choice" in
+                brew) install_brew; save_manager_locally ;;
+                repo) install_repo; save_manager_locally ;;
+                tarball) do_install_tarball; save_manager_locally ;;
+                back) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+            esac
+            ;;
+        remove) do_remove ;;
+        manage)
+            manage_submenu
+            case "$choice" in
+                save) save_manager_locally ;;
+                remove_mgr) remove_manager_script ;;
+                demo) start_sandbox_mode ;;
+                back) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+            esac
+            ;;
+    esac
+}
+
+# ── Dispatch ────────────────────────────────────────────────────
 case "$ACTION" in
     remove) do_remove ;;
     auto)
@@ -81,30 +129,12 @@ case "$ACTION" in
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     tarball) do_install_tarball; save_manager_locally ;;
-    demo_ui)
-        start_sandbox_mode
-        ;;
+    demo_ui) start_sandbox_mode ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then
             log_error "Cannot use --json without specifying an explicit headless install method (e.g. --auto)"
             exit 1
         fi
-        
-        print_banner ""
-        print_system_info
-        echo ""
-        
-        interactive_menu
-    
-        case "$choice" in
-            1) install_brew; save_manager_locally ;;
-            2) install_repo; save_manager_locally ;;
-            3) do_install_tarball; save_manager_locally ;;
-            4) save_manager_locally ;;
-            5) do_remove ;;
-            6) remove_manager_script ;;
-            7) echo ""; start_sandbox_mode ;;
-            8) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
-        esac
+        run_interactive
         ;;
 esac

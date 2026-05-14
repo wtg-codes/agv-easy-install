@@ -411,11 +411,7 @@ print_system_info() {
 
 print_banner() {
     local mode="$1"
-    local rows
-    rows=$(tput lines 2>/dev/null || echo 24)
-
     echo ""
-    if [ "$rows" -ge 30 ]; then
     cat << 'BANNER_EOF'
     [0;34m    _    [0;31m     _ [1;33m  _  [0;34m___[0;32m       [0;31m      [0;34m    _ _[0;31m      [1;33m   [0;34m    [0;32m       [0m
     [0;34m   / \   [0;31m_ __| |[1;33m_(_)/[0;34m __[0;32m|_ __ _[0;31m_ ___ [0;34m  _(_) [0;31m|_ _  [1;33m _ [0;34m    [0;32m       [0m
@@ -424,14 +420,9 @@ print_banner() {
     [0;34m/_/   \_\[0;31m_| |_|\[1;33m__|_|[0;34m\__[0;32m__|_|  [0;31m\__,_|[0;34m \_/ |_[0;31m|\__|\[1;33m__,[0;34m |  [0;32m       [0m
     [0;34m         [0;31m       [1;33m     [0;34m   [0;32m       [0;31m      [0;34m       [0;31m     |[1;33m___[0;34m/   [0;32m       [0m
 BANNER_EOF
-        echo -e "      ${C_BOLD}AGV Easy Install v${SCRIPT_VERSION}${C_RESET} ${mode}"
-        echo -e "      ${C_DIM}Unofficial Antigravity setup · wtg-codes · github.com/wtg-codes/agv-easy-install${C_RESET}"
-    else
-        # Compact banner for standard 80x24 terminals
-        echo -e "  ${C_BLUE}${C_BOLD}A${C_RED}n${C_YELLOW}t${C_BLUE}i${C_GREEN}G${C_RED}r${C_BLUE}a${C_RED}v${C_YELLOW}i${C_BLUE}t${C_GREEN}y${C_RESET}  ${C_BOLD}AGV Easy Install v${SCRIPT_VERSION}${C_RESET} ${mode}"
-        echo -e "  ${C_DIM}Unofficial Antigravity setup · wtg-codes · github.com/wtg-codes/agv-easy-install${C_RESET}"
-    fi
-    echo -e "  ${C_DIM}──────────────────────────────────────────────────────────────────────────${C_RESET}"
+    echo -e "      ${C_BOLD}AGV Easy Install v${SCRIPT_VERSION}${C_RESET} ${mode}"
+    echo -e "      ${C_DIM}Unofficial Antigravity setup · wtg-codes${C_RESET}"
+    echo -e "      ${C_DIM}──────────────────────────────────────────────────${C_RESET}"
 }
 
 install_brew() {
@@ -641,70 +632,131 @@ do_remove() {
     log_info "${C_GREEN}✅ Uninstalled successfully.${C_RESET} (Note: Your code in $WORKSPACE_DIR was kept safe)."
 }
 
-interactive_menu() {
+# ── Top-level menu ──────────────────────────────────────────────
+main_menu() {
     bootstrap_ui
     echo ""
     local options=(
-        "Homebrew (cross-platform, no sudo)"
-        "System Repo (APT/DNF, auto-updates, needs sudo)"
-        "Tarball (manual, installs to ~/.local)"
-        "Save manager (add 'antigravity-manager' command)"
-        "Uninstall (remove Antigravity)"
-        "Remove mgr (remove this script)"
-        "Demo UI (Test animations without installing)"
         "Cancel"
+        "Install Antigravity"
+        "Remove Antigravity"
+        "Manage AGV Easy Install"
     )
-    # Menu has options [1-8]
+    # Main menu has 4 options [1-4]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum choose --cursor="❯ " --selected="${options[$((RECOMMENDED-1))]}" "${options[@]}") || CHOICE="Cancel"
+        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-8]: " num < /dev/tty
+        read -r -p "Select option [1-4]: " num < /dev/tty
         case "$num" in
-            1) CHOICE="Homebrew" ;;
-            2) CHOICE="System Repo" ;;
-            3) CHOICE="Tarball" ;;
-            4) CHOICE="Save manager" ;;
-            5) CHOICE="Uninstall" ;;
-            6) CHOICE="Remove mgr" ;;
-            7) CHOICE="Demo UI" ;;
-            8) CHOICE="Cancel" ;;
+            1) CHOICE="Cancel" ;;
+            2) CHOICE="Install" ;;
+            3) CHOICE="Remove" ;;
+            4) CHOICE="Manage" ;;
             *) CHOICE="Cancel" ;;
         esac
     fi
-    
+
     case "$CHOICE" in
-        "Homebrew"*) choice=1 ;;
-        "System Repo"*) choice=2 ;;
-        "Tarball"*) choice=3 ;;
-        "Save manager"*) choice=4 ;;
-        "Uninstall"*) choice=5 ;;
-        "Remove mgr"*) choice=6 ;;
-        "Demo UI"*) choice=7 ;;
-        "Cancel"*) choice=8 ;;
-        *) choice=8 ;;
+        "Cancel"*) choice="cancel" ;;
+        "Install"*) choice="install" ;;
+        "Remove"*) choice="remove" ;;
+        "Manage"*) choice="manage" ;;
+        *) choice="cancel" ;;
     esac
 }
 
+# ── Install sub-menu ────────────────────────────────────────────
+install_submenu() {
+    echo ""
+    local rec_brew="" rec_repo="" rec_tar=""
+    case "$RECOMMENDED" in
+        1) rec_brew="★ " ;;
+        2) rec_repo="★ " ;;
+        3) rec_tar="★ " ;;
+    esac
 
+    local options=(
+        "Back"
+        "${rec_brew}Homebrew (cross-platform, no sudo)"
+        "${rec_repo}System Repo (APT/DNF, needs sudo)"
+        "${rec_tar}Tarball (manual, installs to ~/.local)"
+    )
 
+    if command -v gum >/dev/null 2>&1; then
+        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
+    else
+        for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
+        read -r -p "Select method [1-4]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Back" ;;
+            2) CHOICE="Homebrew" ;;
+            3) CHOICE="System" ;;
+            4) CHOICE="Tarball" ;;
+            *) CHOICE="Back" ;;
+        esac
+    fi
+
+    case "$CHOICE" in
+        "Back"*) choice="back" ;;
+        *"Homebrew"*) choice="brew" ;;
+        *"System"*) choice="repo" ;;
+        *"Tarball"*) choice="tarball" ;;
+        *) choice="back" ;;
+    esac
+}
+
+# ── Manage sub-menu ─────────────────────────────────────────────
+manage_submenu() {
+    echo ""
+    local options=(
+        "Back"
+        "Save manager (add 'antigravity-manager' command)"
+        "Remove manager (delete this script)"
+        "Demo UI (sandbox mode)"
+    )
+
+    if command -v gum >/dev/null 2>&1; then
+        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
+    else
+        for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
+        read -r -p "Select option [1-4]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Back" ;;
+            2) CHOICE="Save" ;;
+            3) CHOICE="Remove manager" ;;
+            4) CHOICE="Demo" ;;
+            *) CHOICE="Back" ;;
+        esac
+    fi
+
+    case "$CHOICE" in
+        "Back"*) choice="back" ;;
+        "Save"*) choice="save" ;;
+        "Remove"*) choice="remove_mgr" ;;
+        "Demo"*) choice="demo" ;;
+        *) choice="back" ;;
+    esac
+}
+
+# ── Mock actions for sandbox mode ───────────────────────────────
 run_mock_action() {
-    local choice="$1"
-    
-    case "$choice" in
-        1|2|3)
+    local action="$1"
+
+    case "$action" in
+        brew|repo|tarball)
             local method="Homebrew"
-            [ "$choice" = "2" ] && method="System Repo"
-            [ "$choice" = "3" ] && method="Tarball"
-            
+            [ "$action" = "repo" ] && method="System Repo"
+            [ "$action" = "tarball" ] && method="Tarball"
+
             log_info "${C_MAG}🚀 Starting mock installation via ${method}...${C_RESET}"
             run_cmd_ui "Downloading Antigravity payload..." sleep 1.5
             run_cmd_ui "Extracting binaries..." sleep 1
             echo ""
             log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
             log_info "We found a valid Chrome binary at: ${C_BOLD}/usr/bin/google-chrome${C_RESET}"
-            
+
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Would you like to automatically configure Antigravity to use this browser?" || true
                 echo ""
@@ -729,12 +781,12 @@ Workspace: $WORKSPACE_DIR"
                 log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
             fi
             ;;
-        4)
+        save)
             log_info "${C_MAG}🚀 Saving manager locally (Mock)...${C_RESET}"
             run_cmd_ui "Copying script to ~/.local/bin/antigravity-manager..." sleep 1
             log_info "✅ Manager saved successfully!"
             ;;
-        5)
+        remove)
             log_info "${C_MAG}🚀 Uninstalling Antigravity (Mock)...${C_RESET}"
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Are you sure you want to completely remove Antigravity?" || true
@@ -743,7 +795,7 @@ Workspace: $WORKSPACE_DIR"
             run_cmd_ui "Removing state directories..." sleep 0.5
             log_info "✅ Uninstallation complete!"
             ;;
-        6)
+        remove_mgr)
             log_info "${C_MAG}🚀 Removing manager script (Mock)...${C_RESET}"
             run_cmd_ui "Deleting ~/.local/bin/antigravity-manager..." sleep 1
             log_info "✅ Manager script deleted."
@@ -799,6 +851,7 @@ fi
 check_dependencies
 detect_platform
 
+# ── Sandbox mode (loops forever, all actions mocked) ────────────
 start_sandbox_mode() {
     export MOCK_MODE=1
     DISTRO_PRETTY="Bluefin (Mock Sandbox)"
@@ -806,22 +859,69 @@ start_sandbox_mode() {
     GLIBC_VERSION="2.42"
     HAS_BREW="yes"
     RECOMMENDED=1
-    
+
     while true; do
         clear || true
         print_banner "[SANDBOX MODE]"
         print_system_info
-        echo ""
-        interactive_menu
-        
+        main_menu
+
         case "$choice" in
-            8) echo "Exiting Sandbox Mode."; trap - EXIT INT TERM; exit 0 ;;
-            7) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
-            *) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
+            cancel) echo "Exiting Sandbox Mode."; trap - EXIT INT TERM; exit 0 ;;
+            install)
+                install_submenu
+                if [ "$choice" != "back" ]; then
+                    echo ""; run_mock_action "$choice"
+                    echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
+                fi
+                ;;
+            remove)
+                echo ""; run_mock_action "remove"
+                echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
+                ;;
+            manage)
+                manage_submenu
+                case "$choice" in
+                    save|remove_mgr) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
+                    demo) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
+                    back) ;; # loop back to main
+                esac
+                ;;
         esac
     done
 }
 
+# ── Interactive flow (normal mode) ──────────────────────────────
+run_interactive() {
+    print_banner ""
+    print_system_info
+    main_menu
+
+    case "$choice" in
+        cancel) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+        install)
+            install_submenu
+            case "$choice" in
+                brew) install_brew; save_manager_locally ;;
+                repo) install_repo; save_manager_locally ;;
+                tarball) do_install_tarball; save_manager_locally ;;
+                back) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+            esac
+            ;;
+        remove) do_remove ;;
+        manage)
+            manage_submenu
+            case "$choice" in
+                save) save_manager_locally ;;
+                remove_mgr) remove_manager_script ;;
+                demo) start_sandbox_mode ;;
+                back) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+            esac
+            ;;
+    esac
+}
+
+# ── Dispatch ────────────────────────────────────────────────────
 case "$ACTION" in
     remove) do_remove ;;
     auto)
@@ -833,30 +933,12 @@ case "$ACTION" in
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     tarball) do_install_tarball; save_manager_locally ;;
-    demo_ui)
-        start_sandbox_mode
-        ;;
+    demo_ui) start_sandbox_mode ;;
     install|"")
         if [ "$JSON_OUT" -eq 1 ]; then
             log_error "Cannot use --json without specifying an explicit headless install method (e.g. --auto)"
             exit 1
         fi
-        
-        print_banner ""
-        print_system_info
-        echo ""
-        
-        interactive_menu
-    
-        case "$choice" in
-            1) install_brew; save_manager_locally ;;
-            2) install_repo; save_manager_locally ;;
-            3) do_install_tarball; save_manager_locally ;;
-            4) save_manager_locally ;;
-            5) do_remove ;;
-            6) remove_manager_script ;;
-            7) echo ""; start_sandbox_mode ;;
-            8) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
-        esac
+        run_interactive
         ;;
 esac

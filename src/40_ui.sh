@@ -1,67 +1,128 @@
-interactive_menu() {
+# ── Top-level menu ──────────────────────────────────────────────
+main_menu() {
     bootstrap_ui
     echo ""
     local options=(
-        "Homebrew (cross-platform, no sudo)"
-        "System Repo (APT/DNF, auto-updates, needs sudo)"
-        "Tarball (manual, installs to ~/.local)"
-        "Save manager (add 'antigravity-manager' command)"
-        "Uninstall (remove Antigravity)"
-        "Remove mgr (remove this script)"
-        "Demo UI (Test animations without installing)"
         "Cancel"
+        "Install Antigravity"
+        "Remove Antigravity"
+        "Manage AGV Easy Install"
     )
-    # Menu has options [1-8]
+    # Main menu has 4 options [1-4]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum choose --cursor="❯ " --selected="${options[$((RECOMMENDED-1))]}" "${options[@]}") || CHOICE="Cancel"
+        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-8]: " num < /dev/tty
+        read -r -p "Select option [1-4]: " num < /dev/tty
         case "$num" in
-            1) CHOICE="Homebrew" ;;
-            2) CHOICE="System Repo" ;;
-            3) CHOICE="Tarball" ;;
-            4) CHOICE="Save manager" ;;
-            5) CHOICE="Uninstall" ;;
-            6) CHOICE="Remove mgr" ;;
-            7) CHOICE="Demo UI" ;;
-            8) CHOICE="Cancel" ;;
+            1) CHOICE="Cancel" ;;
+            2) CHOICE="Install" ;;
+            3) CHOICE="Remove" ;;
+            4) CHOICE="Manage" ;;
             *) CHOICE="Cancel" ;;
         esac
     fi
-    
+
     case "$CHOICE" in
-        "Homebrew"*) choice=1 ;;
-        "System Repo"*) choice=2 ;;
-        "Tarball"*) choice=3 ;;
-        "Save manager"*) choice=4 ;;
-        "Uninstall"*) choice=5 ;;
-        "Remove mgr"*) choice=6 ;;
-        "Demo UI"*) choice=7 ;;
-        "Cancel"*) choice=8 ;;
-        *) choice=8 ;;
+        "Cancel"*) choice="cancel" ;;
+        "Install"*) choice="install" ;;
+        "Remove"*) choice="remove" ;;
+        "Manage"*) choice="manage" ;;
+        *) choice="cancel" ;;
     esac
 }
 
+# ── Install sub-menu ────────────────────────────────────────────
+install_submenu() {
+    echo ""
+    local rec_brew="" rec_repo="" rec_tar=""
+    case "$RECOMMENDED" in
+        1) rec_brew="★ " ;;
+        2) rec_repo="★ " ;;
+        3) rec_tar="★ " ;;
+    esac
 
+    local options=(
+        "Back"
+        "${rec_brew}Homebrew (cross-platform, no sudo)"
+        "${rec_repo}System Repo (APT/DNF, needs sudo)"
+        "${rec_tar}Tarball (manual, installs to ~/.local)"
+    )
 
+    if command -v gum >/dev/null 2>&1; then
+        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
+    else
+        for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
+        read -r -p "Select method [1-4]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Back" ;;
+            2) CHOICE="Homebrew" ;;
+            3) CHOICE="System" ;;
+            4) CHOICE="Tarball" ;;
+            *) CHOICE="Back" ;;
+        esac
+    fi
+
+    case "$CHOICE" in
+        "Back"*) choice="back" ;;
+        *"Homebrew"*) choice="brew" ;;
+        *"System"*) choice="repo" ;;
+        *"Tarball"*) choice="tarball" ;;
+        *) choice="back" ;;
+    esac
+}
+
+# ── Manage sub-menu ─────────────────────────────────────────────
+manage_submenu() {
+    echo ""
+    local options=(
+        "Back"
+        "Save manager (add 'antigravity-manager' command)"
+        "Remove manager (delete this script)"
+        "Demo UI (sandbox mode)"
+    )
+
+    if command -v gum >/dev/null 2>&1; then
+        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
+    else
+        for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
+        read -r -p "Select option [1-4]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Back" ;;
+            2) CHOICE="Save" ;;
+            3) CHOICE="Remove manager" ;;
+            4) CHOICE="Demo" ;;
+            *) CHOICE="Back" ;;
+        esac
+    fi
+
+    case "$CHOICE" in
+        "Back"*) choice="back" ;;
+        "Save"*) choice="save" ;;
+        "Remove"*) choice="remove_mgr" ;;
+        "Demo"*) choice="demo" ;;
+        *) choice="back" ;;
+    esac
+}
+
+# ── Mock actions for sandbox mode ───────────────────────────────
 run_mock_action() {
-    local choice="$1"
-    
-    case "$choice" in
-        1|2|3)
+    local action="$1"
+
+    case "$action" in
+        brew|repo|tarball)
             local method="Homebrew"
-            [ "$choice" = "2" ] && method="System Repo"
-            [ "$choice" = "3" ] && method="Tarball"
-            
+            [ "$action" = "repo" ] && method="System Repo"
+            [ "$action" = "tarball" ] && method="Tarball"
+
             log_info "${C_MAG}🚀 Starting mock installation via ${method}...${C_RESET}"
             run_cmd_ui "Downloading Antigravity payload..." sleep 1.5
             run_cmd_ui "Extracting binaries..." sleep 1
             echo ""
             log_warn "Antigravity occasionally fails to find Chrome when installed via Brew or Tarball."
             log_info "We found a valid Chrome binary at: ${C_BOLD}/usr/bin/google-chrome${C_RESET}"
-            
+
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Would you like to automatically configure Antigravity to use this browser?" || true
                 echo ""
@@ -86,12 +147,12 @@ Workspace: $WORKSPACE_DIR"
                 log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
             fi
             ;;
-        4)
+        save)
             log_info "${C_MAG}🚀 Saving manager locally (Mock)...${C_RESET}"
             run_cmd_ui "Copying script to ~/.local/bin/antigravity-manager..." sleep 1
             log_info "✅ Manager saved successfully!"
             ;;
-        5)
+        remove)
             log_info "${C_MAG}🚀 Uninstalling Antigravity (Mock)...${C_RESET}"
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Are you sure you want to completely remove Antigravity?" || true
@@ -100,7 +161,7 @@ Workspace: $WORKSPACE_DIR"
             run_cmd_ui "Removing state directories..." sleep 0.5
             log_info "✅ Uninstallation complete!"
             ;;
-        6)
+        remove_mgr)
             log_info "${C_MAG}🚀 Removing manager script (Mock)...${C_RESET}"
             run_cmd_ui "Deleting ~/.local/bin/antigravity-manager..." sleep 1
             log_info "✅ Manager script deleted."
