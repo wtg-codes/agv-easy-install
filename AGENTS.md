@@ -141,7 +141,10 @@ Before submitting any PR, the relevant phase gate(s) must pass.
 │   │   ├── cleanup_submenu.png
 │   │   └── mock_install.png
 │   └── architecture/
-│       └── implementation_plan.md     ← Living architecture doc
+│       ├── implementation_plan.md     ← Living architecture doc
+│       ├── platform-macos.md          ← macOS support notes
+│       ├── platform-crostini.md       ← ChromeOS/Crostini support notes
+│       └── platform-windows.md        ← WSL2/Git Bash support notes
 └── tests/
     └── run_gates.sh                   ← Phase gate test runner (66 gates)
 ```
