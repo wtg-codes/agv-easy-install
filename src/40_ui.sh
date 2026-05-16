@@ -15,10 +15,10 @@ main_menu() {
         "$mgr_opt"
     )
     # Main menu has 4 options [1-4]
-    # --height is sized exactly to the option count so gum filter doesn't
-    # expand to fill the terminal and scroll the banner off screen.
+    # --height=8 gives gum filter enough space to display all 4 options
+    # without needing to scroll internally, which prevents tearing on macOS Terminal.
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum filter --height=$(( ${#options[@]} + 2 )) --no-limit --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
+        CHOICE=$(gum filter --height=8 --no-limit --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
@@ -69,6 +69,7 @@ install_submenu() {
         "${rec_bin}Official Binary (manual, standalone app)"
     )
 
+    echo "OPTIONS COUNT: ${#options[@]}" > /tmp/options_count
     if command -v gum >/dev/null 2>&1; then
         CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
     else
@@ -103,6 +104,7 @@ cleanup_submenu() {
         "Demo UI (sandbox mode)"
     )
 
+    echo "OPTIONS COUNT: ${#options[@]}" > /tmp/options_count
     if command -v gum >/dev/null 2>&1; then
         CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
     else
@@ -150,6 +152,7 @@ run_mock_action() {
             # shellcheck disable=SC2088
             if [ "$PLATFORM" = "Darwin" ]; then mock_rc="~/.zprofile"; fi
 
+    echo "OPTIONS COUNT: ${#options[@]}" > /tmp/options_count
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Would you like to automatically configure Antigravity to use this browser?" || true
                 echo ""
@@ -181,6 +184,7 @@ Workspace: $WORKSPACE_DIR"
             ;;
         remove)
             log_info "${C_MAG}🚀 Uninstalling Antigravity (Mock)...${C_RESET}"
+    echo "OPTIONS COUNT: ${#options[@]}" > /tmp/options_count
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Are you sure you want to completely remove Antigravity?" || true
             fi
