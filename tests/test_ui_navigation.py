@@ -231,13 +231,13 @@ def test_main_menu_navigation() -> tuple[bool, list[str]]:
     """
     failures = []
     print("\n▶  test_main_menu_navigation")
-    session = TerminalSession(["bash", SCRIPT, "--demo-ui"])
+    session = TerminalSession(["bash", SCRIPT, "--demo-ui", "--no-update"])
 
     try:
         if not session.wait_for("navigate", timeout=20):
             return False, ["[main_menu] Timed out waiting for menu to appear"]
 
-        session.snapshot_label("initial render")
+        import time; time.sleep(1); session.snapshot_label("initial render")
         failures += assert_no_tearing(session, "initial render")
         failures += assert_option_highlighted(session, "initial", "Cancel")
         failures += assert_text_visible(session, "initial", "Choose Antigravity install method")
@@ -279,7 +279,7 @@ def test_install_submenu() -> tuple[bool, list[str]]:
     """Navigate into the install sub-menu, check all options, go back."""
     failures = []
     print("\n▶  test_install_submenu")
-    session = TerminalSession(["bash", SCRIPT, "--demo-ui"])
+    session = TerminalSession(["bash", SCRIPT, "--demo-ui", "--no-update"])
 
     try:
         if not session.wait_for("navigate", timeout=20):
@@ -329,7 +329,7 @@ def test_cleanup_submenu() -> tuple[bool, list[str]]:
     """Navigate into the cleanup sub-menu, verify all options, go back."""
     failures = []
     print("\n▶  test_cleanup_submenu")
-    session = TerminalSession(["bash", SCRIPT, "--demo-ui"])
+    session = TerminalSession(["bash", SCRIPT, "--demo-ui", "--no-update"])
 
     try:
         if not session.wait_for("navigate", timeout=20):
@@ -386,7 +386,7 @@ def test_cancel_exits_cleanly() -> tuple[bool, list[str]]:
     """Select Cancel on the main menu, verify script exits cleanly (exit 0)."""
     failures = []
     print("\n▶  test_cancel_exits_cleanly")
-    session = TerminalSession(["bash", SCRIPT, "--demo-ui"])
+    session = TerminalSession(["bash", SCRIPT, "--demo-ui", "--no-update"])
 
     try:
         if not session.wait_for("navigate", timeout=20):
@@ -423,7 +423,7 @@ def test_easter_egg() -> tuple[bool, list[str]]:
     """
     failures = []
     print("\n▶  test_easter_egg")
-    session = TerminalSession(["bash", SCRIPT, "--demo-ui"])
+    session = TerminalSession(["bash", SCRIPT, "--demo-ui", "--no-update"])
 
     try:
         if not session.wait_for("navigate", timeout=20):
@@ -468,7 +468,7 @@ def test_banner_visible_on_main_menu() -> tuple[bool, list[str]]:
     """
     failures = []
     print("\n▶  test_banner_visible_on_main_menu")
-    session = TerminalSession(["bash", SCRIPT, "--demo-ui"])
+    session = TerminalSession(["bash", SCRIPT, "--demo-ui", "--no-update"])
 
     try:
         if not session.wait_for("navigate", timeout=20):
@@ -507,7 +507,7 @@ def test_back_returns_to_main_menu() -> tuple[bool, list[str]]:
         ("install submenu", 1, "Homebrew"),
         ("cleanup submenu", 2, "Uninstall"),
     ]:
-        session = TerminalSession(["bash", SCRIPT, "--demo-ui"])
+        session = TerminalSession(["bash", SCRIPT, "--demo-ui", "--no-update"])
         try:
             if not session.wait_for("navigate", timeout=20):
                 failures.append(f"[back/{submenu_label}] Timed out on main menu")
