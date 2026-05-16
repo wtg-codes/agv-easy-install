@@ -18,7 +18,7 @@ C_DIM='\033[2m'
 C_RESET='\033[0m'
 
 # Configuration
-SCRIPT_VERSION="0.2.2"
+SCRIPT_VERSION="0.2.3"
 LINUX_X64_SHA256="5232a4048ff4fa15685d9a981ba4fba573e297f3efc9b76f638e794baf775725"
 LINUX_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
 
@@ -817,7 +817,16 @@ main_menu() {
     )
     # Main menu has 4 options [1-4]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum filter --height=8 --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
+        # Calculate safe height: terminal rows minus banner/info already printed,
+        # with a floor of (num_options + 2) so every option is always visible.
+        local term_rows filter_height
+        term_rows=$(tput lines 2>/dev/null || echo 24)
+        # Banner(7) + version/link/rule(3) + sysinfo(~4) + blank lines(~2) = ~16 lines consumed
+        filter_height=$(( term_rows - 16 ))
+        if [ "$filter_height" -lt $(( ${#options[@]} + 2 )) ]; then
+            filter_height=$(( ${#options[@]} + 2 ))
+        fi
+        CHOICE=$(gum filter --height="$filter_height" --no-limit --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done

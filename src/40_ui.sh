@@ -16,7 +16,16 @@ main_menu() {
     )
     # Main menu has 4 options [1-4]
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum filter --height=8 --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
+        # Calculate safe height: terminal rows minus banner/info already printed,
+        # with a floor of (num_options + 2) so every option is always visible.
+        local term_rows filter_height
+        term_rows=$(tput lines 2>/dev/null || echo 24)
+        # Banner(7) + version/link/rule(3) + sysinfo(~4) + blank lines(~2) = ~16 lines consumed
+        filter_height=$(( term_rows - 16 ))
+        if [ "$filter_height" -lt $(( ${#options[@]} + 2 )) ]; then
+            filter_height=$(( ${#options[@]} + 2 ))
+        fi
+        CHOICE=$(gum filter --height="$filter_height" --no-limit --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done

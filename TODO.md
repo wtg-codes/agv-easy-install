@@ -1,6 +1,6 @@
 # TODO — AGV Easy Install
 
-> **Last updated:** 2026-05-13 · Branch: `feat-platform-extensions`
+> **Last updated:** 2026-05-15 · Branch: `feat-platform-extensions`
 > This file is the single source of truth for all pending work.
 > It MUST be updated at the end of every coding session.
 

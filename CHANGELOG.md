@@ -30,6 +30,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - Bootstrapped `KNOWN_SHA256` to the real tarball checksum — standalone installs no longer fail out of the box.
+- **`gum filter` UI tearing:** Replaced hardcoded `--height=8` with a dynamic calculation based on actual terminal size, eliminating the text overlap / ghosting on the main menu.
 
 ### Docs
 - Updated README platform table: Crostini and WSL now show ⚠️ Beta, Git Bash shows ❌ Blocked.

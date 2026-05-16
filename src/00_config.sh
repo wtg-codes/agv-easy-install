@@ -13,7 +13,7 @@ C_DIM='\033[2m'
 C_RESET='\033[0m'
 
 # Configuration
-SCRIPT_VERSION="0.2.2"
+SCRIPT_VERSION="0.2.3"
 LINUX_X64_SHA256="5232a4048ff4fa15685d9a981ba4fba573e297f3efc9b76f638e794baf775725"
 LINUX_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
 
