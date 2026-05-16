@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## [Unreleased]
+## [0.2.7] — 2026-05-15
 
 ### Added
 - **Modern Terminal UI:** The interactive installer now features a beautiful arrow-key menu, animated spinners, and status blocks powered by an ephemeral download of `gum`.
@@ -30,7 +30,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - Bootstrapped `KNOWN_SHA256` to the real tarball checksum — standalone installs no longer fail out of the box.
-- **`gum filter` UI tearing:** Removed the `--height` flag entirely to allow the interactive list to expand naturally and properly manage its own redraw cycle without ghosting.
+- **`gum filter` UI tearing:** Adjusted `--height=8` to provide exact space for all 4 options, bypassing the macOS alternate screen buffer tearing bug. Also fixed local development test auto-downgrade issue.
 
 ### Docs
 - Updated README platform table: Crostini and WSL now show ⚠️ Beta, Git Bash shows ❌ Blocked.

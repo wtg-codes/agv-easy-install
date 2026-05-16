@@ -74,6 +74,7 @@
 
 ### Code Fixes Needed
 - [x] Fix TUI tearing/scrolling artifacts on macOS by providing sufficient gum filter height
+- [x] Document macOS TUI bug and test suite auto-downgrade issue in `docs/architecture/ui-tearing-postmortem.md`
 - [x] `sha256sum` → `shasum -a 256` fallback (macOS has no `sha256sum`)
 - [x] PATH setup: detect shell, write to `~/.zprofile` (Zsh) not `~/.bashrc`
 - [x] Mock UI references `~/.bashrc` — should be shell-aware
