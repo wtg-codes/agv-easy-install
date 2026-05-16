@@ -73,6 +73,7 @@
 > See **[docs/architecture/platform-macos.md](docs/architecture/platform-macos.md)** for implementation details.
 
 ### Code Fixes Needed
+- [x] Fix TUI tearing/scrolling artifacts on macOS by providing sufficient gum filter height
 - [x] `sha256sum` → `shasum -a 256` fallback (macOS has no `sha256sum`)
 - [x] PATH setup: detect shell, write to `~/.zprofile` (Zsh) not `~/.bashrc`
 - [x] Mock UI references `~/.bashrc` — should be shell-aware
