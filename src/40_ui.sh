@@ -1,4 +1,9 @@
 # ── Top-level menu ──────────────────────────────────────────────
+get_menu_header() {
+    print_banner "${UI_MODE:-}"
+    print_system_info
+}
+
 main_menu() {
     bootstrap_ui
     echo ""
@@ -14,12 +19,14 @@ main_menu() {
         "Antigravity cleanup options  →"
         "$mgr_opt"
     )
-    # Main menu has 4 options [1-4]
-    # --height=8 gives gum filter enough space to display all 4 options
-    # without needing to scroll internally, which prevents tearing on macOS Terminal.
+
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum filter --height=8 --no-limit --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
+        local header
+        header=$(get_menu_header)
+        CHOICE=$(gum filter --header="$header" --no-limit --no-strict --indicator="❯ " --placeholder="Select an option or type a secret..." "${options[@]}") || CHOICE="Cancel"
     else
+        clear || true
+        get_menu_header
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select option [1-4]: " num < /dev/tty
@@ -69,10 +76,13 @@ install_submenu() {
         "${rec_bin}Official Binary (manual, standalone app)"
     )
 
-    echo "OPTIONS COUNT: ${#options[@]}" > /tmp/options_count
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
+        local header
+        header=$(get_menu_header)
+        CHOICE=$(gum filter --header="$header" --no-limit --indicator="❯ " --placeholder="Select an installation method..." "${options[@]}") || CHOICE="Back"
     else
+        clear || true
+        get_menu_header
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select method [1-4]: " num < /dev/tty
         case "$num" in
@@ -104,10 +114,13 @@ cleanup_submenu() {
         "Demo UI (sandbox mode)"
     )
 
-    echo "OPTIONS COUNT: ${#options[@]}" > /tmp/options_count
     if command -v gum >/dev/null 2>&1; then
-        CHOICE=$(gum choose --cursor="❯ " "${options[@]}") || CHOICE="Back"
+        local header
+        header=$(get_menu_header)
+        CHOICE=$(gum filter --header="$header" --no-limit --indicator="❯ " --placeholder="Select a cleanup option..." "${options[@]}") || CHOICE="Back"
     else
+        clear || true
+        get_menu_header
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select option [1-5]: " num < /dev/tty
         case "$num" in
@@ -152,7 +165,6 @@ run_mock_action() {
             # shellcheck disable=SC2088
             if [ "$PLATFORM" = "Darwin" ]; then mock_rc="~/.zprofile"; fi
 
-    echo "OPTIONS COUNT: ${#options[@]}" > /tmp/options_count
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Would you like to automatically configure Antigravity to use this browser?" || true
                 echo ""
@@ -184,7 +196,6 @@ Workspace: $WORKSPACE_DIR"
             ;;
         remove)
             log_info "${C_MAG}🚀 Uninstalling Antigravity (Mock)...${C_RESET}"
-    echo "OPTIONS COUNT: ${#options[@]}" > /tmp/options_count
             if command -v gum >/dev/null 2>&1; then
                 gum confirm "Are you sure you want to completely remove Antigravity?" || true
             fi

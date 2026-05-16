@@ -112,6 +112,7 @@ fi
 # ── Sandbox mode (loops forever, all actions mocked) ────────────
 start_sandbox_mode() {
     export MOCK_MODE=1
+    export UI_MODE="[SANDBOX MODE]"
     DISTRO_PRETTY="Bluefin (Mock Sandbox)"
     ARCH="x86_64"
     GLIBC_VERSION="2.42"
@@ -119,9 +120,6 @@ start_sandbox_mode() {
     RECOMMENDED=1
 
     while true; do
-        clear || true
-        print_banner "[SANDBOX MODE]"
-        print_system_info
         main_menu
 
         case "$choice" in
@@ -152,9 +150,6 @@ start_sandbox_mode() {
 # ── Interactive flow (normal mode) ──────────────────────────────
 run_interactive() {
     while true; do
-        clear || true
-        print_banner ""
-        print_system_info
         main_menu
 
         case "$choice" in
