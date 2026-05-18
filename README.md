@@ -24,7 +24,7 @@
 **Option B — Direct install**
 
 ```bash
-curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh" | bash
+npx agv-manager
 ```
 
 **Option C — Advanced (Headless / Automation)**
@@ -32,21 +32,21 @@ curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/an
 The script supports non-interactive execution for CI/CD and provisioning tools:
 ```bash
 # Auto-detect and install without prompts
-curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh" | bash -s -- --auto
+npx agv-manager -s -- --auto
 
 # Or force a specific method
-bash antigravity-manager.sh --install-brew
-bash antigravity-manager.sh --install-repo
-bash antigravity-manager.sh --install-binary
+npx agv-manager --install-brew
+npx agv-manager --install-repo
+npx agv-manager --install-binary
 
 # Additional options
-bash antigravity-manager.sh --verbose  # Print detailed logs
-bash antigravity-manager.sh --quiet    # Suppress non-error output
-bash antigravity-manager.sh --check    # Verify existing installation health
-bash antigravity-manager.sh --update   # Force update of this manager script
-bash antigravity-manager.sh --remove   # Uninstall
-bash antigravity-manager.sh --json     # Output single JSON object on completion
-bash antigravity-manager.sh --demo-ui  # Sandbox mode — test the UI without installing
+npx agv-manager --verbose  # Print detailed logs
+npx agv-manager --quiet    # Suppress non-error output
+npx agv-manager --check    # Verify existing installation health
+npx agv-manager --update   # Force update of this manager script
+npx agv-manager --remove   # Uninstall
+npx agv-manager --json     # Output single JSON object on completion
+npx agv-manager --demo-ui  # Sandbox mode — test the UI without installing
 ```
 
 ---

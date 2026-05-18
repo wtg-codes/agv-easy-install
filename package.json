@@ -1,0 +1,45 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">   <img src=\"https://img.shields.io/badge/platform-linux%20%7C%20macOS%20(beta)%20%7C%20WSL%20(beta)%20%7C%20ChromeOS%20(beta)-blue?style=flat-square\" alt=\"Platform\">   <a href=\"https://github.com/wtg-codes/agv-easy-install/actions/workflows/nightly-update.yml\"><img src=\"https://img.shields.io/github/actions/workflow/status/wtg-codes/agv-easy-install/nightly-update.yml?label=nightly%20sync&style=flat-square\" alt=\"Nightly Sync\"></a>   <a href=\"LICENSE\"><img src=\"https://img.shields.io/badge/license-MIT-green?style=flat-square\" alt=\"MIT License\"></a> </p>",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wtg-codes/agv-easy-install.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/wtg-codes/agv-easy-install/issues"
+  },
+  "homepage": "https://github.com/wtg-codes/agv-easy-install#readme",
+  "dependencies": {
+    "@types/react": "^19.2.14",
+    "chalk": "^5.6.2",
+    "ink": "^7.0.3",
+    "ink-select-input": "^6.2.0",
+    "meow": "^14.1.0",
+    "react": "^19.2.6",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.8.1",
+    "typescript": "^6.0.3"
+  },
+  "bin": {
+    "agv-manager": "./dist/cli.js"
+  },
+  "devDependencies": {
+    "@types/ink-select-input": "^3.0.5",
+    "@types/node": "^20.19.41"
+  }
+}
