@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.2.8] — 2026-05-19
+
+### Fixed
+- **Nightly Scraper Version 2+ Support:** Updated `scrape_latest.py` to parse semantic versioning from the release page URLs, select the latest version, and matching download paths using a flexible filename pattern (to support files like `Antigravity IDE` in version 2+).
+
 ## [0.2.7] — 2026-05-15
 
 ### Added

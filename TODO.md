@@ -1,6 +1,6 @@
 # TODO — AGV Easy Install
 
-> **Last updated:** 2026-05-15 · Branch: `feat-platform-extensions`
+> **Last updated:** 2026-05-19 · Branch: `fix/nightly-scraper-v2`
 > This file is the single source of truth for all pending work.
 > It MUST be updated at the end of every coding session.
 
@@ -42,6 +42,7 @@
 
 ### CI/CD
 - [x] `nightly-update.yml` — scrape URL, validate, update script, lint, commit
+- [x] Fix nightly scraper to handle semantic versioning and 'Antigravity IDE' filename matching for version 2+
 - [x] `deploy-pages.yml` — GitHub Pages from `docs/`
 - [x] Pinned action versions (`checkout@v4`, `setup-python@v5`)
 - [x] `sed` uses `#` delimiter (safe for URLs)

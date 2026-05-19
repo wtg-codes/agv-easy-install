@@ -105,11 +105,11 @@ For detailed platform-specific architecture, see our documentation:
 
 These links are updated nightly by our CI pipeline. If they fail, run the installer script instead—it always scrapes the latest URL.
 
-- **Linux (x64)**: [Antigravity.tar.gz](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz)
-- **macOS (Apple Silicon)**: [Antigravity.dmg (arm64)](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-arm/Antigravity.dmg)
-- **macOS (Intel)**: [Antigravity.dmg (x64)](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-x64/Antigravity.dmg)
-- **Windows (x64)**: [Antigravity.exe](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-x64/Antigravity.exe)
-- **Windows (ARM64)**: [Antigravity.exe](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-arm64/Antigravity.exe)
+- **Linux (x64)**: [Antigravity.tar.gz](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/linux-x64/Antigravity%20IDE.tar.gz)
+- **macOS (Apple Silicon)**: [Antigravity.dmg (arm64)](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/darwin-arm/Antigravity%20IDE.dmg)
+- **macOS (Intel)**: [Antigravity.dmg (x64)](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/darwin-x64/Antigravity%20IDE.dmg)
+- **Windows (x64)**: [Antigravity.exe](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/windows-x64/Antigravity%20IDE.exe)
+- **Windows (ARM64)**: [Antigravity.exe](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/windows-arm64/Antigravity%20IDE.exe)
 
 </details>
 

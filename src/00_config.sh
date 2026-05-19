@@ -13,21 +13,21 @@ C_DIM='\033[2m'
 C_RESET='\033[0m'
 
 # Configuration
-SCRIPT_VERSION="0.2.7"
-LINUX_X64_SHA256="5232a4048ff4fa15685d9a981ba4fba573e297f3efc9b76f638e794baf775725"
-LINUX_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+SCRIPT_VERSION="0.2.8"
+LINUX_X64_SHA256="747163aa3a8afba4b316f97c40b4a75ca4736a59768a416cd1e881e73ec31ef9"
+LINUX_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/linux-x64/Antigravity%20IDE.tar.gz"
 
-MAC_X64_SHA256="4ec781e8e94ec714c307a06c4ce925bf761dd0e610ba45e173747fbbe3423ad6"
-MAC_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-x64/Antigravity.dmg"
+MAC_X64_SHA256="8d593e432bc4289a4daa192860c46f82cd6216c188c2b319adbcae8d5d769861"
+MAC_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/darwin-x64/Antigravity%20IDE.dmg"
 
-MAC_ARM64_SHA256="caa35ad282741cc9350fb6234e9b86aef54cd4d2f75715a21ef27180182aa50f"
-MAC_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-arm/Antigravity.dmg"
+MAC_ARM64_SHA256="6c82dfc620fe12ac47d06ec24a5e6da98bb12061cc2b597a8c568b07717e37aa"
+MAC_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/darwin-arm/Antigravity%20IDE.dmg"
 
-WIN_X64_SHA256="3874fc761e5c90b3edf8e0365f506ce22241a88f6881cea09713b3f472c4f6ed"
-WIN_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-x64/Antigravity.exe"
+WIN_X64_SHA256="3204782745d819cb1cc96c03c841951ffe7c9936e6d9640018382daf1ecab3e0"
+WIN_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/windows-x64/Antigravity%20IDE.exe"
 
-WIN_ARM64_SHA256="a14aa1971ad801131adcb12afe216522aadea176c141c4b5d793d216bfe02101"
-WIN_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-arm64/Antigravity.exe"
+WIN_ARM64_SHA256="dd79f3fae109d88aceb8a28716d09aa1994e58e0f3b13ffd6b3574ac44117105"
+WIN_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/windows-arm64/Antigravity%20IDE.exe"
 MANAGER_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh"
 
 # Directories
