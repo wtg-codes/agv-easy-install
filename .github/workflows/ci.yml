@@ -18,21 +18,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
+          node-version: '22'
 
-      - name: Install shellcheck (Ubuntu)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Install shellcheck (macOS)
-        if: runner.os == 'macOS'
-        run: brew install shellcheck || true
-
-      - name: Run build script
-        run: ./build.sh
+      - name: Build project
+        run: npm run build
 
       - name: Execute Phase Gate Runner
         run: bash tests/run_gates.sh --phase all
