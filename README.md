@@ -24,7 +24,7 @@
 **Option B — Direct install**
 
 ```bash
-npx agv-manager
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881
 ```
 
 **Option C — Advanced (Headless / Automation)**
@@ -32,21 +32,21 @@ npx agv-manager
 The script supports non-interactive execution for CI/CD and provisioning tools:
 ```bash
 # Auto-detect and install without prompts
-npx agv-manager -s -- --auto
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 -s -- --auto
 
 # Or force a specific method
-npx agv-manager --install-brew
-npx agv-manager --install-repo
-npx agv-manager --install-binary
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --install-brew
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --install-repo
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --install-binary
 
 # Additional options
-npx agv-manager --verbose  # Print detailed logs
-npx agv-manager --quiet    # Suppress non-error output
-npx agv-manager --check    # Verify existing installation health
-npx agv-manager --update   # Force update of this manager script
-npx agv-manager --remove   # Uninstall
-npx agv-manager --json     # Output single JSON object on completion
-npx agv-manager --demo-ui  # Sandbox mode — test the UI without installing
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --verbose  # Print detailed logs
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --quiet    # Suppress non-error output
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --check    # Verify existing installation health
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --update   # Force update of this manager script
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --remove   # Uninstall
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --json     # Output single JSON object on completion
+npx github:wtg-codes/agv-easy-install#refactor-ink-8605604533553250881 --demo-ui  # Sandbox mode — test the UI without installing
 ```
 
 ---

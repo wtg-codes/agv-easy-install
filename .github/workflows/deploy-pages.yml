@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "refactor-ink-8605604533553250881"]
   workflow_dispatch:
 
 permissions:
@@ -21,14 +21,35 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-repo
+
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          path: branch-repo
+
+      - name: Prepare site
+        run: |
+          mkdir site
+          # Always copy main docs to the root of site
+          cp -r main-repo/docs/* site/
+
+          # If we are not on main, deploy this branch's docs to a subfolder
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            mkdir -p site/testing
+            cp -r branch-repo/docs/* site/testing/
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: 'docs'
+          path: 'site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
