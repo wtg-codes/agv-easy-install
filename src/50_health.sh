@@ -43,6 +43,11 @@ do_health_check() {
     # 4. Workspace
     check_status "Default workspace exists ($WORKSPACE_DIR)" "test -d '$WORKSPACE_DIR'"
 
+    # 5. Antigravity CLI (Optional)
+    if command -v agy >/dev/null 2>&1; then
+        echo -e "  ${C_GREEN}✅ Antigravity CLI found in PATH ($(command -v agy))${C_RESET}"
+    fi
+
     echo ""
     if [ "$failed" -eq 0 ]; then
         log_info "${C_GREEN}${C_BOLD}🎉 Health check passed! Your installation is healthy.${C_RESET}"

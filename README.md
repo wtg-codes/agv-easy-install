@@ -38,6 +38,7 @@ curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/an
 bash antigravity-manager.sh --install-brew
 bash antigravity-manager.sh --install-repo
 bash antigravity-manager.sh --install-binary
+bash antigravity-manager.sh --install-cli    # Headless Antigravity CLI install
 
 # Additional options
 bash antigravity-manager.sh --verbose  # Print detailed logs
@@ -105,11 +106,11 @@ For detailed platform-specific architecture, see our documentation:
 
 These links are updated nightly by our CI pipeline. If they fail, run the installer script instead—it always scrapes the latest URL.
 
-- **Linux (x64)**: [Antigravity.tar.gz](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/linux-x64/Antigravity%20IDE.tar.gz)
-- **macOS (Apple Silicon)**: [Antigravity.dmg (arm64)](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/darwin-arm/Antigravity%20IDE.dmg)
-- **macOS (Intel)**: [Antigravity.dmg (x64)](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/darwin-x64/Antigravity%20IDE.dmg)
-- **Windows (x64)**: [Antigravity.exe](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/windows-x64/Antigravity%20IDE.exe)
-- **Windows (ARM64)**: [Antigravity.exe](https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.1-4861014005645312/windows-arm64/Antigravity%20IDE.exe)
+- **Linux (x64)**: [Antigravity.tar.gz](https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/linux-x64/Antigravity.tar.gz)
+- **macOS (Apple Silicon)**: [Antigravity.dmg (arm64)](https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-arm/Antigravity.dmg)
+- **macOS (Intel)**: [Antigravity.dmg (x64)](https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-x64/Antigravity.dmg)
+- **Windows (x64)**: [Antigravity.exe](https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-x64/Antigravity.exe)
+- **Windows (ARM64)**: [Antigravity.exe](https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-arm/Antigravity.exe)
 
 </details>
 

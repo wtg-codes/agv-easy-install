@@ -74,6 +74,7 @@ install_submenu() {
         "${rec_brew}Homebrew (cross-platform, no sudo)"
         "${rec_repo}System Repo (APT/DNF, needs sudo)"
         "${rec_bin}Official Binary (manual, standalone app)"
+        "Antigravity CLI (command-line helper tool)"
     )
 
     if command -v gum >/dev/null 2>&1; then
@@ -84,12 +85,13 @@ install_submenu() {
         clear || true
         get_menu_header
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select method [1-4]: " num < /dev/tty
+        read -r -p "Select method [1-5]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
             2) CHOICE="Homebrew" ;;
             3) CHOICE="System" ;;
             4) CHOICE="Official Binary" ;;
+            5) CHOICE="CLI" ;;
             *) CHOICE="Back" ;;
         esac
     fi
@@ -99,6 +101,7 @@ install_submenu() {
         *"Homebrew"*) choice="brew" ;;
         *"System"*) choice="repo" ;;
         *"Binary"*) choice="binary" ;;
+        *"CLI"*) choice="cli" ;;
         *) choice="back" ;;
     esac
 }
@@ -148,12 +151,22 @@ run_mock_action() {
     local action="$1"
 
     case "$action" in
-        brew|repo|binary)
+        brew|repo|binary|cli)
             local method="Homebrew"
             [ "$action" = "repo" ] && method="System Repo"
             [ "$action" = "binary" ] && method="Official Binary"
+            [ "$action" = "cli" ] && method="Antigravity CLI"
 
             log_info "${C_MAG}🚀 Starting mock installation via ${method}...${C_RESET}"
+            if [ "$action" = "cli" ]; then
+                run_cmd_ui "Downloading Antigravity CLI installer..." sleep 1
+                run_cmd_ui "Executing installation script..." sleep 1.5
+                echo ""
+                log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"
+                log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}agy --help${C_RESET}"
+                return
+            fi
+
             run_cmd_ui "Downloading Antigravity payload..." sleep 1.5
             run_cmd_ui "Extracting binaries..." sleep 1
             echo ""

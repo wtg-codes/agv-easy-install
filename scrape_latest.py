@@ -21,7 +21,7 @@ DOWNLOAD_PAGE = "https://antigravity.google/download/linux"
 SITE_ROOT = "https://antigravity.google"
 
 MAIN_JS_PATTERN = re.compile(r'src="(main-[^"]+\.js)"')
-EDGEDL_URL_PATTERN = re.compile(r'https://edgedl\.me\.gvt1\.com/[^"\'\\`\s]+')
+URL_PATTERN = re.compile(r'https://(?:edgedl\.me\.gvt1\.com|storage\.googleapis\.com)/[^"\'\\`\s]+')
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
@@ -37,11 +37,11 @@ TARGETS = {
 }
 
 TARGET_PATTERNS = {
-    "LINUX_X64": re.compile(r'/linux-x64/Antigravity.*\.tar\.gz$'),
-    "MAC_X64": re.compile(r'/darwin-x64/Antigravity.*\.dmg$'),
-    "MAC_ARM64": re.compile(r'/darwin-arm/Antigravity.*\.dmg$'),
-    "WIN_X64": re.compile(r'/windows-x64/Antigravity.*\.exe$'),
-    "WIN_ARM64": re.compile(r'/windows-arm64/Antigravity.*\.exe$'),
+    "LINUX_X64": re.compile(r'/linux-x64/Antigravity(?:%20IDE)?\.tar\.gz$'),
+    "MAC_X64": re.compile(r'/darwin-x64/Antigravity(?:%20IDE)?\.dmg$'),
+    "MAC_ARM64": re.compile(r'/darwin-arm/Antigravity(?:%20IDE)?\.dmg$'),
+    "WIN_X64": re.compile(r'/windows-x64/Antigravity(?:%20IDE)?\.exe$'),
+    "WIN_ARM64": re.compile(r'/windows-arm(?:64)?/Antigravity(?:%20IDE)?\.exe$'),
 }
 
 def compute_sha256(url: str) -> str:
@@ -55,6 +55,17 @@ def compute_sha256(url: str) -> str:
 
 def scrape_urls() -> Optional[Dict[str, Dict[str, str]]]:
     try:
+        # Step 0: Fetch active releases list from API
+        active_versions = []
+        try:
+            api_resp = requests.get("https://antigravity-auto-updater-974169037036.us-central1.run.app/releases", headers=HEADERS, timeout=15)
+            api_resp.raise_for_status()
+            for item in api_resp.json():
+                active_versions.append(item["version"])
+        except Exception as e:
+            print(f"WARNING: Failed to fetch active releases from API: {e}", file=sys.stderr)
+            active_versions = None
+
         # Step 1: Find the main JS bundle
         page_resp = requests.get(DOWNLOAD_PAGE, headers=HEADERS, timeout=15)
         page_resp.raise_for_status()
@@ -70,18 +81,19 @@ def scrape_urls() -> Optional[Dict[str, Dict[str, str]]]:
         js_resp = requests.get(js_url, headers=HEADERS, timeout=30)
         js_resp.raise_for_status()
 
-        all_urls = set(EDGEDL_URL_PATTERN.findall(js_resp.text))
+        all_urls = set(URL_PATTERN.findall(js_resp.text))
         
         # Step 3: Map platforms to URLs by sorting semantic versions
-        VERSION_PATTERN = re.compile(r'/stable/([0-9.]+)-[0-9]+/')
+        VERSION_PATTERN = re.compile(r'/(?:stable|antigravity-hub)/([0-9.]+)-[0-9]+/')
         versions_map = {}
         for url in all_urls:
-            if "/stable/" not in url:
-                continue
             match = VERSION_PATTERN.search(url)
             if not match:
                 continue
             version_str = match.group(1)
+            # Filter by active versions if API request succeeded
+            if active_versions is not None and version_str not in active_versions:
+                continue
             try:
                 version_tuple = tuple(int(x) for x in version_str.split('.'))
             except ValueError:

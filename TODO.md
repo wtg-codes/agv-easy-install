@@ -14,7 +14,8 @@
 - [x] `install_brew()` — Homebrew install path (Linux + macOS code)
 - [x] `install_repo()` — APT/DNF system repo install
 - [x] `do_install_tarball()` — standalone tarball with SHA-256 verification
-- [x] `do_remove()` — uninstall Antigravity (all methods)
+- [x] `do_remove()` — uninstall Antigravity and CLI binary
+- [x] `install_cli()` — install and configure the new Antigravity CLI
 - [x] `save_manager_locally()` — persist the manager script
 - [x] AGV detection at startup — check if Antigravity is already installed
 - [x] Chrome browser detection + auto-configuration prompt
@@ -30,7 +31,7 @@
 ### CLI Interface
 - [x] `--version`, `--help`, `--remove`, `--verbose`, `--quiet`, `--json`
 - [x] `--auto` headless auto-install (CI/provisioning)
-- [x] `--install-brew`, `--install-repo`, `--install-tarball` direct flags
+- [x] `--install-brew`, `--install-repo`, `--install-tarball`, `--install-cli` direct flags
 - [x] `--demo-ui` sandbox mode
 
 ### Security & Integrity
@@ -157,6 +158,9 @@
 - [x] Automated CI testing on macOS (GitHub Actions macOS runner)
 - [x] Auto-update mechanism for the manager script itself
 - [x] `--check` flag to verify existing installation health
+- [x] **Antigravity CLI Support (`agy`)**: Add helper functions and UI/headless flags to install/uninstall the new command-line helper tool.
+- [ ] **Gemini CLI Support**: Integrate installation of the Gemini CLI helper (see [installation docs](https://geminicli.com/docs/get-started/installation/)).
+- [ ] **Jules-cli Support**: Add installer support for the Jules-cli developer tool.
 - [ ] Localization / i18n (stretch goal)
 
 ---
