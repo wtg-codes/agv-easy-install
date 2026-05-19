@@ -1,6 +1,6 @@
 # TODO — AGV Easy Install
 
-> **Last updated:** 2026-05-15 · Branch: `feat-platform-extensions`
+> **Last updated:** 2026-05-19 · Branch: `fix/nightly-scraper-v2`
 > This file is the single source of truth for all pending work.
 > It MUST be updated at the end of every coding session.
 
@@ -14,7 +14,8 @@
 - [x] `install_brew()` — Homebrew install path (Linux + macOS code)
 - [x] `install_repo()` — APT/DNF system repo install
 - [x] `do_install_tarball()` — standalone tarball with SHA-256 verification
-- [x] `do_remove()` — uninstall Antigravity (all methods)
+- [x] `do_remove()` — uninstall Antigravity and CLI binary
+- [x] `install_cli()` — install and configure the new Antigravity CLI
 - [x] `save_manager_locally()` — persist the manager script
 - [x] AGV detection at startup — check if Antigravity is already installed
 - [x] Chrome browser detection + auto-configuration prompt
@@ -30,7 +31,7 @@
 ### CLI Interface
 - [x] `--version`, `--help`, `--remove`, `--verbose`, `--quiet`, `--json`
 - [x] `--auto` headless auto-install (CI/provisioning)
-- [x] `--install-brew`, `--install-repo`, `--install-tarball` direct flags
+- [x] `--install-brew`, `--install-repo`, `--install-tarball`, `--install-cli` direct flags
 - [x] `--demo-ui` sandbox mode
 
 ### Security & Integrity
@@ -42,6 +43,7 @@
 
 ### CI/CD
 - [x] `nightly-update.yml` — scrape URL, validate, update script, lint, commit
+- [x] Fix nightly scraper to handle semantic versioning and 'Antigravity IDE' filename matching for version 2+
 - [x] `deploy-pages.yml` — GitHub Pages from `docs/`
 - [x] Pinned action versions (`checkout@v4`, `setup-python@v5`)
 - [x] `sed` uses `#` delimiter (safe for URLs)
@@ -156,6 +158,9 @@
 - [x] Automated CI testing on macOS (GitHub Actions macOS runner)
 - [x] Auto-update mechanism for the manager script itself
 - [x] `--check` flag to verify existing installation health
+- [x] **Antigravity CLI Support (`agy`)**: Add helper functions and UI/headless flags to install/uninstall the new command-line helper tool.
+- [ ] **Gemini CLI Support**: Integrate installation of the Gemini CLI helper (see [installation docs](https://geminicli.com/docs/get-started/installation/)).
+- [ ] **Jules-cli Support**: Add installer support for the Jules-cli developer tool.
 - [ ] Localization / i18n (stretch goal)
 
 ---

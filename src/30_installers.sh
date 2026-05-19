@@ -298,7 +298,7 @@ do_remove() {
                     sudo rm -f /etc/yum.repos.d/antigravity.repo
                 fi ;;
             "binary"|"tarball")
-                rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+                rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$BIN_DIR/agy" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
                 if [ "$PLATFORM" = "Darwin" ]; then
                     rm -rf "/Applications/Google Antigravity.app"
                     rm -rf "/Applications/Antigravity.app"
@@ -320,7 +320,7 @@ do_remove() {
         fi
         
         # Heuristic binary removal
-        rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+        rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$BIN_DIR/agy" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
         if [ "$PLATFORM" = "Darwin" ]; then
             rm -rf "/Applications/Google Antigravity.app"
             rm -rf "/Applications/Antigravity.app"
@@ -329,5 +329,43 @@ do_remove() {
     fi
 
     log_info "${C_GREEN}✅ Uninstalled successfully.${C_RESET} (Note: Your code in $WORKSPACE_DIR was kept safe)."
+}
+
+install_cli() {
+    JSON_METHOD="cli"
+    log_info "${C_MAG}🚀 Installing Antigravity CLI...${C_RESET}"
+    TMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TMP_DIR"; exit_handler' EXIT INT TERM
+    local install_script="$TMP_DIR/install.sh"
+    
+    if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
+        if run_cmd curl -fSsL "$CLI_INSTALL_URL" -o "$install_script" && run_cmd bash "$install_script" --dir "$BIN_DIR"; then
+            :
+        else
+            log_error "Antigravity CLI installation failed."
+            rm -rf "$TMP_DIR"
+            trap exit_handler EXIT INT TERM
+            exit 1
+        fi
+    else
+        log_info "${C_BLUE}⬇️  Downloading CLI installer...${C_RESET}"
+        if ! curl -fSsL "$CLI_INSTALL_URL" -o "$install_script"; then
+            log_error "Failed to download CLI installer."
+            rm -rf "$TMP_DIR"
+            trap exit_handler EXIT INT TERM
+            exit 1
+        fi
+        log_info "${C_BLUE}📦 Executing CLI installer...${C_RESET}"
+        if ! bash "$install_script" --dir "$BIN_DIR"; then
+            log_error "CLI installer execution failed."
+            rm -rf "$TMP_DIR"
+            trap exit_handler EXIT INT TERM
+            exit 1
+        fi
+    fi
+    
+    rm -rf "$TMP_DIR"
+    trap exit_handler EXIT INT TERM
+    log_info "${C_GREEN}✅ Antigravity CLI installation complete!${C_RESET}"
 }
 

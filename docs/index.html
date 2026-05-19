@@ -221,6 +221,13 @@
                                             <p class="text-slate-400 text-xs mt-0.5">Downloads the official standalone package. No sudo required.</p>
                                         </div>
                                     </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-violet-500/20 text-violet-400 font-mono rounded text-xs border border-violet-500/30">4</span>
+                                        <div>
+                                            <strong class="text-slate-200">Antigravity CLI</strong>
+                                            <p class="text-slate-400 text-xs mt-0.5">Installs the <code class="text-slate-300 bg-slate-900 px-1 rounded font-mono text-xs">agy</code> command-line helper tool (standalone, no IDE required).</p>
+                                        </div>
+                                    </li>
                                 </ul>
                             </div>
 
@@ -265,6 +272,20 @@
                             &bull; <strong>Official Binary:</strong> Installed to <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">~/.local/lib/antigravity</code> or <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">/Applications</code>.
                         </p>
                     </div>
+
+                    <div class="mt-4 p-4 bg-indigo-950/30 rounded-xl border border-indigo-500/30 text-sm">
+                        <h3 class="font-semibold text-indigo-300 mb-2 flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-4 h-4 text-indigo-400"></i>
+                            Need the Antigravity CLI? (New)
+                        </h3>
+                        <p class="text-slate-400 mb-2">Install the command-line helper tool <code class="text-slate-300 bg-slate-900 px-1 py-0.5 rounded font-mono">agy</code> directly using the command:</p>
+                        <div class="relative bg-slate-950 rounded-lg border border-slate-800 p-3 shadow-inner mb-2">
+                            <code class="block font-mono text-emerald-400 text-xs sm:text-sm break-all">
+                                curl -fSsL "https://antigravity.google/cli/install.sh" | bash
+                            </code>
+                        </div>
+                        <p class="text-slate-400 text-xs">Or select <strong class="text-indigo-300">Antigravity CLI</strong> from the interactive installation menu.</p>
+                    </div>
                 </div>
             </div>
 
@@ -278,22 +299,22 @@
                     </p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 mb-2">
                         <!-- TARBALL_LINK_LINUX -->
-                        <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
+                        <a href="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/linux-x64/Antigravity.tar.gz" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
                             <span>Linux (x64)</span>
                             <i data-lucide="download" class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
                         </a>
                         <!-- TARBALL_LINK_MAC_ARM -->
-                        <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-arm/Antigravity.dmg" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
+                        <a href="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-arm/Antigravity.dmg" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
                             <span>macOS (Apple Silicon)</span>
                             <i data-lucide="download" class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
                         </a>
                         <!-- TARBALL_LINK_MAC_X64 -->
-                        <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-x64/Antigravity.dmg" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
+                        <a href="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-x64/Antigravity.dmg" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
                             <span>macOS (Intel)</span>
                             <i data-lucide="download" class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
                         </a>
                         <!-- TARBALL_LINK_WIN -->
-                        <a href="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-x64/Antigravity.exe" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
+                        <a href="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-x64/Antigravity.exe" target="_blank" class="inline-flex items-center justify-between px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium rounded-lg transition-colors group">
                             <span>Windows (x64)</span>
                             <i data-lucide="download" class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
                         </a>

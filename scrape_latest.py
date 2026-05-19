@@ -21,7 +21,7 @@ DOWNLOAD_PAGE = "https://antigravity.google/download/linux"
 SITE_ROOT = "https://antigravity.google"
 
 MAIN_JS_PATTERN = re.compile(r'src="(main-[^"]+\.js)"')
-EDGEDL_URL_PATTERN = re.compile(r'https://edgedl\.me\.gvt1\.com/[^"\'\\`\s]+')
+URL_PATTERN = re.compile(r'https://(?:edgedl\.me\.gvt1\.com|storage\.googleapis\.com)/[^"\'\\`\s]+')
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
@@ -36,6 +36,14 @@ TARGETS = {
     "WIN_ARM64": "windows-arm64/Antigravity.exe",
 }
 
+TARGET_PATTERNS = {
+    "LINUX_X64": re.compile(r'/linux-x64/Antigravity(?:%20IDE)?\.tar\.gz$'),
+    "MAC_X64": re.compile(r'/darwin-x64/Antigravity(?:%20IDE)?\.dmg$'),
+    "MAC_ARM64": re.compile(r'/darwin-arm/Antigravity(?:%20IDE)?\.dmg$'),
+    "WIN_X64": re.compile(r'/windows-x64/Antigravity(?:%20IDE)?\.exe$'),
+    "WIN_ARM64": re.compile(r'/windows-arm(?:64)?/Antigravity(?:%20IDE)?\.exe$'),
+}
+
 def compute_sha256(url: str) -> str:
     """Stream downloads the URL and computes its SHA-256 hash."""
     h = hashlib.sha256()
@@ -47,6 +55,17 @@ def compute_sha256(url: str) -> str:
 
 def scrape_urls() -> Optional[Dict[str, Dict[str, str]]]:
     try:
+        # Step 0: Fetch active releases list from API
+        active_versions = []
+        try:
+            api_resp = requests.get("https://antigravity-auto-updater-974169037036.us-central1.run.app/releases", headers=HEADERS, timeout=15)
+            api_resp.raise_for_status()
+            for item in api_resp.json():
+                active_versions.append(item["version"])
+        except Exception as e:
+            print(f"WARNING: Failed to fetch active releases from API: {e}", file=sys.stderr)
+            active_versions = None
+
         # Step 1: Find the main JS bundle
         page_resp = requests.get(DOWNLOAD_PAGE, headers=HEADERS, timeout=15)
         page_resp.raise_for_status()
@@ -62,20 +81,47 @@ def scrape_urls() -> Optional[Dict[str, Dict[str, str]]]:
         js_resp = requests.get(js_url, headers=HEADERS, timeout=30)
         js_resp.raise_for_status()
 
-        all_urls = set(EDGEDL_URL_PATTERN.findall(js_resp.text))
+        all_urls = set(URL_PATTERN.findall(js_resp.text))
         
-        # Step 3: Map platforms to URLs
-        results = {}
+        # Step 3: Map platforms to URLs by sorting semantic versions
+        VERSION_PATTERN = re.compile(r'/(?:stable|antigravity-hub)/([0-9.]+)-[0-9]+/')
+        versions_map = {}
         for url in all_urls:
-            if "/stable/" not in url:
+            match = VERSION_PATTERN.search(url)
+            if not match:
                 continue
-            for platform, suffix in TARGETS.items():
-                if url.endswith(suffix):
-                    results[platform] = {"url": url}
+            version_str = match.group(1)
+            # Filter by active versions if API request succeeded
+            if active_versions is not None and version_str not in active_versions:
+                continue
+            try:
+                version_tuple = tuple(int(x) for x in version_str.split('.'))
+            except ValueError:
+                continue
+
+            if version_tuple not in versions_map:
+                versions_map[version_tuple] = []
+            versions_map[version_tuple].append(url)
+
+        # Sort versions to find the latest version that has all targets
+        sorted_versions = sorted(versions_map.keys(), reverse=True)
+        
+        results = {}
+        for ver in sorted_versions:
+            ver_urls = versions_map[ver]
+            candidate_results = {}
+            for url in ver_urls:
+                for platform, pattern in TARGET_PATTERNS.items():
+                    if pattern.search(url):
+                        candidate_results[platform] = {"url": url}
+            
+            if len(candidate_results) == len(TARGET_PATTERNS):
+                results = candidate_results
+                break
 
         # Validate we found all targets
-        if len(results) != len(TARGETS):
-            print(f"ERROR: Only found {len(results)} of {len(TARGETS)} targets.", file=sys.stderr)
+        if len(results) != len(TARGET_PATTERNS):
+            print(f"ERROR: Only found {len(results)} of {len(TARGET_PATTERNS)} targets.", file=sys.stderr)
             return None
 
         # Step 4: Compute hashes

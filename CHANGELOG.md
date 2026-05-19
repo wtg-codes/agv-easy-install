@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.2.9] — 2026-05-19
+
+### Added
+- **Antigravity CLI Support:** Added the command-line helper tool (`agy`) installer support, including the interactive UI option, `--install-cli` headless argument, and automatic removal of `$BIN_DIR/agy` on uninstall.
+- **Health Check Integration:** Added optional CLI binary presence and PATH verification to the `--check` health check command.
+
+### Changed
+- **Official Release Alignment:** Targeted stable release version `2.0.0` from GCS URLs. Expanded the python scraper regex pattern to support both `/stable/` (edgedl) and `/antigravity-hub/` (GCS) path structures.
+- **Documentation and Mock Screenshots:** Added CLI setup card to the landing page and README, updated manual download links, updated `docs/images/render.html` mock menu, and regenerated terminal mock screenshots.
+
+## [0.2.8] — 2026-05-19
+
+### Fixed
+- **Nightly Scraper Version 2+ Support:** Updated `scrape_latest.py` to parse semantic versioning from the release page URLs, select the latest version, and matching download paths using a flexible filename pattern (to support files like `Antigravity IDE` in version 2+).
+
 ## [0.2.7] — 2026-05-15
 
 ### Added

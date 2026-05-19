@@ -18,22 +18,23 @@ C_DIM='\033[2m'
 C_RESET='\033[0m'
 
 # Configuration
-SCRIPT_VERSION="0.2.7"
-LINUX_X64_SHA256="5232a4048ff4fa15685d9a981ba4fba573e297f3efc9b76f638e794baf775725"
-LINUX_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz"
+SCRIPT_VERSION="0.2.9"
+LINUX_X64_SHA256="14bc9cb480a5be8fb3b7dc3e2b0cebfa66d370ad58cc1e0fa01140d1204d4297"
+LINUX_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/linux-x64/Antigravity.tar.gz"
 
-MAC_X64_SHA256="4ec781e8e94ec714c307a06c4ce925bf761dd0e610ba45e173747fbbe3423ad6"
-MAC_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-x64/Antigravity.dmg"
+MAC_X64_SHA256="7416561b81866656453d51810ff64c19bfdc41b5fabca2ca253e9f835e7b20a6"
+MAC_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-x64/Antigravity.dmg"
 
-MAC_ARM64_SHA256="caa35ad282741cc9350fb6234e9b86aef54cd4d2f75715a21ef27180182aa50f"
-MAC_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/darwin-arm/Antigravity.dmg"
+MAC_ARM64_SHA256="f96c360be0dc419186f987276b0aa1f8c22def1b76eec0892537c193e6bf4fdd"
+MAC_ARM64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-arm/Antigravity.dmg"
 
-WIN_X64_SHA256="3874fc761e5c90b3edf8e0365f506ce22241a88f6881cea09713b3f472c4f6ed"
-WIN_X64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-x64/Antigravity.exe"
+WIN_X64_SHA256="06e1b95dca9bf14fcbfc72ace0c11b42123c0cb65f35ee3c979b63bab3b56a6a"
+WIN_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-x64/Antigravity.exe"
 
-WIN_ARM64_SHA256="a14aa1971ad801131adcb12afe216522aadea176c141c4b5d793d216bfe02101"
-WIN_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/windows-arm64/Antigravity.exe"
+WIN_ARM64_SHA256="5b8f70548455c61fbc7ddf137b4d74c189444167085fdd6ef29b8cd2feb57b18"
+WIN_ARM64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-arm/Antigravity.exe"
 MANAGER_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/antigravity-manager.sh"
+CLI_INSTALL_URL="https://antigravity.google/cli/install.sh"
 
 # Directories
 BIN_DIR="$HOME/.local/bin"
@@ -766,7 +767,7 @@ do_remove() {
                     sudo rm -f /etc/yum.repos.d/antigravity.repo
                 fi ;;
             "binary"|"tarball")
-                rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+                rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$BIN_DIR/agy" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
                 if [ "$PLATFORM" = "Darwin" ]; then
                     rm -rf "/Applications/Google Antigravity.app"
                     rm -rf "/Applications/Antigravity.app"
@@ -788,7 +789,7 @@ do_remove() {
         fi
         
         # Heuristic binary removal
-        rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+        rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$BIN_DIR/agy" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
         if [ "$PLATFORM" = "Darwin" ]; then
             rm -rf "/Applications/Google Antigravity.app"
             rm -rf "/Applications/Antigravity.app"
@@ -797,6 +798,44 @@ do_remove() {
     fi
 
     log_info "${C_GREEN}✅ Uninstalled successfully.${C_RESET} (Note: Your code in $WORKSPACE_DIR was kept safe)."
+}
+
+install_cli() {
+    JSON_METHOD="cli"
+    log_info "${C_MAG}🚀 Installing Antigravity CLI...${C_RESET}"
+    TMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TMP_DIR"; exit_handler' EXIT INT TERM
+    local install_script="$TMP_DIR/install.sh"
+    
+    if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
+        if run_cmd curl -fSsL "$CLI_INSTALL_URL" -o "$install_script" && run_cmd bash "$install_script" --dir "$BIN_DIR"; then
+            :
+        else
+            log_error "Antigravity CLI installation failed."
+            rm -rf "$TMP_DIR"
+            trap exit_handler EXIT INT TERM
+            exit 1
+        fi
+    else
+        log_info "${C_BLUE}⬇️  Downloading CLI installer...${C_RESET}"
+        if ! curl -fSsL "$CLI_INSTALL_URL" -o "$install_script"; then
+            log_error "Failed to download CLI installer."
+            rm -rf "$TMP_DIR"
+            trap exit_handler EXIT INT TERM
+            exit 1
+        fi
+        log_info "${C_BLUE}📦 Executing CLI installer...${C_RESET}"
+        if ! bash "$install_script" --dir "$BIN_DIR"; then
+            log_error "CLI installer execution failed."
+            rm -rf "$TMP_DIR"
+            trap exit_handler EXIT INT TERM
+            exit 1
+        fi
+    fi
+    
+    rm -rf "$TMP_DIR"
+    trap exit_handler EXIT INT TERM
+    log_info "${C_GREEN}✅ Antigravity CLI installation complete!${C_RESET}"
 }
 
 # ── Top-level menu ──────────────────────────────────────────────
@@ -875,6 +914,7 @@ install_submenu() {
         "${rec_brew}Homebrew (cross-platform, no sudo)"
         "${rec_repo}System Repo (APT/DNF, needs sudo)"
         "${rec_bin}Official Binary (manual, standalone app)"
+        "Antigravity CLI (command-line helper tool)"
     )
 
     if command -v gum >/dev/null 2>&1; then
@@ -885,12 +925,13 @@ install_submenu() {
         clear || true
         get_menu_header
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select method [1-4]: " num < /dev/tty
+        read -r -p "Select method [1-5]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
             2) CHOICE="Homebrew" ;;
             3) CHOICE="System" ;;
             4) CHOICE="Official Binary" ;;
+            5) CHOICE="CLI" ;;
             *) CHOICE="Back" ;;
         esac
     fi
@@ -900,6 +941,7 @@ install_submenu() {
         *"Homebrew"*) choice="brew" ;;
         *"System"*) choice="repo" ;;
         *"Binary"*) choice="binary" ;;
+        *"CLI"*) choice="cli" ;;
         *) choice="back" ;;
     esac
 }
@@ -949,12 +991,22 @@ run_mock_action() {
     local action="$1"
 
     case "$action" in
-        brew|repo|binary)
+        brew|repo|binary|cli)
             local method="Homebrew"
             [ "$action" = "repo" ] && method="System Repo"
             [ "$action" = "binary" ] && method="Official Binary"
+            [ "$action" = "cli" ] && method="Antigravity CLI"
 
             log_info "${C_MAG}🚀 Starting mock installation via ${method}...${C_RESET}"
+            if [ "$action" = "cli" ]; then
+                run_cmd_ui "Downloading Antigravity CLI installer..." sleep 1
+                run_cmd_ui "Executing installation script..." sleep 1.5
+                echo ""
+                log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"
+                log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}agy --help${C_RESET}"
+                return
+            fi
+
             run_cmd_ui "Downloading Antigravity payload..." sleep 1.5
             run_cmd_ui "Extracting binaries..." sleep 1
             echo ""
@@ -1056,6 +1108,11 @@ do_health_check() {
     # 4. Workspace
     check_status "Default workspace exists ($WORKSPACE_DIR)" "test -d '$WORKSPACE_DIR'"
 
+    # 5. Antigravity CLI (Optional)
+    if command -v agy >/dev/null 2>&1; then
+        echo -e "  ${C_GREEN}✅ Antigravity CLI found in PATH ($(command -v agy))${C_RESET}"
+    fi
+
     echo ""
     if [ "$failed" -eq 0 ]; then
         log_info "${C_GREEN}${C_BOLD}🎉 Health check passed! Your installation is healthy.${C_RESET}"
@@ -1071,6 +1128,7 @@ print_usage() {
     echo "  --install-brew    Headless Homebrew install"
     echo "  --install-repo    Headless System Repo install"
     echo "  --install-binary  Headless Official Binary install"
+    echo "  --install-cli     Headless Antigravity CLI install"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -1092,6 +1150,7 @@ for arg in "$@"; do
         --install-brew) ACTION="brew"; AUTO=1 ;;
         --install-repo) ACTION="repo"; AUTO=1 ;;
         --install-binary) ACTION="binary"; AUTO=1 ;;
+        --install-cli) ACTION="cli"; AUTO=1 ;;
         --remove) ACTION="remove" ;;
         --demo-ui) ACTION="demo_ui" ;;
         --json) JSON_OUT=1; QUIET=1 ;;
@@ -1227,6 +1286,7 @@ run_interactive() {
                     brew) install_brew; save_manager_locally; break ;;
                     repo) install_repo; save_manager_locally; break ;;
                     binary) do_install_binary; save_manager_locally; break ;;
+                    cli) install_cli; save_manager_locally; break ;;
                     back) continue ;; # return to main menu
                 esac
                 ;;
@@ -1256,6 +1316,7 @@ case "$ACTION" in
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary; save_manager_locally ;;
+    cli) install_cli; save_manager_locally ;;
     check) do_health_check ;;
     demo_ui) start_sandbox_mode ;;
     install|"")

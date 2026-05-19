@@ -82,7 +82,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add src/00_config.sh antigravity-manager.sh README.md docs/index.html
+          git add src/00_config.sh antigravity-manager.sh README.md docs/index.html versions.json
           if ! git diff --cached --quiet; then
             git commit -m "chore: nightly update of Antigravity download URL
 

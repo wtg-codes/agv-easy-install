@@ -6,6 +6,7 @@ print_usage() {
     echo "  --install-brew    Headless Homebrew install"
     echo "  --install-repo    Headless System Repo install"
     echo "  --install-binary  Headless Official Binary install"
+    echo "  --install-cli     Headless Antigravity CLI install"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -27,6 +28,7 @@ for arg in "$@"; do
         --install-brew) ACTION="brew"; AUTO=1 ;;
         --install-repo) ACTION="repo"; AUTO=1 ;;
         --install-binary) ACTION="binary"; AUTO=1 ;;
+        --install-cli) ACTION="cli"; AUTO=1 ;;
         --remove) ACTION="remove" ;;
         --demo-ui) ACTION="demo_ui" ;;
         --json) JSON_OUT=1; QUIET=1 ;;
@@ -162,6 +164,7 @@ run_interactive() {
                     brew) install_brew; save_manager_locally; break ;;
                     repo) install_repo; save_manager_locally; break ;;
                     binary) do_install_binary; save_manager_locally; break ;;
+                    cli) install_cli; save_manager_locally; break ;;
                     back) continue ;; # return to main menu
                 esac
                 ;;
@@ -191,6 +194,7 @@ case "$ACTION" in
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary; save_manager_locally ;;
+    cli) install_cli; save_manager_locally ;;
     check) do_health_check ;;
     demo_ui) start_sandbox_mode ;;
     install|"")
