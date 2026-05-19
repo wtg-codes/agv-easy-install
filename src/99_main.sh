@@ -8,6 +8,7 @@ print_usage() {
     echo "  --install-binary  Headless Official Binary install"
     echo "  --install-cli     Headless Antigravity CLI install"
     echo "  --install-sdk     Headless Antigravity Python SDK install"
+    echo "  --fast-track      Headless class setup (IDE + CLI)"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -31,6 +32,7 @@ for arg in "$@"; do
         --install-binary) ACTION="binary"; AUTO=1 ;;
         --install-cli) ACTION="cli"; AUTO=1 ;;
         --install-sdk) ACTION="sdk"; AUTO=1 ;;
+        --fast-track) ACTION="fast_track"; AUTO=1 ;;
         --remove) ACTION="remove" ;;
         --demo-ui) ACTION="demo_ui" ;;
         --json) JSON_OUT=1; QUIET=1 ;;
@@ -113,6 +115,41 @@ if [ "$JSON_OUT" -eq 0 ]; then
     check_for_updates "$@"
 fi
 
+# ── Fast-Track Class Setup (headless or wizard-confirmed) ───────
+do_fast_track_install() {
+    log_info "${C_MAG}🎓 Starting class setup — installing IDE + CLI...${C_RESET}"
+    echo ""
+
+    # Step 1: Install IDE via the recommended method
+    log_info "${C_BOLD}Step 1/2: Installing Antigravity IDE...${C_RESET}"
+    case "$RECOMMENDED" in
+        1) install_brew ;;
+        2) install_repo ;;
+        *) do_install_binary ;;
+    esac
+
+    echo ""
+
+    # Step 2: Install CLI
+    log_info "${C_BOLD}Step 2/2: Installing Antigravity CLI...${C_RESET}"
+    install_cli
+
+    save_manager_locally
+
+    echo ""
+    if command -v gum >/dev/null 2>&1; then
+        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Class Setup Complete!
+IDE:  v${DEFAULT_IDE_VERSION} installed
+CLI:  v${DEFAULT_CLI_VERSION} installed
+Launch: antigravity"
+    else
+        log_info "${C_GREEN}${C_BOLD}🎉 Class Setup Complete!${C_RESET}"
+        log_info "  ${C_CYAN}▸${C_RESET} IDE:  v${DEFAULT_IDE_VERSION} installed"
+        log_info "  ${C_CYAN}▸${C_RESET} CLI:  v${DEFAULT_CLI_VERSION} installed"
+        log_info "  ${C_CYAN}▸${C_RESET} Launch: ${C_BOLD}antigravity${C_RESET}"
+    fi
+}
+
 # ── Sandbox mode (loops forever, all actions mocked) ────────────
 start_sandbox_mode() {
     export MOCK_MODE=1
@@ -131,6 +168,30 @@ start_sandbox_mode() {
             save|remove_mgr)
                 echo ""; run_mock_action "$choice"
                 echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
+                ;;
+            fast_track)
+                fast_track_setup
+                case "$choice" in
+                    fast_track_go)
+                        echo ""; run_mock_action "fast_track_go"
+                        echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
+                        ;;
+                    install) ;; # Fall through to install submenu on next loop
+                    cancel) ;; # Loop back
+                esac
+                # If user chose "Customize...", redirect to install submenu
+                if [ "$choice" = "install" ]; then
+                    install_submenu
+                    case "$choice" in
+                        binary_menu) choose_ide_version ;;
+                        cli_menu) choose_cli_version ;;
+                        sdk_menu) choose_sdk_version ;;
+                    esac
+                    if [ "$choice" != "back" ]; then
+                        echo ""; run_mock_action "$choice"
+                        echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
+                    fi
+                fi
                 ;;
             install)
                 install_submenu
@@ -165,6 +226,56 @@ run_interactive() {
             cancel) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
             save) save_manager_locally; break ;;
             remove_mgr) remove_manager_script; break ;;
+            fast_track)
+                fast_track_setup
+                case "$choice" in
+                    fast_track_go)
+                        do_fast_track_install
+                        post_install_menu
+                        break
+                        ;;
+                    install) ;; # Fall through to install submenu below
+                    cancel|*) continue ;; # Loop back to main menu
+                esac
+                # If user chose "Customize...", redirect to install submenu
+                if [ "$choice" = "install" ]; then
+                    install_submenu
+                    case "$choice" in
+                        binary_menu) choose_ide_version ;;
+                        cli_menu) choose_cli_version ;;
+                        sdk_menu) choose_sdk_version ;;
+                    esac
+                    case "$choice" in
+                        brew) install_brew; save_manager_locally; post_install_menu; break ;;
+                        repo) install_repo; save_manager_locally; post_install_menu; break ;;
+                        binary:*)
+                            local selected_version
+                            selected_version=$(echo "$choice" | cut -d':' -f2)
+                            do_install_binary "$selected_version"
+                            save_manager_locally
+                            post_install_menu
+                            break
+                            ;;
+                        cli:*)
+                            local selected_version
+                            selected_version=$(echo "$choice" | cut -d':' -f2)
+                            install_cli "$selected_version"
+                            save_manager_locally
+                            post_install_menu
+                            break
+                            ;;
+                        sdk:*)
+                            local selected_version
+                            selected_version=$(echo "$choice" | cut -d':' -f2)
+                            install_sdk "$selected_version"
+                            save_manager_locally
+                            post_install_menu
+                            break
+                            ;;
+                        back) continue ;; # return to main menu
+                    esac
+                fi
+                ;;
             install)
                 install_submenu
                 case "$choice" in
@@ -173,13 +284,14 @@ run_interactive() {
                     sdk_menu) choose_sdk_version ;;
                 esac
                 case "$choice" in
-                    brew) install_brew; save_manager_locally; break ;;
-                    repo) install_repo; save_manager_locally; break ;;
+                    brew) install_brew; save_manager_locally; post_install_menu; break ;;
+                    repo) install_repo; save_manager_locally; post_install_menu; break ;;
                     binary:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
                         do_install_binary "$selected_version"
                         save_manager_locally
+                        post_install_menu
                         break
                         ;;
                     cli:*)
@@ -187,6 +299,7 @@ run_interactive() {
                         selected_version=$(echo "$choice" | cut -d':' -f2)
                         install_cli "$selected_version"
                         save_manager_locally
+                        post_install_menu
                         break
                         ;;
                     sdk:*)
@@ -194,6 +307,7 @@ run_interactive() {
                         selected_version=$(echo "$choice" | cut -d':' -f2)
                         install_sdk "$selected_version"
                         save_manager_locally
+                        post_install_menu
                         break
                         ;;
                     back) continue ;; # return to main menu
@@ -222,6 +336,7 @@ case "$ACTION" in
         elif [ "$RECOMMENDED" = "2" ]; then install_repo; save_manager_locally
         else do_install_binary; save_manager_locally
         fi ;;
+    fast_track) do_fast_track_install ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary; save_manager_locally ;;

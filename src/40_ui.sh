@@ -1,9 +1,10 @@
-# ── Top-level menu ──────────────────────────────────────────────
+# ── Top-level menu header ────────────────────────────────────────
 get_menu_header() {
     print_banner "${UI_MODE:-}"
     print_system_info
 }
 
+# ── Wizard Step 1: Intent Question ──────────────────────────────
 main_menu() {
     bootstrap_ui
     echo ""
@@ -15,8 +16,9 @@ main_menu() {
 
     local options=(
         "Cancel"
-        "Choose Antigravity install method  →"
-        "Antigravity cleanup options  →"
+        "🎓 Set up for class (IDE + CLI, one click)"
+        "⚡ Install or update a specific tool  →"
+        "🧹 Manage existing installation  →"
         "$mgr_opt"
     )
 
@@ -29,12 +31,13 @@ main_menu() {
         get_menu_header
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-4]: " num < /dev/tty
+        read -r -p "Select option [1-5]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Cancel" ;;
-            2) CHOICE="Choose" ;;
-            3) CHOICE="Antigravity cleanup" ;;
-            4) CHOICE="$mgr_opt" ;;
+            2) CHOICE="class" ;;
+            3) CHOICE="specific" ;;
+            4) CHOICE="manage" ;;
+            5) CHOICE="$mgr_opt" ;;
             [Gg]oogle) CHOICE="Google" ;;
             *) CHOICE="Cancel" ;;
         esac
@@ -42,8 +45,9 @@ main_menu() {
 
     case "$CHOICE" in
         "Cancel"*) choice="cancel" ;;
-        "Choose"*) choice="install" ;;
-        "Antigravity cleanup"*) choice="cleanup" ;;
+        *"Set up for class"*|*"class"*) choice="fast_track" ;;
+        *"Install or update"*|*"specific"*) choice="install" ;;
+        *"Manage"*|*"manage"*) choice="cleanup" ;;
         "Install this script"*) choice="save" ;;
         "Remove this script"*) choice="remove_mgr" ;;
         [Gg]oogle)
@@ -59,7 +63,59 @@ main_menu() {
     esac
 }
 
-# ── Install sub-menu ────────────────────────────────────────────
+# ── Wizard Step 2a: Fast-Track Confirmation ─────────────────────
+fast_track_setup() {
+    echo ""
+    local rec_method="Homebrew"
+    case "$RECOMMENDED" in
+        1) rec_method="Homebrew" ;;
+        2) rec_method="System Repo (APT/DNF)" ;;
+        3) rec_method="Official Binary" ;;
+    esac
+
+    if command -v gum >/dev/null 2>&1; then
+        gum style --border rounded --border-foreground 33 --padding "1 2" --margin "0 2" \
+            "$(echo -e "${C_BOLD}📦 Ready to install:${C_RESET}")
+$(echo -e "  ${C_CYAN}✦${C_RESET} Antigravity IDE  ${C_DIM}(latest — v${DEFAULT_IDE_VERSION})${C_RESET}")
+$(echo -e "  ${C_CYAN}✦${C_RESET} Antigravity CLI  ${C_DIM}(latest — v${DEFAULT_CLI_VERSION})${C_RESET}")
+
+$(echo -e "  ${C_DIM}Method: ★ ${rec_method}${C_RESET}")"
+        echo ""
+        local options=(
+            "Install now"
+            "Customize..."
+            "Cancel"
+        )
+        CHOICE=$(gum choose --header="Proceed?" "${options[@]}") || CHOICE="Cancel"
+    else
+        clear || true
+        get_menu_header
+        echo ""
+        echo "📦 Ready to install:"
+        echo "  ✦ Antigravity IDE  (latest — v${DEFAULT_IDE_VERSION})"
+        echo "  ✦ Antigravity CLI  (latest — v${DEFAULT_CLI_VERSION})"
+        echo ""
+        echo "  Method: ★ ${rec_method}"
+        echo ""
+        echo "1) Install now"
+        echo "2) Customize..."
+        echo "3) Cancel"
+        read -r -p "Select option [1-3]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Install now" ;;
+            2) CHOICE="Customize" ;;
+            *) CHOICE="Cancel" ;;
+        esac
+    fi
+
+    case "$CHOICE" in
+        "Install now"*) choice="fast_track_go" ;;
+        "Customize"*) choice="install" ;;
+        *) choice="cancel" ;;
+    esac
+}
+
+# ── Wizard Step 2b: Tool Picker (specific tool) ────────────────
 install_submenu() {
     echo ""
     local rec_brew="" rec_repo="" rec_bin="  "
@@ -146,6 +202,58 @@ cleanup_submenu() {
         "Remove"*) choice="remove_mgr" ;;
         "Demo"*) choice="demo" ;;
         *) choice="back" ;;
+    esac
+}
+
+# ── Post-Install Follow-up ──────────────────────────────────────
+post_install_menu() {
+    echo ""
+    if command -v gum >/dev/null 2>&1; then
+        local options=(
+            "🚀 Launch Antigravity now"
+            "📁 Create workspace folder (~/my-antigravity-work)"
+            "💾 Save this installer for later"
+            "✅ Done — exit"
+        )
+        CHOICE=$(gum choose --header="What next?" "${options[@]}") || CHOICE="Done"
+    else
+        echo ""
+        echo "What next?"
+        echo "1) Launch Antigravity now"
+        echo "2) Create workspace folder"
+        echo "3) Save this installer for later"
+        echo "4) Done — exit"
+        read -r -p "Select option [1-4]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Launch" ;;
+            2) CHOICE="Create" ;;
+            3) CHOICE="Save" ;;
+            *) CHOICE="Done" ;;
+        esac
+    fi
+
+    case "$CHOICE" in
+        *"Launch"*)
+            log_info "Launching Antigravity..."
+            local opener="antigravity"
+            if command -v "$opener" >/dev/null 2>&1; then
+                "$opener" &
+            else
+                log_warn "Antigravity command not found yet. Try closing and reopening your terminal, then type: antigravity"
+            fi
+            ;;
+        *"workspace"*|*"Create"*)
+            if [ ! -d "$WORKSPACE_DIR" ]; then
+                mkdir -p "$WORKSPACE_DIR"
+                log_info "✅ Created workspace at ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+            else
+                log_info "Workspace already exists at ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
+            fi
+            ;;
+        *"Save"*|*"installer"*)
+            save_manager_locally
+            ;;
+        *) ;; # Done — exit
     esac
 }
 
@@ -348,6 +456,24 @@ run_mock_action() {
     local action="$1"
 
     case "$action" in
+        fast_track_go)
+            log_info "${C_MAG}🚀 Starting fast-track class setup (Mock)...${C_RESET}"
+            run_cmd_ui "Installing Antigravity IDE (v${DEFAULT_IDE_VERSION}) via ★ Homebrew..." sleep 1.5
+            run_cmd_ui "Downloading Antigravity CLI installer..." sleep 1
+            run_cmd_ui "Installing Antigravity CLI (v${DEFAULT_CLI_VERSION})..." sleep 1
+            echo ""
+            if command -v gum >/dev/null 2>&1; then
+                gum style --border double --border-foreground 46 --padding "1 2" "🎉 Mock Class Setup Complete!
+IDE:  v${DEFAULT_IDE_VERSION} installed via Homebrew
+CLI:  v${DEFAULT_CLI_VERSION} installed
+Launch: antigravity"
+            else
+                log_info "${C_GREEN}${C_BOLD}🎉 Mock Class Setup Complete!${C_RESET}"
+                log_info "  ${C_CYAN}▸${C_RESET} IDE:  v${DEFAULT_IDE_VERSION} installed via Homebrew"
+                log_info "  ${C_CYAN}▸${C_RESET} CLI:  v${DEFAULT_CLI_VERSION} installed"
+                log_info "  ${C_CYAN}▸${C_RESET} Launch: ${C_BOLD}antigravity${C_RESET}"
+            fi
+            ;;
         brew|repo|binary*|cli*|sdk*)
             local method="Homebrew"
             local product="Google Antigravity IDE"

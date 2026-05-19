@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.2.11] — 2026-05-19
+
+### Added
+- **Wizard Flow:** Replaced flat menu with an intent-based wizard. First question asks "What would you like to do?" with options for class setup, specific tool install, or manage existing installation.
+- **Fast-Track Class Setup:** New "🎓 Set up for class" option installs IDE + CLI in one click using the best method for the detected platform. Also available headlessly via `--fast-track`.
+- **Post-Install Follow-up:** After any installation completes, a follow-up menu offers to launch Antigravity, create a workspace folder, or save the installer for later.
+
+### Changed
+- **Main Menu:** Menu options are now intent-based ("Set up for class", "Install or update a specific tool", "Manage existing installation") instead of action-based ("Choose install method", "Cleanup options").
+- **Landing Page:** Updated wizard flow documentation and screenshots to match the new menu structure.
+
 ## [0.2.10] — 2026-05-19
 
 ### Added
