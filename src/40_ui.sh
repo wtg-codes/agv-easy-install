@@ -85,18 +85,20 @@ fast_track_setup() {
         cheader=$(get_compact_header "Select tools to install (space to toggle)")
         local selected
         selected=$(gum choose --no-limit --header="$cheader" \
-            --selected="Antigravity Vibe Code UI,Antigravity IDE,Antigravity CLI (agy)" \
+            --selected="Antigravity Vibe Code UI,Antigravity IDE,Antigravity CLI (agy),Google Jules CLI" \
             "Antigravity Vibe Code UI" \
             "Antigravity IDE" \
             "Antigravity CLI (agy)" \
+            "Google Jules CLI" \
             "Antigravity SDK (Python)") || selected=""
     else
         echo "Select tools to install (comma-separated, e.g. 1,2):"
         echo "1) Antigravity Vibe Code UI"
         echo "2) Antigravity IDE"
         echo "3) Antigravity CLI (agy)"
-        echo "4) Antigravity SDK (Python)"
-        read -r -p "Choice [1,2,3]: " nums < /dev/tty
+        echo "4) Google Jules CLI"
+        echo "5) Antigravity SDK (Python)"
+        read -r -p "Choice [1,2,3,4]: " nums < /dev/tty
         local selected=""
         case "$nums" in
             *1*) selected="Antigravity Vibe Code UI" ;;
@@ -108,7 +110,10 @@ fast_track_setup() {
             *3*) selected="${selected:+$selected\n}Antigravity CLI" ;;
         esac
         case "$nums" in
-            *4*) selected="${selected:+$selected\n}Antigravity SDK" ;;
+            *4*) selected="${selected:+$selected\n}Google Jules CLI" ;;
+        esac
+        case "$nums" in
+            *5*) selected="${selected:+$selected\n}Antigravity SDK" ;;
         esac
     fi
 
@@ -121,6 +126,7 @@ fast_track_setup() {
     if echo "$selected" | grep -q "Vibe"; then FAST_TRACK_PRODUCTS="vibe"; fi
     if echo "$selected" | grep -q "IDE"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }ide"; fi
     if echo "$selected" | grep -q "CLI"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }cli"; fi
+    if echo "$selected" | grep -q "Jules"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }jules"; fi
     if echo "$selected" | grep -q "SDK"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }sdk"; fi
 
     # ── Step B: IDE install method (if IDE selected) ──
@@ -221,6 +227,7 @@ install_submenu() {
         "Antigravity Vibe Code UI  →"
         "Antigravity IDE  →"
         "Antigravity CLI (agy)  →"
+        "Google Jules CLI (npm)  →"
         "Antigravity SDK (Python)  →"
     )
 
@@ -232,13 +239,14 @@ install_submenu() {
         clear || true
         echo "Select a tool to install:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select tool [1-5]: " num < /dev/tty
+        read -r -p "Select tool [1-6]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
             2) CHOICE="Antigravity Vibe Code UI" ;;
             3) CHOICE="Antigravity IDE" ;;
             4) CHOICE="Antigravity CLI" ;;
-            5) CHOICE="Antigravity SDK" ;;
+            5) CHOICE="Google Jules CLI" ;;
+            6) CHOICE="Antigravity SDK" ;;
             *) CHOICE="Back" ;;
         esac
     fi
@@ -248,6 +256,7 @@ install_submenu() {
         *"Vibe"*) choice="vibe_menu" ;;
         *"IDE"*) choice="ide_menu" ;;
         *"CLI"*) choice="cli_menu" ;;
+        *"Jules"*) choice="jules_menu" ;;
         *"SDK"*) choice="sdk_menu" ;;
         *) choice="back" ;;
     esac
@@ -668,6 +677,38 @@ choose_sdk_version() {
     esac
 }
 
+choose_jules_version() {
+    clear || true
+    local options=(
+        "Back"
+        "latest (Latest / Default)"
+    )
+    if command -v gum >/dev/null 2>&1; then
+        local cheader
+        cheader=$(get_compact_header "Select Jules CLI version")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
+    else
+        clear || true
+        echo "Select Jules CLI version:"
+        for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
+        read -r -p "Select option [1-2]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Back" ;;
+            2) CHOICE="latest" ;;
+            *) CHOICE="Back" ;;
+        esac
+    fi
+    
+    case "$CHOICE" in
+        "Back"*) choice="back" ;;
+        *)
+            local selected_ver
+            selected_ver=$(echo "$CHOICE" | awk '{print $1}')
+            choice="jules:$selected_ver"
+            ;;
+    esac
+}
+
 # ── Mock actions for sandbox mode ───────────────────────────────
 run_mock_action() {
     local action="$1"
@@ -687,6 +728,9 @@ run_mock_action() {
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then
                 run_cmd_ui "Installing Antigravity CLI (v${DEFAULT_CLI_VERSION})..." sleep 1
             fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then
+                run_cmd_ui "Installing Google Jules CLI (latest) via npm..." sleep 1
+            fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then
                 run_cmd_ui "Installing Antigravity SDK (v${DEFAULT_SDK_VERSION}) via pip..." sleep 1
             fi
@@ -703,6 +747,7 @@ run_mock_action() {
                 fi
             fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then done_msg="${done_msg}\nJules CLI: latest installed"; fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
             done_msg="${done_msg}\nLaunch: ${mock_bin_name}"
             if command -v gum >/dev/null 2>&1; then
@@ -711,7 +756,7 @@ run_mock_action() {
                 log_info "${C_GREEN}${C_BOLD}${done_msg}${C_RESET}"
             fi
             ;;
-        vibe*|brew|repo|binary*|cli*|sdk*)
+        vibe*|brew|repo|binary*|cli*|sdk*|jules*)
             local method="Homebrew"
             local product="Google Antigravity IDE"
             local version=""
@@ -732,6 +777,9 @@ run_mock_action() {
             elif [[ "$action" == "cli"* ]]; then
                 method="Antigravity CLI"
                 product="Antigravity CLI (agy)"
+            elif [[ "$action" == "jules"* ]]; then
+                method="Google Jules CLI"
+                product="Google Jules CLI (NPM)"
             elif [[ "$action" == "sdk"* ]]; then
                 method="Antigravity SDK"
                 product="Antigravity SDK (Python)"
@@ -756,6 +804,15 @@ run_mock_action() {
                 echo ""
                 log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"
                 log_info "  ${C_CYAN}▸${C_RESET} Verify:    ${C_BOLD}python3 -c \"import google_antigravity\"${C_RESET}"
+                return
+            fi
+
+            if [[ "$action" == "jules"* ]]; then
+                run_cmd_ui "Connecting to NPM registry..." sleep 1
+                run_cmd_ui "Installing package '@google/jules'..." sleep 1.5
+                echo ""
+                log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"
+                log_info "  ${C_CYAN}▸${C_RESET} Verify:    ${C_BOLD}jules --help${C_RESET}"
                 return
             fi
 

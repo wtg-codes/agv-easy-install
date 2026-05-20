@@ -55,6 +55,11 @@ do_health_check() {
         echo -e "  ${C_GREEN}✅ Antigravity Python SDK found in Python environment${C_RESET}"
     fi
 
+    # 7. Google Jules CLI (Optional)
+    if command -v jules >/dev/null 2>&1; then
+        echo -e "  ${C_GREEN}✅ Google Jules CLI found in PATH ($(command -v jules))${C_RESET}"
+    fi
+
     echo ""
     if [ "$failed" -eq 0 ]; then
         log_info "${C_GREEN}${C_BOLD}🎉 Health check passed! Your installation is healthy.${C_RESET}"

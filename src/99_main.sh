@@ -7,8 +7,9 @@ print_usage() {
     echo "  --install-repo    Headless System Repo install"
     echo "  --install-binary  Headless Official Binary install"
     echo "  --install-cli     Headless Antigravity CLI install"
+    echo "  --install-jules   Headless Google Jules CLI install"
     echo "  --install-sdk     Headless Antigravity Python SDK install"
-    echo "  --fast-track      Headless lab setup (IDE + CLI)"
+    echo "  --fast-track      Headless lab setup (IDE + CLI + Jules)"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -31,6 +32,7 @@ for arg in "$@"; do
         --install-repo) ACTION="repo"; AUTO=1 ;;
         --install-binary) ACTION="binary"; AUTO=1 ;;
         --install-cli) ACTION="cli"; AUTO=1 ;;
+        --install-jules) ACTION="jules"; AUTO=1 ;;
         --install-sdk) ACTION="sdk"; AUTO=1 ;;
         --fast-track) ACTION="fast_track"; AUTO=1 ;;
         --remove) ACTION="remove" ;;
@@ -122,6 +124,7 @@ do_fast_track_install() {
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then total=$((total+1)); fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then total=$((total+1)); fi
 
     log_info "${C_MAG}🎓 Starting setup — installing ${total} tool(s)...${C_RESET}"
@@ -155,6 +158,14 @@ do_fast_track_install() {
         echo ""
     fi
 
+    # Install Jules (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Google Jules CLI...${C_RESET}"
+        install_jules
+        echo ""
+    fi
+
     # Install SDK (if selected)
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then
         step=$((step+1))
@@ -178,6 +189,7 @@ do_fast_track_install() {
         fi
     fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then done_msg="${done_msg}\nJules CLI: latest installed"; fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
     done_msg="${done_msg}\nLaunch: ${mock_bin_name}"
 
@@ -252,6 +264,13 @@ start_sandbox_mode() {
                         done
                     elif [ "$choice" = "cli_menu" ]; then
                         choose_cli_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    elif [ "$choice" = "jules_menu" ]; then
+                        choose_jules_version
                         if [ "$choice" = "back" ]; then
                             choice="back"
                             continue
@@ -342,6 +361,13 @@ run_interactive() {
                             continue
                         fi
                         in_install=false
+                    elif [ "$choice" = "jules_menu" ]; then
+                        choose_jules_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
                     elif [ "$choice" = "sdk_menu" ]; then
                         choose_sdk_version
                         if [ "$choice" = "back" ]; then
@@ -368,6 +394,15 @@ run_interactive() {
                         selected_version=$(echo "$choice" | cut -d':' -f2)
                         FAST_TRACK_PRODUCTS="cli"
                         install_cli "$selected_version"
+                        save_manager_locally
+                        post_install_menu
+                        break
+                        ;;
+                    jules:*)
+                        local selected_version
+                        selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="jules"
+                        install_jules "$selected_version"
                         save_manager_locally
                         post_install_menu
                         break
@@ -407,13 +442,14 @@ case "$ACTION" in
         else do_install_binary "vibe"; save_manager_locally
         fi ;;
     fast_track)
-        FAST_TRACK_PRODUCTS="vibe ide cli"
+        FAST_TRACK_PRODUCTS="vibe ide cli jules"
         case "$RECOMMENDED" in 1) FAST_TRACK_METHOD="brew" ;; 2) FAST_TRACK_METHOD="repo" ;; *) FAST_TRACK_METHOD="binary" ;; esac
         do_fast_track_install ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary "vibe"; save_manager_locally ;;
     cli) install_cli; save_manager_locally ;;
+    jules) install_jules; save_manager_locally ;;
     sdk) install_sdk; save_manager_locally ;;
     check) do_health_check ;;
     demo_ui) start_sandbox_mode ;;
