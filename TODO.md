@@ -1,6 +1,6 @@
 # TODO — AGV Easy Install
 
-> **Last updated:** 2026-05-19 · Branch: `feature/multi-product-support`
+> **Last updated:** 2026-05-20 · Branch: `feature/multi-product-support`
 > This file is the single source of truth for all pending work.
 > It MUST be updated at the end of every coding session.
 
@@ -27,6 +27,7 @@
 - [x] Hierarchical Cancel-first menu (main → install / cleanup sub-menus)
 - [x] `--demo-ui` sandbox mode with mock actions for every path
 - [x] Fallback plain-text menu when `gum` unavailable
+- [x] Tool-first installation flow (IDE, CLI, SDK) with secondary IDE method picker
 
 ### CLI Interface
 - [x] `--version`, `--help`, `--remove`, `--verbose`, `--quiet`, `--json`
@@ -57,6 +58,7 @@
 - [x] AGENTS.md with complete file map and rules
 - [x] CONTRIBUTING.md with `src/` → `build.sh` workflow
 - [x] CHANGELOG.md
+- [x] Package architecture specifications (`package-antigravity-*.md`) for IDE, CLI, and SDK
 
 ### Testing
 - [x] 66-gate test suite across 6 phases

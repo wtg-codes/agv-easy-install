@@ -8,7 +8,7 @@ print_usage() {
     echo "  --install-binary  Headless Official Binary install"
     echo "  --install-cli     Headless Antigravity CLI install"
     echo "  --install-sdk     Headless Antigravity Python SDK install"
-    echo "  --fast-track      Headless class setup (IDE + CLI)"
+    echo "  --fast-track      Headless lab setup (IDE + CLI)"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -115,7 +115,7 @@ if [ "$JSON_OUT" -eq 0 ]; then
     check_for_updates "$@"
 fi
 
-# ── Fast-Track Class Setup (headless or wizard-confirmed) ───────
+# ── Fast-Track Lab Setup (headless or wizard-confirmed) ───────
 do_fast_track_install() {
     # Count total steps for progress display
     local total=0 step=0
@@ -215,30 +215,57 @@ start_sandbox_mode() {
                         echo ""; run_mock_action "fast_track_go"
                         echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
                         ;;
-                    install) ;; # Fall through to install submenu on next loop
-                    cancel) ;; # Loop back
+                    cancel|*) ;; # Loop back
                 esac
-                # If user chose "Customize...", redirect to install submenu
-                if [ "$choice" = "install" ]; then
-                    install_submenu
-                    case "$choice" in
-                        binary_menu) choose_ide_version ;;
-                        cli_menu) choose_cli_version ;;
-                        sdk_menu) choose_sdk_version ;;
-                    esac
-                    if [ "$choice" != "back" ]; then
-                        echo ""; run_mock_action "$choice"
-                        echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
-                    fi
-                fi
                 ;;
             install)
-                install_submenu
-                case "$choice" in
-                    binary_menu) choose_ide_version ;;
-                    cli_menu) choose_cli_version ;;
-                    sdk_menu) choose_sdk_version ;;
-                esac
+                local in_install=true
+                while [ "$in_install" = true ]; do
+                    install_submenu
+                    if [ "$choice" = "back" ]; then
+                        in_install=false
+                        continue
+                    fi
+                    
+                    if [ "$choice" = "ide_menu" ]; then
+                        local in_ide=true
+                        while [ "$in_ide" = true ]; do
+                            ide_method_submenu
+                            if [ "$choice" = "back" ]; then
+                                in_ide=false
+                                choice="back"
+                                continue
+                            fi
+                            
+                            if [ "$choice" = "binary_menu" ]; then
+                                choose_ide_version
+                                if [ "$choice" = "back" ]; then
+                                    choice="back"
+                                    continue
+                                fi
+                                in_ide=false
+                                in_install=false
+                            else
+                                in_ide=false
+                                in_install=false
+                            fi
+                        done
+                    elif [ "$choice" = "cli_menu" ]; then
+                        choose_cli_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    elif [ "$choice" = "sdk_menu" ]; then
+                        choose_sdk_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    fi
+                done
                 if [ "$choice" != "back" ]; then
                     echo ""; run_mock_action "$choice"
                     echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
@@ -273,71 +300,65 @@ run_interactive() {
                         post_install_menu
                         break
                         ;;
-                    install) ;; # Fall through to install submenu below
                     cancel|*) continue ;; # Loop back to main menu
                 esac
-                # If user chose "Customize...", redirect to install submenu
-                if [ "$choice" = "install" ]; then
-                    install_submenu
-                    case "$choice" in
-                        binary_menu) choose_ide_version ;;
-                        cli_menu) choose_cli_version ;;
-                        sdk_menu) choose_sdk_version ;;
-                    esac
-                    case "$choice" in
-                        brew) install_brew; save_manager_locally; post_install_menu; break ;;
-                        repo) install_repo; save_manager_locally; post_install_menu; break ;;
-                        binary:*)
-                            local selected_version
-                            selected_version=$(echo "$choice" | cut -d':' -f2)
-                            do_install_binary "$selected_version"
-                            save_manager_locally
-                            post_install_menu
-                            break
-                            ;;
-                        cli:*)
-                            local selected_version
-                            selected_version=$(echo "$choice" | cut -d':' -f2)
-                            install_cli "$selected_version"
-                            save_manager_locally
-                            post_install_menu
-                            break
-                            ;;
-                        sdk:*)
-                            local selected_version
-                            selected_version=$(echo "$choice" | cut -d':' -f2)
-                            install_sdk "$selected_version"
-                            save_manager_locally
-                            post_install_menu
-                            break
-                            ;;
-                        back) continue ;; # return to main menu
-                    esac
-                fi
                 ;;
             install)
-                install_submenu
+                local in_install=true
+                while [ "$in_install" = true ]; do
+                    install_submenu
+                    if [ "$choice" = "back" ]; then
+                        in_install=false
+                        continue
+                    fi
+                    
+                    if [ "$choice" = "ide_menu" ]; then
+                        local in_ide=true
+                        while [ "$in_ide" = true ]; do
+                            ide_method_submenu
+                            if [ "$choice" = "back" ]; then
+                                in_ide=false
+                                choice="back"
+                                continue
+                            fi
+                            
+                            if [ "$choice" = "binary_menu" ]; then
+                                choose_ide_version
+                                if [ "$choice" = "back" ]; then
+                                    choice="back"
+                                    continue
+                                fi
+                                in_ide=false
+                                in_install=false
+                            else
+                                in_ide=false
+                                in_install=false
+                            fi
+                        done
+                    elif [ "$choice" = "cli_menu" ]; then
+                        choose_cli_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    elif [ "$choice" = "sdk_menu" ]; then
+                        choose_sdk_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    fi
+                done
                 case "$choice" in
-                    vibe_menu) choose_vibe_version ;;
-                    binary_menu) choose_ide_version ;;
-                    cli_menu) choose_cli_version ;;
-                    sdk_menu) choose_sdk_version ;;
-                esac
-                case "$choice" in
-                    brew) install_brew; save_manager_locally; post_install_menu; break ;;
-                    repo) install_repo; save_manager_locally; post_install_menu; break ;;
-                    vibe:*)
-                        local selected_version
-                        selected_version=$(echo "$choice" | cut -d':' -f2)
-                        do_install_binary "vibe" "$selected_version"
-                        save_manager_locally
-                        post_install_menu
-                        break
-                        ;;
+                    brew) FAST_TRACK_PRODUCTS="ide"; install_brew; save_manager_locally; post_install_menu; break ;;
+                    repo) FAST_TRACK_PRODUCTS="ide"; install_repo; save_manager_locally; post_install_menu; break ;;
                     binary:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
-                        do_install_binary "ide" "$selected_version"
+                        FAST_TRACK_PRODUCTS="ide"
+                        do_install_binary "$selected_version"
                         save_manager_locally
                         post_install_menu
                         break
@@ -345,6 +366,7 @@ run_interactive() {
                     cli:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="cli"
                         install_cli "$selected_version"
                         save_manager_locally
                         post_install_menu
@@ -353,6 +375,7 @@ run_interactive() {
                     sdk:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="sdk"
                         install_sdk "$selected_version"
                         save_manager_locally
                         post_install_menu

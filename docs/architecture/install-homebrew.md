@@ -3,6 +3,7 @@
 > **Status:** ✅ Tested
 > **Last updated:** 2026-05-13
 > **Parent:** [implementation_plan.md](implementation_plan.md)
+> **Packages:** [package-antigravity-ide.md](package-antigravity-ide.md) | [package-antigravity-cli.md](package-antigravity-cli.md)
 
 ---
 

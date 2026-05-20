@@ -1,6 +1,6 @@
 # AGV Easy Install — Implementation Plan
 
-> **Last updated:** 2026-05-19 · Branch: `feature/multi-product-support`
+> **Last updated:** 2026-05-20 · Branch: `feature/tool-first-wizard-flow`
 > This is a living document. It reflects the current architecture and roadmap.
 > For pending work items, see [`TODO.md`](../../TODO.md) in the project root.
 
@@ -189,6 +189,15 @@ python3 docs/images/capture.py
 | Homebrew | [install-homebrew.md](install-homebrew.md) | No |
 | System Repo (APT/DNF) | [install-repo.md](install-repo.md) | Yes |
 | Tarball (standalone) | [install-tarball.md](install-tarball.md) | No |
+
+### Package Specification Docs
+
+| Package | Doc | Scope |
+|---|---|---|
+| Antigravity IDE | [package-antigravity-ide.md](package-antigravity-ide.md) | GUI Desktop IDE |
+| Antigravity CLI | [package-antigravity-cli.md](package-antigravity-cli.md) | Command line `agy` tool |
+| Antigravity SDK | [package-antigravity-sdk.md](package-antigravity-sdk.md) | `google-antigravity` Python library |
+
 
 ---
 

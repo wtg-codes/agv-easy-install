@@ -13,9 +13,8 @@ C_DIM='\033[2m'
 C_RESET='\033[0m'
 
 # Configuration
-SCRIPT_VERSION="0.2.12"
-DEFAULT_VIBE_VERSION="2.0.0"
-DEFAULT_IDE_VERSION="1.23.2"
+SCRIPT_VERSION="0.2.14"
+DEFAULT_IDE_VERSION="2.0.0"
 DEFAULT_CLI_VERSION="1.0.0"
 DEFAULT_SDK_VERSION="0.1.0"
 VERSIONS_JSON_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/versions.json"
