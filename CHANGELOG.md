@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.2.14] — 2026-05-20
+
+### Added
+- **Package Specifications:** Added detailed architecture specifications (`package-antigravity-*.md`) for Google Antigravity IDE, CLI, and SDK in `docs/architecture/`.
+- **Documentation Rules:** Updated `AGENTS.md` and repository guidelines to enforce keeping package specification documentation synced with codebase changes.
+
+### Changed
+- **Tool-First Installation Flow:** Refactored specific tool installer menu to show only the three core tools (IDE, CLI, SDK) as options, and prompt for IDE installation method selection subsequently.
+
 ## [0.2.13] — 2026-05-20
 
 ### Changed

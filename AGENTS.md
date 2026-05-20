@@ -79,13 +79,13 @@
 
 1. **README must reflect actual capabilities.** If the script supports a new distro or platform, update the README's supported platforms table.
 2. **`TODO.md` is the single source of truth for pending work.** It lives in the project root. Update it at the end of every coding session to reflect what was completed and what remains.
-3. **Architecture docs live in `docs/architecture/`.** The `implementation_plan.md` is a living document — update it when making architectural changes.
+3. **Architecture & Package Docs live in `docs/architecture/`.** The `implementation_plan.md` is a living document. Any functional change to installation files, target paths, dependencies, configurations, or methods MUST also update the corresponding package specifications (`package-antigravity-*.md`) to guarantee that documentation is kept in sync with the source code.
 4. **After every session, update these files if they are affected by your changes:**
    - `TODO.md` — check off completed items, add new items discovered
    - `README.md` — platform table, roadmap, troubleshooting
    - `docs/index.html` — if menus or UI changed
    - `docs/images/render.html` + `capture.py` — if menu text changed
-   - `docs/architecture/` — if platform support, install methods, or architecture changed
+   - `docs/architecture/` — if platform support, install methods, packages, or architecture changed
    - `CHANGELOG.md` — for user-facing changes
 
 ---
@@ -155,7 +155,10 @@ Before submitting any PR, the relevant phase gate(s) must pass.
 │       ├── platform-windows.md        ← WSL2/Git Bash support notes
 │       ├── install-homebrew.md        ← Homebrew install method
 │       ├── install-repo.md            ← APT/DNF system repo method
-│       └── install-tarball.md         ← Tarball standalone method
+│       ├── install-tarball.md         ← Tarball standalone method
+│       ├── package-antigravity-ide.md ← Antigravity IDE package architecture spec
+│       ├── package-antigravity-cli.md ← Antigravity CLI package architecture spec
+│       └── package-antigravity-sdk.md ← Antigravity SDK package architecture spec
 └── tests/
     └── run_gates.sh                   ← Phase gate test runner (66 gates)
 ```
