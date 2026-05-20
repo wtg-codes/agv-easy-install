@@ -15,20 +15,15 @@ get_compact_header() {
 # ── Wizard Step 1: Intent Question ──────────────────────────────
 main_menu() {
     bootstrap_ui
+    clear || true
     echo ""
     
-    local mgr_opt="Install this script locally"
-    if [ -f "$BIN_DIR/antigravity-manager" ]; then
-        mgr_opt="Remove this script locally"
-    fi
-
     local options=(
         "Cancel"
-        "🎓 Set up for class (IDE + CLI, one click)"
+        "🎓 Set up for lab (IDE + CLI, one click)"
         "⚡ Install or update a specific tool  →"
         "🧹 Manage existing installation  →"
         "🖥️  Demo UI (sandbox mode)"
-        "$mgr_opt"
     )
 
     if command -v gum >/dev/null 2>&1; then
@@ -40,14 +35,13 @@ main_menu() {
         get_menu_header
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-6]: " num < /dev/tty
+        read -r -p "Select option [1-5]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Cancel" ;;
-            2) CHOICE="class" ;;
+            2) CHOICE="lab" ;;
             3) CHOICE="specific" ;;
             4) CHOICE="manage" ;;
             5) CHOICE="Demo" ;;
-            6) CHOICE="$mgr_opt" ;;
             [Gg]oogle) CHOICE="Google" ;;
             *) CHOICE="Cancel" ;;
         esac
@@ -55,12 +49,10 @@ main_menu() {
 
     case "$CHOICE" in
         "Cancel"*) choice="cancel" ;;
-        *"Set up for class"*|*"class"*) choice="fast_track" ;;
+        *"Set up for lab"*|*"lab"*) choice="fast_track" ;;
         *"Install or update"*|*"specific"*) choice="install" ;;
         *"Manage"*|*"manage"*) choice="cleanup" ;;
         *"Demo"*) choice="demo" ;;
-        "Install this script"*) choice="save" ;;
-        "Remove this script"*) choice="remove_mgr" ;;
         [Gg]oogle)
             log_info "Opening Course Catalog..."
             local opener="xdg-open"
@@ -82,11 +74,12 @@ FAST_TRACK_PRODUCTS=""
 FAST_TRACK_METHOD=""
 
 fast_track_setup() {
-    echo ""
     FAST_TRACK_PRODUCTS=""
     FAST_TRACK_METHOD=""
 
     # ── Step A: Which products? (multi-select) ──
+    clear || true
+    echo ""
     if command -v gum >/dev/null 2>&1; then
         local cheader
         cheader=$(get_compact_header "Select tools to install (space to toggle)")
@@ -126,6 +119,7 @@ fast_track_setup() {
 
     # ── Step B: IDE install method (if IDE selected) ──
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
+        clear || true
         echo ""
         local rec_brew="" rec_repo="" rec_bin=""
         case "$RECOMMENDED" in
@@ -167,6 +161,7 @@ fast_track_setup() {
     fi
 
     # ── Step C: Summary & confirm ──
+    clear || true
     echo ""
     local summary="📦 Ready to install:"
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
@@ -210,6 +205,7 @@ fast_track_setup() {
 
 # ── Wizard Step 2b: Tool Picker (specific tool) ────────────────
 install_submenu() {
+    clear || true
     echo ""
     local rec_brew="" rec_repo="" rec_bin="  "
     case "$RECOMMENDED" in
@@ -260,6 +256,7 @@ install_submenu() {
 
 # ── Cleanup sub-menu ────────────────────────────────────────────
 cleanup_submenu() {
+    clear || true
     echo ""
     local options=(
         "Back"
@@ -297,8 +294,17 @@ cleanup_submenu() {
 
 # ── Post-Install Follow-up ──────────────────────────────────────
 post_install_menu() {
+    clear || true
     echo ""
+    local done_msg="🎉 Setup Complete!"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed"; fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
+    done_msg="${done_msg}\nLaunch: antigravity"
+
     if command -v gum >/dev/null 2>&1; then
+        echo -e "$done_msg" | gum style --border double --border-foreground 46 --padding "1 2"
+        echo ""
         local cheader
         cheader=$(get_compact_header "What next?")
         CHOICE=$(gum choose --header="$cheader" \
@@ -307,6 +313,7 @@ post_install_menu() {
             "💾 Save this installer for later" \
             "✅ Done — exit") || CHOICE="Done"
     else
+        log_info "${C_GREEN}${C_BOLD}${done_msg}${C_RESET}"
         echo ""
         echo "What next?"
         echo "1) Launch Antigravity now"
@@ -403,6 +410,7 @@ list_sdk_versions() {
 
 choose_ide_version() {
     fetch_versions_json || true
+    clear || true
     
     local versions=()
     while IFS= read -r line; do
@@ -451,6 +459,7 @@ choose_ide_version() {
 
 choose_cli_version() {
     fetch_versions_json || true
+    clear || true
     
     local versions=()
     while IFS= read -r line; do
@@ -499,6 +508,7 @@ choose_cli_version() {
 
 choose_sdk_version() {
     fetch_versions_json || true
+    clear || true
     
     local versions=()
     while IFS= read -r line; do

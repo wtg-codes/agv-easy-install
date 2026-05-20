@@ -8,7 +8,7 @@ print_usage() {
     echo "  --install-binary  Headless Official Binary install"
     echo "  --install-cli     Headless Antigravity CLI install"
     echo "  --install-sdk     Headless Antigravity Python SDK install"
-    echo "  --fast-track      Headless class setup (IDE + CLI)"
+    echo "  --fast-track      Headless lab setup (IDE + CLI)"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -115,7 +115,7 @@ if [ "$JSON_OUT" -eq 0 ]; then
     check_for_updates "$@"
 fi
 
-# ── Fast-Track Class Setup (headless or wizard-confirmed) ───────
+# ── Fast-Track Lab Setup (headless or wizard-confirmed) ───────
 do_fast_track_install() {
     # Count total steps for progress display
     local total=0 step=0
@@ -267,11 +267,12 @@ run_interactive() {
                         sdk_menu) choose_sdk_version ;;
                     esac
                     case "$choice" in
-                        brew) install_brew; save_manager_locally; post_install_menu; break ;;
-                        repo) install_repo; save_manager_locally; post_install_menu; break ;;
+                        brew) FAST_TRACK_PRODUCTS="ide"; install_brew; save_manager_locally; post_install_menu; break ;;
+                        repo) FAST_TRACK_PRODUCTS="ide"; install_repo; save_manager_locally; post_install_menu; break ;;
                         binary:*)
                             local selected_version
                             selected_version=$(echo "$choice" | cut -d':' -f2)
+                            FAST_TRACK_PRODUCTS="ide"
                             do_install_binary "$selected_version"
                             save_manager_locally
                             post_install_menu
@@ -280,6 +281,7 @@ run_interactive() {
                         cli:*)
                             local selected_version
                             selected_version=$(echo "$choice" | cut -d':' -f2)
+                            FAST_TRACK_PRODUCTS="cli"
                             install_cli "$selected_version"
                             save_manager_locally
                             post_install_menu
@@ -288,6 +290,7 @@ run_interactive() {
                         sdk:*)
                             local selected_version
                             selected_version=$(echo "$choice" | cut -d':' -f2)
+                            FAST_TRACK_PRODUCTS="sdk"
                             install_sdk "$selected_version"
                             save_manager_locally
                             post_install_menu
@@ -305,11 +308,12 @@ run_interactive() {
                     sdk_menu) choose_sdk_version ;;
                 esac
                 case "$choice" in
-                    brew) install_brew; save_manager_locally; post_install_menu; break ;;
-                    repo) install_repo; save_manager_locally; post_install_menu; break ;;
+                    brew) FAST_TRACK_PRODUCTS="ide"; install_brew; save_manager_locally; post_install_menu; break ;;
+                    repo) FAST_TRACK_PRODUCTS="ide"; install_repo; save_manager_locally; post_install_menu; break ;;
                     binary:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="ide"
                         do_install_binary "$selected_version"
                         save_manager_locally
                         post_install_menu
@@ -318,6 +322,7 @@ run_interactive() {
                     cli:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="cli"
                         install_cli "$selected_version"
                         save_manager_locally
                         post_install_menu
@@ -326,6 +331,7 @@ run_interactive() {
                     sdk:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="sdk"
                         install_sdk "$selected_version"
                         save_manager_locally
                         post_install_menu

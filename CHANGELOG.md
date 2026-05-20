@@ -5,15 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## [0.2.11] — 2026-05-19
+## [0.2.13] — 2026-05-20
+
+### Changed
+- **Cleaner Screen Flow:** Added `clear || true` at the beginning of all interactive steps/menus (main menu, wizard steps, tool submenus, version selectors, post-install menus) to prevent old terminal output and previous step menus from cluttering the screen.
+- **Main Menu simplification:** Removed the "Install/Remove this script locally" option from the main menu to reduce clutter (it remains accessible in the "Manage existing installation" submenu).
+- **Terminology:** Renamed "Set up for class" to "Set up for lab" across all user-facing UI screens, logs, and docs.
+
+## [0.2.12] — 2026-05-19
 
 ### Added
-- **Wizard Flow:** Replaced flat menu with an intent-based wizard. First question asks "What would you like to do?" with options for class setup, specific tool install, or manage existing installation.
-- **Fast-Track Class Setup:** New "🎓 Set up for class" option installs IDE + CLI in one click using the best method for the detected platform. Also available headlessly via `--fast-track`.
+- **Wizard Flow:** Replaced flat menu with an intent-based wizard. First question asks "What would you like to do?" with options for lab setup, specific tool install, or manage existing installation.
+- **Fast-Track Lab Setup:** New "🎓 Set up for lab" option installs selected products (IDE, CLI, SDK) via a multi-select picker, asks for the installation method, and confirms. Also available headlessly via `--fast-track`.
 - **Post-Install Follow-up:** After any installation completes, a follow-up menu offers to launch Antigravity, create a workspace folder, or save the installer for later.
 
 ### Changed
-- **Main Menu:** Menu options are now intent-based ("Set up for class", "Install or update a specific tool", "Manage existing installation") instead of action-based ("Choose install method", "Cleanup options").
+- **Main Menu:** Menu options are now intent-based ("Set up for lab", "Install or update a specific tool", "Manage existing installation") instead of action-based ("Choose install method", "Cleanup options").
+- **Submenus:** Switched from `gum filter` to `gum choose` and implemented compact one-line headers so all options are always visible on smaller terminal buffers.
+- **Demo Mode:** Moved the "Demo UI (sandbox mode)" to the main menu.
 - **Landing Page:** Updated wizard flow documentation and screenshots to match the new menu structure.
 
 ## [0.2.10] — 2026-05-19
