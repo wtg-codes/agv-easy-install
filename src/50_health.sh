@@ -57,7 +57,17 @@ do_health_check() {
 
     # 7. Google Jules CLI (Optional)
     if command -v jules >/dev/null 2>&1; then
-        echo -e "  ${C_GREEN}✅ Google Jules CLI found in PATH ($(command -v jules))${C_RESET}"
+        local jules_ver
+        jules_ver=$(jules --version 2>/dev/null || jules -v 2>/dev/null || echo "")
+        if [ -n "$jules_ver" ]; then
+            check_status "Google Jules CLI found in PATH ($jules_ver)" "true"
+        else
+            if jules --help >/dev/null 2>&1; then
+                check_status "Google Jules CLI found in PATH" "true"
+            else
+                check_status "Google Jules CLI found in PATH but failed to execute" "false"
+            fi
+        fi
     fi
 
     echo ""
