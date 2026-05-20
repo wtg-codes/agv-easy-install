@@ -45,7 +45,7 @@ DESKTOP_DIR="$HOME/Desktop"
 # Files
 DESKTOP_FILE_SYS="$HOME/.local/share/applications/google-antigravity.desktop"
 DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
-ICON_PATH="$APP_DIR/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png"
+ICON_PATH="$APP_DIR/resources/icon.png"
 
 # State & Logging
 STATE_DIR="$HOME/.config/antigravity"

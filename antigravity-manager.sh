@@ -50,7 +50,7 @@ DESKTOP_DIR="$HOME/Desktop"
 # Files
 DESKTOP_FILE_SYS="$HOME/.local/share/applications/google-antigravity.desktop"
 DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
-ICON_PATH="$APP_DIR/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png"
+ICON_PATH="$APP_DIR/resources/icon.png"
 
 # State & Logging
 STATE_DIR="$HOME/.config/antigravity"
@@ -795,6 +795,50 @@ do_install_binary() {
 
         log_info "${C_BLUE}🔗 Creating symlink...${C_RESET}"
         ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
+
+        # Extract application icon from app.asar
+        log_info "${C_CYAN}🎨 Extracting application icon...${C_RESET}"
+        local extracted_icon=0
+        if command -v python3 >/dev/null 2>&1; then
+            if python3 -c "
+import struct, json
+try:
+    with open('$APP_DIR/resources/app.asar', 'rb') as f:
+        header = f.read(16)
+        if len(header) == 16:
+            _, _, _, json_size = struct.unpack('<IIII', header)
+            header_json = json.loads(f.read(json_size).decode('utf-8'))
+            info = header_json.get('files', {}).get('icon.png')
+            if info:
+                f.seek(16 + json_size + int(info['offset']))
+                with open('$ICON_PATH', 'wb') as out:
+                    out.write(f.read(info['size']))
+                print('OK')
+except Exception as e:
+    pass
+" 2>/dev/null | grep -q "OK"; then
+                extracted_icon=1
+            fi
+        fi
+
+        if [ "$extracted_icon" -eq 0 ] && command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+            if (
+                cd "$TMP_DIR" || exit 1
+                if npx --yes @electron/asar extract-file "$APP_DIR/resources/app.asar" icon.png 2>/dev/null; then
+                    mv icon.png "$ICON_PATH"
+                elif npx --yes asar extract-file "$APP_DIR/resources/app.asar" icon.png 2>/dev/null; then
+                    mv icon.png "$ICON_PATH"
+                else
+                    exit 1
+                fi
+            ); then
+                extracted_icon=1
+            fi
+        fi
+
+        if [ "$extracted_icon" -eq 0 ]; then
+            log_warn "Could not extract application icon. Desktop shortcut will use a default icon."
+        fi
 
         cat << EOF > "$DESKTOP_FILE_SYS"
 [Desktop Entry]
