@@ -117,36 +117,56 @@ fi
 
 # ── Fast-Track Class Setup (headless or wizard-confirmed) ───────
 do_fast_track_install() {
-    log_info "${C_MAG}🎓 Starting class setup — installing IDE + CLI...${C_RESET}"
+    # Count total steps for progress display
+    local total=0 step=0
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then total=$((total+1)); fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then total=$((total+1)); fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then total=$((total+1)); fi
+
+    log_info "${C_MAG}🎓 Starting setup — installing ${total} tool(s)...${C_RESET}"
     echo ""
 
-    # Step 1: Install IDE via the recommended method
-    log_info "${C_BOLD}Step 1/2: Installing Antigravity IDE...${C_RESET}"
-    case "$RECOMMENDED" in
-        1) install_brew ;;
-        2) install_repo ;;
-        *) do_install_binary ;;
-    esac
+    # Install IDE (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity IDE...${C_RESET}"
+        case "$FAST_TRACK_METHOD" in
+            brew) install_brew ;;
+            repo) install_repo ;;
+            binary|*) do_install_binary ;;
+        esac
+        echo ""
+    fi
 
-    echo ""
+    # Install CLI (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity CLI...${C_RESET}"
+        install_cli
+        echo ""
+    fi
 
-    # Step 2: Install CLI
-    log_info "${C_BOLD}Step 2/2: Installing Antigravity CLI...${C_RESET}"
-    install_cli
+    # Install SDK (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity SDK...${C_RESET}"
+        install_sdk
+        echo ""
+    fi
 
     save_manager_locally
 
     echo ""
+    local done_msg="🎉 Setup Complete!"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed"; fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
+    done_msg="${done_msg}\nLaunch: antigravity"
+
     if command -v gum >/dev/null 2>&1; then
-        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Class Setup Complete!
-IDE:  v${DEFAULT_IDE_VERSION} installed
-CLI:  v${DEFAULT_CLI_VERSION} installed
-Launch: antigravity"
+        echo -e "$done_msg" | gum style --border double --border-foreground 46 --padding "1 2"
     else
-        log_info "${C_GREEN}${C_BOLD}🎉 Class Setup Complete!${C_RESET}"
-        log_info "  ${C_CYAN}▸${C_RESET} IDE:  v${DEFAULT_IDE_VERSION} installed"
-        log_info "  ${C_CYAN}▸${C_RESET} CLI:  v${DEFAULT_CLI_VERSION} installed"
-        log_info "  ${C_CYAN}▸${C_RESET} Launch: ${C_BOLD}antigravity${C_RESET}"
+        log_info "${C_GREEN}${C_BOLD}${done_msg}${C_RESET}"
     fi
 }
 
@@ -165,6 +185,7 @@ start_sandbox_mode() {
 
         case "$choice" in
             cancel) echo "Exiting Sandbox Mode."; trap - EXIT INT TERM; exit 0 ;;
+            demo) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
             save|remove_mgr)
                 echo ""; run_mock_action "$choice"
                 echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
@@ -209,7 +230,6 @@ start_sandbox_mode() {
                 cleanup_submenu
                 case "$choice" in
                     remove|save|remove_mgr) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
-                    demo) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
                     back) ;; # loop back to main
                 esac
                 ;;
@@ -224,6 +244,7 @@ run_interactive() {
 
         case "$choice" in
             cancel) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+            demo) start_sandbox_mode; break ;;
             save) save_manager_locally; break ;;
             remove_mgr) remove_manager_script; break ;;
             fast_track)
@@ -319,7 +340,6 @@ run_interactive() {
                     remove) do_remove; break ;;
                     save) save_manager_locally; break ;;
                     remove_mgr) remove_manager_script; break ;;
-                    demo) start_sandbox_mode; break ;;
                     back) continue ;; # return to main menu
                 esac
                 ;;
@@ -336,7 +356,10 @@ case "$ACTION" in
         elif [ "$RECOMMENDED" = "2" ]; then install_repo; save_manager_locally
         else do_install_binary; save_manager_locally
         fi ;;
-    fast_track) do_fast_track_install ;;
+    fast_track)
+        FAST_TRACK_PRODUCTS="ide cli"
+        case "$RECOMMENDED" in 1) FAST_TRACK_METHOD="brew" ;; 2) FAST_TRACK_METHOD="repo" ;; *) FAST_TRACK_METHOD="binary" ;; esac
+        do_fast_track_install ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary; save_manager_locally ;;

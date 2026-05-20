@@ -18,7 +18,7 @@ C_DIM='\033[2m'
 C_RESET='\033[0m'
 
 # Configuration
-SCRIPT_VERSION="0.2.11"
+SCRIPT_VERSION="0.2.12"
 DEFAULT_IDE_VERSION="2.0.0"
 DEFAULT_CLI_VERSION="1.0.0"
 DEFAULT_SDK_VERSION="0.1.0"
@@ -1157,10 +1157,18 @@ install_sdk() {
     log_info "${C_GREEN}✅ Antigravity SDK installation complete!${C_RESET}"
 }
 
-# ── Top-level menu header ────────────────────────────────────────
+# ── Top-level menu header (full banner + system info) ────────────
 get_menu_header() {
     print_banner "${UI_MODE:-}"
     print_system_info
+}
+
+# ── Compact one-line header for submenus ─────────────────────────
+get_compact_header() {
+    local label="${1:-}"
+    local mode="${UI_MODE:-}"
+    local os_label="${DISTRO_PRETTY:-Unknown OS}"
+    echo -e "${C_BOLD}AGV Easy Install v${SCRIPT_VERSION}${C_RESET} ${C_DIM}|${C_RESET} ${os_label} ${C_DIM}|${C_RESET} ${mode:+${C_YELLOW}${mode}${C_RESET} ${C_DIM}|${C_RESET} }${label}"
 }
 
 # ── Wizard Step 1: Intent Question ──────────────────────────────
@@ -1178,6 +1186,7 @@ main_menu() {
         "🎓 Set up for class (IDE + CLI, one click)"
         "⚡ Install or update a specific tool  →"
         "🧹 Manage existing installation  →"
+        "🖥️  Demo UI (sandbox mode)"
         "$mgr_opt"
     )
 
@@ -1190,13 +1199,14 @@ main_menu() {
         get_menu_header
         log_warn "UI dependencies failed to load. Falling back to simple menu."
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-5]: " num < /dev/tty
+        read -r -p "Select option [1-6]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Cancel" ;;
             2) CHOICE="class" ;;
             3) CHOICE="specific" ;;
             4) CHOICE="manage" ;;
-            5) CHOICE="$mgr_opt" ;;
+            5) CHOICE="Demo" ;;
+            6) CHOICE="$mgr_opt" ;;
             [Gg]oogle) CHOICE="Google" ;;
             *) CHOICE="Cancel" ;;
         esac
@@ -1207,6 +1217,7 @@ main_menu() {
         *"Set up for class"*|*"class"*) choice="fast_track" ;;
         *"Install or update"*|*"specific"*) choice="install" ;;
         *"Manage"*|*"manage"*) choice="cleanup" ;;
+        *"Demo"*) choice="demo" ;;
         "Install this script"*) choice="save" ;;
         "Remove this script"*) choice="remove_mgr" ;;
         [Gg]oogle)
@@ -1222,54 +1233,136 @@ main_menu() {
     esac
 }
 
-# ── Wizard Step 2a: Fast-Track Confirmation ─────────────────────
+# ── Wizard Step 2a: Fast-Track Setup ────────────────────────────
+# Globals set by this function:
+#   FAST_TRACK_PRODUCTS  – space-separated list of selected products (ide cli sdk)
+#   FAST_TRACK_METHOD    – install method for IDE (brew repo binary)
+FAST_TRACK_PRODUCTS=""
+FAST_TRACK_METHOD=""
+
 fast_track_setup() {
     echo ""
-    local rec_method="Homebrew"
-    case "$RECOMMENDED" in
-        1) rec_method="Homebrew" ;;
-        2) rec_method="System Repo (APT/DNF)" ;;
-        3) rec_method="Official Binary" ;;
-    esac
+    FAST_TRACK_PRODUCTS=""
+    FAST_TRACK_METHOD=""
+
+    # ── Step A: Which products? (multi-select) ──
+    if command -v gum >/dev/null 2>&1; then
+        local cheader
+        cheader=$(get_compact_header "Select tools to install (space to toggle)")
+        local selected
+        selected=$(gum choose --no-limit --header="$cheader" \
+            --selected="Antigravity IDE,Antigravity CLI (agy)" \
+            "Antigravity IDE" \
+            "Antigravity CLI (agy)" \
+            "Antigravity SDK (Python)") || selected=""
+    else
+        echo "Select tools to install (comma-separated, e.g. 1,2):"
+        echo "1) Antigravity IDE"
+        echo "2) Antigravity CLI (agy)"
+        echo "3) Antigravity SDK (Python)"
+        read -r -p "Choice [1,2]: " nums < /dev/tty
+        local selected=""
+        case "$nums" in
+            *1*) selected="Antigravity IDE" ;;
+        esac
+        case "$nums" in
+            *2*) selected="${selected:+$selected\n}Antigravity CLI" ;;
+        esac
+        case "$nums" in
+            *3*) selected="${selected:+$selected\n}Antigravity SDK" ;;
+        esac
+    fi
+
+    if [ -z "$selected" ]; then
+        choice="cancel"
+        return
+    fi
+
+    # Parse selections into a simple flag string
+    if echo "$selected" | grep -q "IDE"; then FAST_TRACK_PRODUCTS="ide"; fi
+    if echo "$selected" | grep -q "CLI"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }cli"; fi
+    if echo "$selected" | grep -q "SDK"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }sdk"; fi
+
+    # ── Step B: IDE install method (if IDE selected) ──
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
+        echo ""
+        local rec_brew="" rec_repo="" rec_bin=""
+        case "$RECOMMENDED" in
+            1) rec_brew=" ★" ;;
+            2) rec_repo=" ★" ;;
+            3) rec_bin=" ★" ;;
+        esac
+
+        if command -v gum >/dev/null 2>&1; then
+            local mheader
+            mheader=$(get_compact_header "How should the IDE be installed?")
+            CHOICE=$(gum choose --header="$mheader" \
+                "Homebrew (cross-platform, no sudo)${rec_brew}" \
+                "System Repo (APT/DNF, needs sudo)${rec_repo}" \
+                "Official Binary / Tarball${rec_bin}" \
+                "Cancel") || CHOICE="Cancel"
+        else
+            echo ""
+            echo "How should the IDE be installed?"
+            echo "1) Homebrew (cross-platform, no sudo)${rec_brew}"
+            echo "2) System Repo (APT/DNF, needs sudo)${rec_repo}"
+            echo "3) Official Binary / Tarball${rec_bin}"
+            echo "4) Cancel"
+            read -r -p "Select method [1-4]: " num < /dev/tty
+            case "$num" in
+                1) CHOICE="Homebrew" ;;
+                2) CHOICE="System" ;;
+                3) CHOICE="Binary" ;;
+                *) CHOICE="Cancel" ;;
+            esac
+        fi
+
+        case "$CHOICE" in
+            *"Homebrew"*) FAST_TRACK_METHOD="brew" ;;
+            *"System"*) FAST_TRACK_METHOD="repo" ;;
+            *"Binary"*|*"Tarball"*) FAST_TRACK_METHOD="binary" ;;
+            *) choice="cancel"; return ;;
+        esac
+    fi
+
+    # ── Step C: Summary & confirm ──
+    echo ""
+    local summary="📦 Ready to install:"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
+        local method_label="Homebrew"
+        case "$FAST_TRACK_METHOD" in
+            repo) method_label="System Repo" ;;
+            binary) method_label="Official Binary" ;;
+        esac
+        summary="${summary}\n  ✦ Antigravity IDE  (v${DEFAULT_IDE_VERSION}) via ${method_label}"
+    fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then
+        summary="${summary}\n  ✦ Antigravity CLI  (v${DEFAULT_CLI_VERSION})"
+    fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then
+        summary="${summary}\n  ✦ Antigravity SDK  (v${DEFAULT_SDK_VERSION}) via pip"
+    fi
 
     if command -v gum >/dev/null 2>&1; then
-        gum style --border rounded --border-foreground 33 --padding "1 2" --margin "0 2" \
-            "$(echo -e "${C_BOLD}📦 Ready to install:${C_RESET}")
-$(echo -e "  ${C_CYAN}✦${C_RESET} Antigravity IDE  ${C_DIM}(latest — v${DEFAULT_IDE_VERSION})${C_RESET}")
-$(echo -e "  ${C_CYAN}✦${C_RESET} Antigravity CLI  ${C_DIM}(latest — v${DEFAULT_CLI_VERSION})${C_RESET}")
-
-$(echo -e "  ${C_DIM}Method: ★ ${rec_method}${C_RESET}")"
+        echo -e "$summary" | gum style --border rounded --border-foreground 33 --padding "1 2" --margin "0 2"
         echo ""
-        local options=(
-            "Install now"
-            "Customize..."
-            "Cancel"
-        )
-        CHOICE=$(gum choose --header="Proceed?" "${options[@]}") || CHOICE="Cancel"
+        local cheader2
+        cheader2=$(get_compact_header "Confirm")
+        CHOICE=$(gum choose --header="$cheader2" "Install now" "Cancel") || CHOICE="Cancel"
     else
-        clear || true
-        get_menu_header
-        echo ""
-        echo "📦 Ready to install:"
-        echo "  ✦ Antigravity IDE  (latest — v${DEFAULT_IDE_VERSION})"
-        echo "  ✦ Antigravity CLI  (latest — v${DEFAULT_CLI_VERSION})"
-        echo ""
-        echo "  Method: ★ ${rec_method}"
+        echo -e "$summary"
         echo ""
         echo "1) Install now"
-        echo "2) Customize..."
-        echo "3) Cancel"
-        read -r -p "Select option [1-3]: " num < /dev/tty
+        echo "2) Cancel"
+        read -r -p "Proceed? [1-2]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Install now" ;;
-            2) CHOICE="Customize" ;;
             *) CHOICE="Cancel" ;;
         esac
     fi
 
     case "$CHOICE" in
         "Install now"*) choice="fast_track_go" ;;
-        "Customize"*) choice="install" ;;
         *) choice="cancel" ;;
     esac
 }
@@ -1294,12 +1387,12 @@ install_submenu() {
     )
 
     if command -v gum >/dev/null 2>&1; then
-        local header
-        header=$(get_menu_header)
-        CHOICE=$(gum filter --header="$header" --no-limit --indicator="❯ " --placeholder="Select a product or installation method..." "${options[@]}") || CHOICE="Back"
+        local cheader
+        cheader=$(get_compact_header "Choose install method")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
     else
         clear || true
-        get_menu_header
+        echo "Choose install method:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select method [1-6]: " num < /dev/tty
         case "$num" in
@@ -1332,24 +1425,22 @@ cleanup_submenu() {
         "Uninstall Antigravity"
         "Save manager (add 'antigravity-manager' command)"
         "Remove manager (delete this script)"
-        "Demo UI (sandbox mode)"
     )
 
     if command -v gum >/dev/null 2>&1; then
-        local header
-        header=$(get_menu_header)
-        CHOICE=$(gum filter --header="$header" --no-limit --indicator="❯ " --placeholder="Select a cleanup option..." "${options[@]}") || CHOICE="Back"
+        local cheader
+        cheader=$(get_compact_header "Manage installation")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
     else
         clear || true
-        get_menu_header
+        echo "Manage installation:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select option [1-5]: " num < /dev/tty
+        read -r -p "Select option [1-4]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
             2) CHOICE="Uninstall" ;;
             3) CHOICE="Save" ;;
             4) CHOICE="Remove manager" ;;
-            5) CHOICE="Demo" ;;
             *) CHOICE="Back" ;;
         esac
     fi
@@ -1359,7 +1450,6 @@ cleanup_submenu() {
         "Uninstall"*) choice="remove" ;;
         "Save"*) choice="save" ;;
         "Remove"*) choice="remove_mgr" ;;
-        "Demo"*) choice="demo" ;;
         *) choice="back" ;;
     esac
 }
@@ -1368,13 +1458,13 @@ cleanup_submenu() {
 post_install_menu() {
     echo ""
     if command -v gum >/dev/null 2>&1; then
-        local options=(
-            "🚀 Launch Antigravity now"
-            "📁 Create workspace folder (~/my-antigravity-work)"
-            "💾 Save this installer for later"
-            "✅ Done — exit"
-        )
-        CHOICE=$(gum choose --header="What next?" "${options[@]}") || CHOICE="Done"
+        local cheader
+        cheader=$(get_compact_header "What next?")
+        CHOICE=$(gum choose --header="$cheader" \
+            "🚀 Launch Antigravity now" \
+            "📁 Create workspace folder (~/my-antigravity-work)" \
+            "💾 Save this installer for later" \
+            "✅ Done — exit") || CHOICE="Done"
     else
         echo ""
         echo "What next?"
@@ -1492,12 +1582,12 @@ choose_ide_version() {
     done
     
     if command -v gum >/dev/null 2>&1; then
-        local header
-        header=$(get_menu_header)
-        CHOICE=$(gum filter --header="$header" --no-limit --indicator="❯ " --placeholder="Select IDE version to install..." "${options[@]}") || CHOICE="Back"
+        local cheader
+        cheader=$(get_compact_header "Select IDE version")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
     else
         clear || true
-        get_menu_header
+        echo "Select IDE version:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select option [1-${#options[@]}]: " num < /dev/tty
         local idx=$((num-1))
@@ -1540,12 +1630,12 @@ choose_cli_version() {
     done
     
     if command -v gum >/dev/null 2>&1; then
-        local header
-        header=$(get_menu_header)
-        CHOICE=$(gum filter --header="$header" --no-limit --indicator="❯ " --placeholder="Select CLI version to install..." "${options[@]}") || CHOICE="Back"
+        local cheader
+        cheader=$(get_compact_header "Select CLI version")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
     else
         clear || true
-        get_menu_header
+        echo "Select CLI version:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select option [1-${#options[@]}]: " num < /dev/tty
         local idx=$((num-1))
@@ -1584,12 +1674,12 @@ choose_sdk_version() {
     done
     
     if command -v gum >/dev/null 2>&1; then
-        local header
-        header=$(get_menu_header)
-        CHOICE=$(gum filter --header="$header" --no-limit --indicator="❯ " --placeholder="Select SDK version to install..." "${options[@]}") || CHOICE="Back"
+        local cheader
+        cheader=$(get_compact_header "Select SDK version")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
     else
         clear || true
-        get_menu_header
+        echo "Select SDK version:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select option [1-${#options[@]}]: " num < /dev/tty
         local idx=$((num-1))
@@ -1616,21 +1706,29 @@ run_mock_action() {
 
     case "$action" in
         fast_track_go)
-            log_info "${C_MAG}🚀 Starting fast-track class setup (Mock)...${C_RESET}"
-            run_cmd_ui "Installing Antigravity IDE (v${DEFAULT_IDE_VERSION}) via ★ Homebrew..." sleep 1.5
-            run_cmd_ui "Downloading Antigravity CLI installer..." sleep 1
-            run_cmd_ui "Installing Antigravity CLI (v${DEFAULT_CLI_VERSION})..." sleep 1
+            local method_label="Homebrew"
+            case "$FAST_TRACK_METHOD" in repo) method_label="System Repo" ;; binary) method_label="Official Binary" ;; esac
+
+            log_info "${C_MAG}🚀 Starting setup (Mock)...${C_RESET}"
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
+                run_cmd_ui "Installing Antigravity IDE (v${DEFAULT_IDE_VERSION}) via ${method_label}..." sleep 1.5
+            fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then
+                run_cmd_ui "Installing Antigravity CLI (v${DEFAULT_CLI_VERSION})..." sleep 1
+            fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then
+                run_cmd_ui "Installing Antigravity SDK (v${DEFAULT_SDK_VERSION}) via pip..." sleep 1
+            fi
             echo ""
+            local done_msg="🎉 Mock Setup Complete!"
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed via ${method_label}"; fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
+            done_msg="${done_msg}\nLaunch: antigravity"
             if command -v gum >/dev/null 2>&1; then
-                gum style --border double --border-foreground 46 --padding "1 2" "🎉 Mock Class Setup Complete!
-IDE:  v${DEFAULT_IDE_VERSION} installed via Homebrew
-CLI:  v${DEFAULT_CLI_VERSION} installed
-Launch: antigravity"
+                echo -e "$done_msg" | gum style --border double --border-foreground 46 --padding "1 2"
             else
-                log_info "${C_GREEN}${C_BOLD}🎉 Mock Class Setup Complete!${C_RESET}"
-                log_info "  ${C_CYAN}▸${C_RESET} IDE:  v${DEFAULT_IDE_VERSION} installed via Homebrew"
-                log_info "  ${C_CYAN}▸${C_RESET} CLI:  v${DEFAULT_CLI_VERSION} installed"
-                log_info "  ${C_CYAN}▸${C_RESET} Launch: ${C_BOLD}antigravity${C_RESET}"
+                log_info "${C_GREEN}${C_BOLD}${done_msg}${C_RESET}"
             fi
             ;;
         brew|repo|binary*|cli*|sdk*)
@@ -1911,36 +2009,56 @@ fi
 
 # ── Fast-Track Class Setup (headless or wizard-confirmed) ───────
 do_fast_track_install() {
-    log_info "${C_MAG}🎓 Starting class setup — installing IDE + CLI...${C_RESET}"
+    # Count total steps for progress display
+    local total=0 step=0
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then total=$((total+1)); fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then total=$((total+1)); fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then total=$((total+1)); fi
+
+    log_info "${C_MAG}🎓 Starting setup — installing ${total} tool(s)...${C_RESET}"
     echo ""
 
-    # Step 1: Install IDE via the recommended method
-    log_info "${C_BOLD}Step 1/2: Installing Antigravity IDE...${C_RESET}"
-    case "$RECOMMENDED" in
-        1) install_brew ;;
-        2) install_repo ;;
-        *) do_install_binary ;;
-    esac
+    # Install IDE (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity IDE...${C_RESET}"
+        case "$FAST_TRACK_METHOD" in
+            brew) install_brew ;;
+            repo) install_repo ;;
+            binary|*) do_install_binary ;;
+        esac
+        echo ""
+    fi
 
-    echo ""
+    # Install CLI (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity CLI...${C_RESET}"
+        install_cli
+        echo ""
+    fi
 
-    # Step 2: Install CLI
-    log_info "${C_BOLD}Step 2/2: Installing Antigravity CLI...${C_RESET}"
-    install_cli
+    # Install SDK (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity SDK...${C_RESET}"
+        install_sdk
+        echo ""
+    fi
 
     save_manager_locally
 
     echo ""
+    local done_msg="🎉 Setup Complete!"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed"; fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
+    done_msg="${done_msg}\nLaunch: antigravity"
+
     if command -v gum >/dev/null 2>&1; then
-        gum style --border double --border-foreground 46 --padding "1 2" "🎉 Class Setup Complete!
-IDE:  v${DEFAULT_IDE_VERSION} installed
-CLI:  v${DEFAULT_CLI_VERSION} installed
-Launch: antigravity"
+        echo -e "$done_msg" | gum style --border double --border-foreground 46 --padding "1 2"
     else
-        log_info "${C_GREEN}${C_BOLD}🎉 Class Setup Complete!${C_RESET}"
-        log_info "  ${C_CYAN}▸${C_RESET} IDE:  v${DEFAULT_IDE_VERSION} installed"
-        log_info "  ${C_CYAN}▸${C_RESET} CLI:  v${DEFAULT_CLI_VERSION} installed"
-        log_info "  ${C_CYAN}▸${C_RESET} Launch: ${C_BOLD}antigravity${C_RESET}"
+        log_info "${C_GREEN}${C_BOLD}${done_msg}${C_RESET}"
     fi
 }
 
@@ -1959,6 +2077,7 @@ start_sandbox_mode() {
 
         case "$choice" in
             cancel) echo "Exiting Sandbox Mode."; trap - EXIT INT TERM; exit 0 ;;
+            demo) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
             save|remove_mgr)
                 echo ""; run_mock_action "$choice"
                 echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty
@@ -2003,7 +2122,6 @@ start_sandbox_mode() {
                 cleanup_submenu
                 case "$choice" in
                     remove|save|remove_mgr) echo ""; run_mock_action "$choice"; echo ""; echo -ne "${C_DIM}Press Enter to continue...${C_RESET}"; read -r _ < /dev/tty ;;
-                    demo) log_warn "You are already in Sandbox Mode."; sleep 1 ;;
                     back) ;; # loop back to main
                 esac
                 ;;
@@ -2018,6 +2136,7 @@ run_interactive() {
 
         case "$choice" in
             cancel) log_warn "Cancelled."; trap - EXIT INT TERM; exit 0 ;;
+            demo) start_sandbox_mode; break ;;
             save) save_manager_locally; break ;;
             remove_mgr) remove_manager_script; break ;;
             fast_track)
@@ -2113,7 +2232,6 @@ run_interactive() {
                     remove) do_remove; break ;;
                     save) save_manager_locally; break ;;
                     remove_mgr) remove_manager_script; break ;;
-                    demo) start_sandbox_mode; break ;;
                     back) continue ;; # return to main menu
                 esac
                 ;;
@@ -2130,7 +2248,10 @@ case "$ACTION" in
         elif [ "$RECOMMENDED" = "2" ]; then install_repo; save_manager_locally
         else do_install_binary; save_manager_locally
         fi ;;
-    fast_track) do_fast_track_install ;;
+    fast_track)
+        FAST_TRACK_PRODUCTS="ide cli"
+        case "$RECOMMENDED" in 1) FAST_TRACK_METHOD="brew" ;; 2) FAST_TRACK_METHOD="repo" ;; *) FAST_TRACK_METHOD="binary" ;; esac
+        do_fast_track_install ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary; save_manager_locally ;;
