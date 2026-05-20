@@ -51,7 +51,7 @@ do_health_check() {
     fi
 
     # 6. Antigravity Python SDK (Optional)
-    if command -v python3 >/dev/null 2>&1 && python3 -c "import google_antigravity" >/dev/null 2>&1; then
+    if command -v python3 >/dev/null 2>&1 && python3 -c "import google.antigravity" >/dev/null 2>&1; then
         echo -e "  ${C_GREEN}✅ Antigravity Python SDK found in Python environment${C_RESET}"
     fi
 
