@@ -13,8 +13,33 @@ def main():
     with open(sys.argv[2], "r") as f:
         config = f.read()
 
-    # 1. Parse IDE releases and find the latest version
-    ide_data = data["ide"]
+    # 1. Parse Vibe releases and find the latest version
+    vibe_data = data.get("vibe", {})
+    if vibe_data:
+        latest_vibe_ver = sorted(vibe_data.keys(), key=lambda v: list(map(int, v.split('.'))), reverse=True)[0]
+        
+        # Update default Vibe version variable
+        vibe_ver_pattern = re.compile(r'^DEFAULT_VIBE_VERSION=".*"$', re.MULTILINE)
+        if vibe_ver_pattern.search(config):
+            config = vibe_ver_pattern.sub(f'DEFAULT_VIBE_VERSION="{latest_vibe_ver}"', config)
+
+        # Update Vibe platform variables
+        for key, info in vibe_data[latest_vibe_ver].items():
+            url = info["url"]
+            sha = info["sha256"]
+            
+            # Replace URL
+            url_pattern = re.compile(rf'^VIBE_{key}_URL=".*"$', re.MULTILINE)
+            if url_pattern.search(config):
+                config = url_pattern.sub(f'VIBE_{key}_URL="{url}"', config)
+            
+            # Replace SHA
+            sha_pattern = re.compile(rf'^VIBE_{key}_SHA256=".*"$', re.MULTILINE)
+            if sha_pattern.search(config):
+                config = sha_pattern.sub(f'VIBE_{key}_SHA256="{sha}"', config)
+
+    # 1b. Parse IDE releases and find the latest version
+    ide_data = data.get("ide", {})
     latest_ide_ver = sorted(ide_data.keys(), key=lambda v: list(map(int, v.split('.'))), reverse=True)[0]
     
     # 2. Update default IDE version variable
@@ -40,6 +65,16 @@ def main():
             config = sha_pattern.sub(f'{key}_SHA256="{sha}"', config)
         else:
             print(f"WARNING: {key}_SHA256 not found in config")
+
+        # Replace IDE URL
+        ide_url_pattern = re.compile(rf'^IDE_{key}_URL=".*"$', re.MULTILINE)
+        if ide_url_pattern.search(config):
+            config = ide_url_pattern.sub(f'IDE_{key}_URL="{url}"', config)
+
+        # Replace IDE SHA
+        ide_sha_pattern = re.compile(rf'^IDE_{key}_SHA256=".*"$', re.MULTILINE)
+        if ide_sha_pattern.search(config):
+            config = ide_sha_pattern.sub(f'IDE_{key}_SHA256="{sha}"', config)
 
     # 4. Parse CLI releases and find the latest version
     cli_data = data.get("cli", {})

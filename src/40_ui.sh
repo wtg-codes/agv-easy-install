@@ -85,25 +85,30 @@ fast_track_setup() {
         cheader=$(get_compact_header "Select tools to install (space to toggle)")
         local selected
         selected=$(gum choose --no-limit --header="$cheader" \
-            --selected="Antigravity IDE,Antigravity CLI (agy)" \
+            --selected="Antigravity Vibe Code UI,Antigravity IDE,Antigravity CLI (agy)" \
+            "Antigravity Vibe Code UI" \
             "Antigravity IDE" \
             "Antigravity CLI (agy)" \
             "Antigravity SDK (Python)") || selected=""
     else
         echo "Select tools to install (comma-separated, e.g. 1,2):"
-        echo "1) Antigravity IDE"
-        echo "2) Antigravity CLI (agy)"
-        echo "3) Antigravity SDK (Python)"
-        read -r -p "Choice [1,2]: " nums < /dev/tty
+        echo "1) Antigravity Vibe Code UI"
+        echo "2) Antigravity IDE"
+        echo "3) Antigravity CLI (agy)"
+        echo "4) Antigravity SDK (Python)"
+        read -r -p "Choice [1,2,3]: " nums < /dev/tty
         local selected=""
         case "$nums" in
-            *1*) selected="Antigravity IDE" ;;
+            *1*) selected="Antigravity Vibe Code UI" ;;
         esac
         case "$nums" in
-            *2*) selected="${selected:+$selected\n}Antigravity CLI" ;;
+            *2*) selected="${selected:+$selected\n}Antigravity IDE" ;;
         esac
         case "$nums" in
-            *3*) selected="${selected:+$selected\n}Antigravity SDK" ;;
+            *3*) selected="${selected:+$selected\n}Antigravity CLI" ;;
+        esac
+        case "$nums" in
+            *4*) selected="${selected:+$selected\n}Antigravity SDK" ;;
         esac
     fi
 
@@ -113,7 +118,8 @@ fast_track_setup() {
     fi
 
     # Parse selections into a simple flag string
-    if echo "$selected" | grep -q "IDE"; then FAST_TRACK_PRODUCTS="ide"; fi
+    if echo "$selected" | grep -q "Vibe"; then FAST_TRACK_PRODUCTS="vibe"; fi
+    if echo "$selected" | grep -q "IDE"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }ide"; fi
     if echo "$selected" | grep -q "CLI"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }cli"; fi
     if echo "$selected" | grep -q "SDK"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }sdk"; fi
 
@@ -164,6 +170,9 @@ fast_track_setup() {
     clear || true
     echo ""
     local summary="📦 Ready to install:"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+        summary="${summary}\n  ✦ Antigravity Vibe Code UI (v${DEFAULT_VIBE_VERSION})"
+    fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
         local method_label="Homebrew"
         case "$FAST_TRACK_METHOD" in
@@ -256,6 +265,7 @@ ide_method_submenu() {
         "Back"
         "${rec_brew}Homebrew (cross-platform, no sudo)"
         "${rec_repo}System Repo (APT/DNF, needs sudo)"
+        "Official Vibe Code UI  →"
         "${rec_bin}Official Binary IDE  →"
     )
 
@@ -366,8 +376,15 @@ post_install_menu() {
         *"Launch"*)
             log_info "Launching Antigravity..."
             local opener="antigravity"
-            if command -v "$opener" >/dev/null 2>&1; then
-                "$opener" &
+            if [ ! -x "$BIN_DIR/antigravity" ] && [ -x "$BIN_DIR/antigravity-ide" ]; then
+                opener="antigravity-ide"
+            fi
+            if command -v "$opener" >/dev/null 2>&1 || [ -x "$BIN_DIR/$opener" ]; then
+                if command -v "$opener" >/dev/null 2>&1; then
+                    "$opener" &
+                else
+                    "$BIN_DIR/$opener" &
+                fi
             else
                 log_warn "Antigravity command not found yet. Try closing and reopening your terminal, then type: antigravity"
             fi
@@ -388,6 +405,71 @@ post_install_menu() {
 }
 
 # ── Version Selection Helpers ────────────────────────────────────
+list_vibe_versions() {
+    local json_file="/tmp/versions.json"
+    if [ -f "$json_file" ]; then
+        awk '
+          BEGIN { in_vibe=0 }
+          $0 ~ "\"vibe\"" { in_vibe=1; next }
+          in_vibe && $0 ~ "}" && $0 !~ "," { in_vibe=0 }
+          in_vibe && $0 ~ "^    \"[0-9.]+\":" {
+            split($0, a, "\"");
+            print a[2]
+          }
+        ' "$json_file" 2>/dev/null
+    else
+        echo "$DEFAULT_VIBE_VERSION"
+    fi
+}
+
+choose_vibe_version() {
+    fetch_versions_json || true
+    
+    local versions=()
+    while IFS= read -r line; do
+        versions+=("$line")
+    done < <(list_vibe_versions)
+    
+    if [ ${#versions[@]} -eq 0 ]; then
+        versions+=("$DEFAULT_VIBE_VERSION")
+    fi
+    
+    local options=("Back")
+    for v in "${versions[@]}"; do
+        if [ "$v" = "$DEFAULT_VIBE_VERSION" ]; then
+            options+=("$v (Latest / Default)")
+        else
+            options+=("$v")
+        fi
+    done
+    
+    if command -v gum >/dev/null 2>&1; then
+        local cheader
+        cheader=$(get_compact_header "Select Vibe Code UI version")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
+    else
+        clear || true
+        echo "Select Vibe Code UI version:"
+        for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
+        read -r -p "Select option [1-${#options[@]}]: " num < /dev/tty
+        local idx=$((num-1))
+        if [ $idx -ge 0 ] && [ $idx -lt ${#options[@]} ]; then
+            CHOICE="${options[$idx]}"
+        else
+            CHOICE="Back"
+        fi
+    fi
+    
+    case "$CHOICE" in
+        "Back"*) choice="back" ;;
+        *)
+            local selected_ver
+            selected_ver=$(echo "$CHOICE" | awk '{print $1}')
+            choice="vibe:$selected_ver"
+            ;;
+    esac
+}
+
 list_ide_versions() {
     local json_file="/tmp/versions.json"
     if [ -f "$json_file" ]; then
@@ -594,6 +676,9 @@ run_mock_action() {
             case "$FAST_TRACK_METHOD" in repo) method_label="System Repo" ;; binary) method_label="Official Binary" ;; esac
 
             log_info "${C_MAG}🚀 Starting setup (Mock)...${C_RESET}"
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+                run_cmd_ui "Installing Antigravity Vibe Code UI (v${DEFAULT_VIBE_VERSION})..." sleep 1
+            fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
                 run_cmd_ui "Installing Antigravity IDE (v${DEFAULT_IDE_VERSION}) via ${method_label}..." sleep 1.5
             fi
@@ -605,28 +690,43 @@ run_mock_action() {
             fi
             echo ""
             local done_msg="🎉 Mock Setup Complete!"
-            if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed via ${method_label}"; fi
+            local mock_bin_name="antigravity"
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+                done_msg="${done_msg}\nVibe Code UI: v${DEFAULT_VIBE_VERSION} installed"
+            fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
+                done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed via ${method_label}"
+                if ! echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+                    mock_bin_name="antigravity-ide"
+                fi
+            fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
-            done_msg="${done_msg}\nLaunch: antigravity"
+            done_msg="${done_msg}\nLaunch: ${mock_bin_name}"
             if command -v gum >/dev/null 2>&1; then
                 echo -e "$done_msg" | gum style --border double --border-foreground 46 --padding "1 2"
             else
                 log_info "${C_GREEN}${C_BOLD}${done_msg}${C_RESET}"
             fi
             ;;
-        brew|repo|binary*|cli*|sdk*)
+        vibe*|brew|repo|binary*|cli*|sdk*)
             local method="Homebrew"
             local product="Google Antigravity IDE"
             local version=""
+            local mock_bin_name="antigravity"
             
             if [[ "$action" == *":"* ]]; then
                 version=" (version $(echo "$action" | cut -d':' -f2))"
             fi
             
-            if [[ "$action" == "binary"* ]]; then
+            if [[ "$action" == "vibe"* ]]; then
+                method="Official Binary"
+                product="Antigravity Vibe Code UI"
+                mock_bin_name="antigravity"
+            elif [[ "$action" == "binary"* ]]; then
                 method="Official Binary"
                 product="Google Antigravity IDE"
+                mock_bin_name="antigravity-ide"
             elif [[ "$action" == "cli"* ]]; then
                 method="Antigravity CLI"
                 product="Antigravity CLI (agy)"
@@ -635,6 +735,7 @@ run_mock_action() {
                 product="Antigravity SDK (Python)"
             elif [ "$action" = "repo" ]; then
                 method="System Repo"
+                mock_bin_name="antigravity-ide"
             fi
 
             log_info "${C_MAG}🚀 Starting mock installation of ${product}${version} via ${method}...${C_RESET}"
@@ -676,7 +777,7 @@ run_mock_action() {
                 run_cmd_ui "Applying configuration..." sleep 1
                 echo ""
                 gum style --border double --border-foreground 46 --padding "1 2" "🎉 Mock Installation Complete!
-Launch: antigravity
+Launch: ${mock_bin_name}
 Workspace: $WORKSPACE_DIR"
             else
                 echo -ne "${C_YELLOW}Would you like to automatically configure Antigravity to use this browser? [Y/n]: ${C_RESET}"
@@ -687,7 +788,7 @@ Workspace: $WORKSPACE_DIR"
                 read -r _ < /dev/tty || true
                 echo ""
                 log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"
-                log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
+                log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}${mock_bin_name}${C_RESET}"
                 log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
             fi
             ;;

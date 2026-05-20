@@ -81,18 +81,32 @@ EOL
 }
 
 get_ide_release_info() {
-    local version="$1"
-    local platform_key="$2"
+    get_product_release_info "ide" "$@"
+}
+
+get_product_release_info() {
+    local product_name="$1"
+    local version="$2"
+    local platform_key="$3"
     local json_file="/tmp/versions.json"
     
     if [ ! -f "$json_file" ]; then
-        if [ "$version" = "$DEFAULT_IDE_VERSION" ]; then
+        if [ "$product_name" = "vibe" ] && [ "$version" = "$DEFAULT_VIBE_VERSION" ]; then
             case "$platform_key" in
-                LINUX_X64) echo "$LINUX_X64_URL|$LINUX_X64_SHA256" ;;
-                MAC_X64) echo "$MAC_X64_URL|$MAC_X64_SHA256" ;;
-                MAC_ARM64) echo "$MAC_ARM64_URL|$MAC_ARM64_SHA256" ;;
-                WIN_X64) echo "$WIN_X64_URL|$WIN_X64_SHA256" ;;
-                WIN_ARM64) echo "$WIN_ARM64_URL|$WIN_ARM64_SHA256" ;;
+                LINUX_X64) echo "$VIBE_LINUX_X64_URL|$VIBE_LINUX_X64_SHA256" ;;
+                MAC_X64) echo "$VIBE_MAC_X64_URL|$VIBE_MAC_X64_SHA256" ;;
+                MAC_ARM64) echo "$VIBE_MAC_ARM64_URL|$VIBE_MAC_ARM64_SHA256" ;;
+                WIN_X64) echo "$VIBE_WIN_X64_URL|$VIBE_WIN_X64_SHA256" ;;
+                WIN_ARM64) echo "$VIBE_WIN_ARM64_URL|$VIBE_WIN_ARM64_SHA256" ;;
+            esac
+            return
+        elif [ "$product_name" = "ide" ] && [ "$version" = "$DEFAULT_IDE_VERSION" ]; then
+            case "$platform_key" in
+                LINUX_X64) echo "$IDE_LINUX_X64_URL|$IDE_LINUX_X64_SHA256" ;;
+                MAC_X64) echo "$IDE_MAC_X64_URL|$IDE_MAC_X64_SHA256" ;;
+                MAC_ARM64) echo "$IDE_MAC_ARM64_URL|$IDE_MAC_ARM64_SHA256" ;;
+                WIN_X64) echo "$IDE_WIN_X64_URL|$IDE_WIN_X64_SHA256" ;;
+                WIN_ARM64) echo "$IDE_WIN_ARM64_URL|$IDE_WIN_ARM64_SHA256" ;;
             esac
             return
         fi
@@ -101,11 +115,11 @@ get_ide_release_info() {
     fi
     
     local info
-    info=$(awk -v ver="$version" -v plat="$platform_key" '
-      BEGIN { in_ide=0; in_ver=0; in_plat=0 }
-      $0 ~ "\"ide\"" { in_ide=1; next }
-      in_ide && $0 ~ "}" && $0 !~ "," && in_ver==0 { in_ide=0 }
-      in_ide && $0 ~ "\"" ver "\"" { in_ver=1; next }
+    info=$(awk -v prod="$product_name" -v ver="$version" -v plat="$platform_key" '
+      BEGIN { in_prod=0; in_ver=0; in_plat=0 }
+      $0 ~ "\"" prod "\"" { in_prod=1; next }
+      in_prod && $0 ~ "}" && $0 !~ "," && in_ver==0 { in_prod=0 }
+      in_prod && $0 ~ "\"" ver "\"" { in_ver=1; next }
       in_ver && $0 ~ "}" && $0 !~ "," { if (in_plat) in_plat=0; else in_ver=0 }
       in_ver && $0 ~ "\"" plat "\"" { in_plat=1; next }
       in_plat && $0 ~ "}" { in_plat=0 }
@@ -117,13 +131,21 @@ get_ide_release_info() {
     if [ -n "$info" ]; then
         echo "$info"
     else
-        if [ "$version" = "$DEFAULT_IDE_VERSION" ]; then
+        if [ "$product_name" = "vibe" ] && [ "$version" = "$DEFAULT_VIBE_VERSION" ]; then
             case "$platform_key" in
-                LINUX_X64) echo "$LINUX_X64_URL|$LINUX_X64_SHA256" ;;
-                MAC_X64) echo "$MAC_X64_URL|$MAC_X64_SHA256" ;;
-                MAC_ARM64) echo "$MAC_ARM64_URL|$MAC_ARM64_SHA256" ;;
-                WIN_X64) echo "$WIN_X64_URL|$WIN_X64_SHA256" ;;
-                WIN_ARM64) echo "$WIN_ARM64_URL|$WIN_ARM64_SHA256" ;;
+                LINUX_X64) echo "$VIBE_LINUX_X64_URL|$VIBE_LINUX_X64_SHA256" ;;
+                MAC_X64) echo "$VIBE_MAC_X64_URL|$VIBE_MAC_X64_SHA256" ;;
+                MAC_ARM64) echo "$VIBE_MAC_ARM64_URL|$VIBE_MAC_ARM64_SHA256" ;;
+                WIN_X64) echo "$VIBE_WIN_X64_URL|$VIBE_WIN_X64_SHA256" ;;
+                WIN_ARM64) echo "$VIBE_WIN_ARM64_URL|$VIBE_WIN_ARM64_SHA256" ;;
+            esac
+        elif [ "$product_name" = "ide" ] && [ "$version" = "$DEFAULT_IDE_VERSION" ]; then
+            case "$platform_key" in
+                LINUX_X64) echo "$IDE_LINUX_X64_URL|$IDE_LINUX_X64_SHA256" ;;
+                MAC_X64) echo "$IDE_MAC_X64_URL|$IDE_MAC_X64_SHA256" ;;
+                MAC_ARM64) echo "$IDE_MAC_ARM64_URL|$IDE_MAC_ARM64_SHA256" ;;
+                WIN_X64) echo "$IDE_WIN_X64_URL|$IDE_WIN_X64_SHA256" ;;
+                WIN_ARM64) echo "$IDE_WIN_ARM64_URL|$IDE_WIN_ARM64_SHA256" ;;
             esac
         else
             echo "|"
@@ -132,13 +154,42 @@ get_ide_release_info() {
 }
 
 do_install_binary() {
-    local target_version="${1:-$DEFAULT_IDE_VERSION}"
+    local product_name="${1:-vibe}"
+    local target_version="$2"
+    if [ -z "$target_version" ]; then
+        if [ "$product_name" = "ide" ]; then
+            target_version="$DEFAULT_IDE_VERSION"
+        else
+            target_version="$DEFAULT_VIBE_VERSION"
+        fi
+    fi
+
     JSON_METHOD="binary"
     local target_url=""
     local target_sha=""
     local install_type=""
     local file_ext=""
     local platform_key=""
+
+    # Set up correct directories and symlinks depending on the product
+    local app_dir_var="$APP_DIR"
+    local bin_name="antigravity"
+    local desktop_file_sys_var="$DESKTOP_FILE_SYS"
+    local desktop_file_user_var="$DESKTOP_FILE_USER"
+    local icon_path_var="$ICON_PATH"
+    local app_title="Google Antigravity Vibe"
+    local state_file_var="$STATE_FILE"
+
+    if [ "$product_name" = "ide" ]; then
+        app_dir_var="${APP_DIR}-ide"
+        bin_name="antigravity-ide"
+        desktop_file_sys_var="$HOME/.local/share/applications/google-antigravity-ide.desktop"
+        if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
+        desktop_file_user_var="$DESKTOP_DIR/google-antigravity-ide.desktop"
+        icon_path_var="${app_dir_var}/resources/icon.png"
+        app_title="Google Antigravity IDE"
+        state_file_var="${STATE_DIR}/install-ide.json"
+    fi
 
     # Determine target based on platform and architecture
     if [ "$PLATFORM" = "Darwin" ]; then
@@ -169,12 +220,12 @@ do_install_binary() {
     # Fetch release details dynamically
     fetch_versions_json || true
     local info
-    info=$(get_ide_release_info "$target_version" "$platform_key")
+    info=$(get_product_release_info "$product_name" "$target_version" "$platform_key")
     target_url=$(echo "$info" | cut -d'|' -f1)
     target_sha=$(echo "$info" | cut -d'|' -f2)
 
     if [ -z "$target_url" ] || [ -z "$target_sha" ]; then
-        log_error "Could not find package details for Google Antigravity IDE version $target_version ($platform_key)."
+        log_error "Could not find package details for $app_title version $target_version ($platform_key)."
         exit 1
     fi
 
@@ -188,7 +239,7 @@ do_install_binary() {
         exit 1
     fi
 
-    log_info "${C_MAG}🚀 Starting Google Antigravity Official Binary Installation ($target_version)...${C_RESET}"
+    log_info "${C_MAG}🚀 Starting $app_title Official Binary Installation ($target_version)...${C_RESET}"
     
     TMP_DIR=$(mktemp -d)
     trap 'rm -rf "$TMP_DIR"; if [ "$PLATFORM" = "Darwin" ] && [ -d "/Volumes/Antigravity" ]; then hdiutil detach /Volumes/Antigravity -force -quiet 2>/dev/null || true; fi; exit_handler' EXIT INT TERM
@@ -197,7 +248,7 @@ do_install_binary() {
     if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
         run_cmd curl -fSL "$target_url" -o "$dl_target"
     else
-        log_info "${C_BLUE}⬇️  Downloading Antigravity...${C_RESET}"
+        log_info "${C_BLUE}⬇️  Downloading $app_title...${C_RESET}"
         curl -fSL --progress-bar "$target_url" -o "$dl_target"
     fi
 
@@ -209,25 +260,35 @@ do_install_binary() {
 
     if [ "$install_type" = "tarball" ]; then
         log_info "${C_CYAN}📁 Preparing directories...${C_RESET}"
-        mkdir -p "$BIN_DIR" "$APP_DIR" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$(dirname "$DESKTOP_FILE_SYS")"
+        mkdir -p "$BIN_DIR" "$app_dir_var" "$WORKSPACE_DIR" "$DESKTOP_DIR" "$(dirname "$desktop_file_sys_var")"
 
         if command -v gum >/dev/null 2>&1; then
-            gum spin --spinner dot --title "Extracting archive..." -- tar -xzf "$dl_target" -C "$APP_DIR" --strip-components=1
+            gum spin --spinner dot --title "Extracting archive..." -- tar -xzf "$dl_target" -C "$app_dir_var" --strip-components=1
         else
-            tar -xzf "$dl_target" -C "$APP_DIR" --strip-components=1
+            tar -xzf "$dl_target" -C "$app_dir_var" --strip-components=1
         fi
 
         log_info "${C_BLUE}🔗 Creating symlink...${C_RESET}"
-        ln -sf "$APP_DIR/antigravity" "$BIN_DIR/antigravity"
+        ln -sf "$app_dir_var/antigravity" "$BIN_DIR/$bin_name"
 
-        # Extract application icon from app.asar
+        # Extract/Copy application icon
         log_info "${C_CYAN}🎨 Extracting application icon...${C_RESET}"
         local extracted_icon=0
-        if command -v python3 >/dev/null 2>&1; then
+        
+        # 1. Try copying unpacked icon from 1.x IDE location
+        local old_icon_location="${app_dir_var}/resources/app/out/vs/workbench/contrib/antigravityCustomAppIcon/browser/media/antigravity/antigravity.png"
+        if [ -f "$old_icon_location" ]; then
+            mkdir -p "$(dirname "$icon_path_var")"
+            cp "$old_icon_location" "$icon_path_var"
+            extracted_icon=1
+        fi
+
+        # 2. Try extracting from app.asar (for 2.x Vibe UI)
+        if [ "$extracted_icon" -eq 0 ] && command -v python3 >/dev/null 2>&1; then
             if python3 -c "
 import struct, json
 try:
-    with open('$APP_DIR/resources/app.asar', 'rb') as f:
+    with open('${app_dir_var}/resources/app.asar', 'rb') as f:
         header = f.read(16)
         if len(header) == 16:
             _, _, _, json_size = struct.unpack('<IIII', header)
@@ -235,7 +296,9 @@ try:
             info = header_json.get('files', {}).get('icon.png')
             if info:
                 f.seek(16 + json_size + int(info['offset']))
-                with open('$ICON_PATH', 'wb') as out:
+                import os
+                os.makedirs(os.path.dirname('${icon_path_var}'), exist_ok=True)
+                with open('${icon_path_var}', 'wb') as out:
                     out.write(f.read(info['size']))
                 print('OK')
 except Exception as e:
@@ -248,10 +311,12 @@ except Exception as e:
         if [ "$extracted_icon" -eq 0 ] && command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
             if (
                 cd "$TMP_DIR" || exit 1
-                if npx --yes @electron/asar extract-file "$APP_DIR/resources/app.asar" icon.png 2>/dev/null; then
-                    mv icon.png "$ICON_PATH"
-                elif npx --yes asar extract-file "$APP_DIR/resources/app.asar" icon.png 2>/dev/null; then
-                    mv icon.png "$ICON_PATH"
+                if npx --yes @electron/asar extract-file "${app_dir_var}/resources/app.asar" icon.png 2>/dev/null; then
+                    mkdir -p "$(dirname "$icon_path_var")"
+                    mv icon.png "$icon_path_var"
+                elif npx --yes asar extract-file "${app_dir_var}/resources/app.asar" icon.png 2>/dev/null; then
+                    mkdir -p "$(dirname "$icon_path_var")"
+                    mv icon.png "$icon_path_var"
                 else
                     exit 1
                 fi
@@ -264,13 +329,13 @@ except Exception as e:
             log_warn "Could not extract application icon. Desktop shortcut will use a default icon."
         fi
 
-        cat << EOF > "$DESKTOP_FILE_SYS"
+        cat << EOF > "$desktop_file_sys_var"
 [Desktop Entry]
 Version=1.0
-Name=Google Antigravity
+Name=$app_title
 Comment=Secure Agentic Development IDE
-Exec=$BIN_DIR/antigravity %F
-Icon=$ICON_PATH
+Exec=$BIN_DIR/$bin_name %F
+Icon=$icon_path_var
 Terminal=false
 Type=Application
 Categories=Development;IDE;
@@ -278,22 +343,20 @@ EOF
 
         if ! grep -qi "microsoft" /proc/version 2>/dev/null; then
             log_info "${C_CYAN}🖥️  Adding shortcut to Desktop...${C_RESET}"
-            if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
-            DESKTOP_FILE_USER="$DESKTOP_DIR/google-antigravity.desktop"
-            cp "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
-            chmod +x "$DESKTOP_FILE_USER"
-            if command -v gio &> /dev/null; then run_cmd gio set "$DESKTOP_FILE_USER" metadata::trusted true || true; fi
+            cp "$desktop_file_sys_var" "$desktop_file_user_var"
+            chmod +x "$desktop_file_user_var"
+            if command -v gio &> /dev/null; then run_cmd gio set "$desktop_file_user_var" metadata::trusted true || true; fi
             if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
         fi
 
         echo ""
         if command -v gum >/dev/null 2>&1; then
             gum style --border double --border-foreground 46 --padding "1 2" "🎉 Installation Complete!
-Launch: antigravity
+Launch: $bin_name
 Workspace: $WORKSPACE_DIR"
         else
             log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET}"
-            log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}antigravity${C_RESET}"
+            log_info "  ${C_CYAN}▸${C_RESET} Launch:    ${C_BOLD}$bin_name${C_RESET}"
             log_info "  ${C_CYAN}▸${C_RESET} Workspace: ${C_BOLD}$WORKSPACE_DIR${C_RESET}"
         fi
 
@@ -345,12 +408,12 @@ Workspace: $WORKSPACE_DIR"
         mac_bin_path=$(find "/Applications/$APP_NAME/Contents/MacOS" -type f -executable | head -n 1 || true)
         
         if [ -n "$mac_bin_path" ] && [ -f "$mac_bin_path" ]; then
-            run_cmd ln -sf "$mac_bin_path" "$BIN_DIR/antigravity"
+            run_cmd ln -sf "$mac_bin_path" "$BIN_DIR/$bin_name"
         else
             log_warn "Could not create terminal shortcut (executable not found inside $APP_NAME)."
         fi
 
-        log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET} Launch from Applications folder or type 'antigravity' in terminal."
+        log_info "${C_GREEN}${C_BOLD}🎉 Installation Complete!${C_RESET} Launch from Applications folder or type '$bin_name' in terminal."
 
     elif [ "$install_type" = "exe" ]; then
         log_info "${C_CYAN}🚀 Launching Windows Installer...${C_RESET}"
@@ -367,7 +430,7 @@ Workspace: $WORKSPACE_DIR"
 
     configure_chrome_path
     mkdir -p "$STATE_DIR"
-    echo '{"method": "binary", "version": "'"$SCRIPT_VERSION"'"}' > "$STATE_FILE"
+    echo "{\"method\": \"binary\", \"version\": \"$target_version\"}" > "$state_file_var"
 }
 
 do_remove() {
@@ -382,9 +445,27 @@ do_remove() {
     fi
     log_info "${C_RED}🧹 Removing Google Antigravity...${C_RESET}"
     
+    # Remove CLI and other shared files
+    rm -f "$BIN_DIR/agy"
+
+    # Remove Vibe (Binary/Tarball)
+    rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
+    if [ "$PLATFORM" = "Darwin" ]; then
+        rm -rf "/Applications/Google Antigravity.app"
+        rm -rf "/Applications/Antigravity.app"
+    fi
+
+    # Remove IDE (Binary/Tarball)
+    rm -rf "${APP_DIR}-ide" "$BIN_DIR/antigravity-ide" "$HOME/.local/share/applications/google-antigravity-ide.desktop"
+    if command -v xdg-user-dir &> /dev/null; then DESKTOP_DIR=$(xdg-user-dir DESKTOP); else DESKTOP_DIR="$HOME/Desktop"; fi
+    rm -f "$DESKTOP_DIR/google-antigravity-ide.desktop"
+
+    if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
+
+    # Also check other install methods (brew, repo)
     if [ -f "$STATE_FILE" ]; then
         local method
-        method=$(grep -o '"method": "[^"]*' "$STATE_FILE" | grep -o '[^"]*$')
+        method=$(grep -o '"method": "[^"]*' "$STATE_FILE" | grep -o '[^\"]*$')
         log_info "Found installation state. Method used: $method"
         
         case "$method" in
@@ -400,35 +481,13 @@ do_remove() {
                     run_cmd sudo dnf remove -y antigravity || true
                     sudo rm -f /etc/yum.repos.d/antigravity.repo
                 fi ;;
-            "binary"|"tarball")
-                rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$BIN_DIR/agy" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
-                if [ "$PLATFORM" = "Darwin" ]; then
-                    rm -rf "/Applications/Google Antigravity.app"
-                    rm -rf "/Applications/Antigravity.app"
-                fi
-                if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
-                ;;
         esac
         rm -f "$STATE_FILE"
-    else
-        log_warn "No state file found. Using heuristic removal..."
-        detect_distro
-        if command -v apt &> /dev/null && [ -f /etc/apt/sources.list.d/antigravity.list ]; then
-            run_cmd sudo apt remove -y antigravity || true; sudo rm -f /etc/apt/sources.list.d/antigravity.list
-        elif command -v dnf &> /dev/null && [ -f /etc/yum.repos.d/antigravity.repo ]; then
-            run_cmd sudo dnf remove -y antigravity || true; sudo rm -f /etc/yum.repos.d/antigravity.repo
-        elif check_brew; then
-            if [ "$PLATFORM" = "Darwin" ]; then run_cmd brew uninstall --cask antigravity || true
-            else run_cmd brew uninstall antigravity || true; fi
-        fi
-        
-        # Heuristic binary removal
-        rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$BIN_DIR/agy" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
-        if [ "$PLATFORM" = "Darwin" ]; then
-            rm -rf "/Applications/Google Antigravity.app"
-            rm -rf "/Applications/Antigravity.app"
-        fi
-        if command -v update-desktop-database &> /dev/null; then run_cmd update-desktop-database "$HOME/.local/share/applications" || true; fi
+    fi
+
+    # Also check IDE state file
+    if [ -f "${STATE_DIR}/install-ide.json" ]; then
+        rm -f "${STATE_DIR}/install-ide.json"
     fi
 
     log_info "${C_GREEN}✅ Uninstalled successfully.${C_RESET} (Note: Your code in $WORKSPACE_DIR was kept safe)."

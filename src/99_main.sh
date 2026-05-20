@@ -119,12 +119,21 @@ fi
 do_fast_track_install() {
     # Count total steps for progress display
     local total=0 step=0
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then total=$((total+1)); fi
 
     log_info "${C_MAG}🎓 Starting setup — installing ${total} tool(s)...${C_RESET}"
     echo ""
+
+    # Install Vibe (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity Vibe Code UI...${C_RESET}"
+        do_install_binary "vibe"
+        echo ""
+    fi
 
     # Install IDE (if selected)
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
@@ -133,7 +142,7 @@ do_fast_track_install() {
         case "$FAST_TRACK_METHOD" in
             brew) install_brew ;;
             repo) install_repo ;;
-            binary|*) do_install_binary ;;
+            binary|*) do_install_binary "ide" ;;
         esac
         echo ""
     fi
@@ -158,10 +167,19 @@ do_fast_track_install() {
 
     echo ""
     local done_msg="🎉 Setup Complete!"
-    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed"; fi
+    local mock_bin_name="antigravity"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+        done_msg="${done_msg}\nVibe Code UI: v${DEFAULT_VIBE_VERSION} installed"
+    fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
+        done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed"
+        if ! echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+            mock_bin_name="antigravity-ide"
+        fi
+    fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
-    done_msg="${done_msg}\nLaunch: antigravity"
+    done_msg="${done_msg}\nLaunch: ${mock_bin_name}"
 
     if command -v gum >/dev/null 2>&1; then
         echo -e "$done_msg" | gum style --border double --border-foreground 46 --padding "1 2"
@@ -386,15 +404,15 @@ case "$ACTION" in
         log_info "${C_MAG}🚀 Starting headless auto-install...${C_RESET}"
         if [ "$RECOMMENDED" = "1" ]; then install_brew; save_manager_locally
         elif [ "$RECOMMENDED" = "2" ]; then install_repo; save_manager_locally
-        else do_install_binary; save_manager_locally
+        else do_install_binary "vibe"; save_manager_locally
         fi ;;
     fast_track)
-        FAST_TRACK_PRODUCTS="ide cli"
+        FAST_TRACK_PRODUCTS="vibe ide cli"
         case "$RECOMMENDED" in 1) FAST_TRACK_METHOD="brew" ;; 2) FAST_TRACK_METHOD="repo" ;; *) FAST_TRACK_METHOD="binary" ;; esac
         do_fast_track_install ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
-    binary) do_install_binary; save_manager_locally ;;
+    binary) do_install_binary "vibe"; save_manager_locally ;;
     cli) install_cli; save_manager_locally ;;
     sdk) install_sdk; save_manager_locally ;;
     check) do_health_check ;;
