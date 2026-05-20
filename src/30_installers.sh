@@ -103,13 +103,13 @@ get_product_release_info() {
     local json_file="/tmp/versions.json"
     
     if [ ! -f "$json_file" ]; then
-        if [ "$product_name" = "vibe" ] && [ "$version" = "$DEFAULT_VIBE_VERSION" ]; then
+        if [ "$product_name" = "antigravity" ] && [ "$version" = "$DEFAULT_AGV_VERSION" ]; then
             case "$platform_key" in
-                LINUX_X64) echo "$VIBE_LINUX_X64_URL|$VIBE_LINUX_X64_SHA256" ;;
-                MAC_X64) echo "$VIBE_MAC_X64_URL|$VIBE_MAC_X64_SHA256" ;;
-                MAC_ARM64) echo "$VIBE_MAC_ARM64_URL|$VIBE_MAC_ARM64_SHA256" ;;
-                WIN_X64) echo "$VIBE_WIN_X64_URL|$VIBE_WIN_X64_SHA256" ;;
-                WIN_ARM64) echo "$VIBE_WIN_ARM64_URL|$VIBE_WIN_ARM64_SHA256" ;;
+                LINUX_X64) echo "$AGV_LINUX_X64_URL|$AGV_LINUX_X64_SHA256" ;;
+                MAC_X64) echo "$AGV_MAC_X64_URL|$AGV_MAC_X64_SHA256" ;;
+                MAC_ARM64) echo "$AGV_MAC_ARM64_URL|$AGV_MAC_ARM64_SHA256" ;;
+                WIN_X64) echo "$AGV_WIN_X64_URL|$AGV_WIN_X64_SHA256" ;;
+                WIN_ARM64) echo "$AGV_WIN_ARM64_URL|$AGV_WIN_ARM64_SHA256" ;;
             esac
             return
         elif [ "$product_name" = "ide" ] && [ "$version" = "$DEFAULT_IDE_VERSION" ]; then
@@ -143,13 +143,13 @@ get_product_release_info() {
     if [ -n "$info" ]; then
         echo "$info"
     else
-        if [ "$product_name" = "vibe" ] && [ "$version" = "$DEFAULT_VIBE_VERSION" ]; then
+        if [ "$product_name" = "antigravity" ] && [ "$version" = "$DEFAULT_AGV_VERSION" ]; then
             case "$platform_key" in
-                LINUX_X64) echo "$VIBE_LINUX_X64_URL|$VIBE_LINUX_X64_SHA256" ;;
-                MAC_X64) echo "$VIBE_MAC_X64_URL|$VIBE_MAC_X64_SHA256" ;;
-                MAC_ARM64) echo "$VIBE_MAC_ARM64_URL|$VIBE_MAC_ARM64_SHA256" ;;
-                WIN_X64) echo "$VIBE_WIN_X64_URL|$VIBE_WIN_X64_SHA256" ;;
-                WIN_ARM64) echo "$VIBE_WIN_ARM64_URL|$VIBE_WIN_ARM64_SHA256" ;;
+                LINUX_X64) echo "$AGV_LINUX_X64_URL|$AGV_LINUX_X64_SHA256" ;;
+                MAC_X64) echo "$AGV_MAC_X64_URL|$AGV_MAC_X64_SHA256" ;;
+                MAC_ARM64) echo "$AGV_MAC_ARM64_URL|$AGV_MAC_ARM64_SHA256" ;;
+                WIN_X64) echo "$AGV_WIN_X64_URL|$AGV_WIN_X64_SHA256" ;;
+                WIN_ARM64) echo "$AGV_WIN_ARM64_URL|$AGV_WIN_ARM64_SHA256" ;;
             esac
         elif [ "$product_name" = "ide" ] && [ "$version" = "$DEFAULT_IDE_VERSION" ]; then
             case "$platform_key" in
@@ -166,13 +166,13 @@ get_product_release_info() {
 }
 
 do_install_binary() {
-    local product_name="${1:-vibe}"
+    local product_name="${1:-antigravity}"
     local target_version="$2"
     if [ -z "$target_version" ]; then
         if [ "$product_name" = "ide" ]; then
             target_version="$DEFAULT_IDE_VERSION"
         else
-            target_version="$DEFAULT_VIBE_VERSION"
+            target_version="$DEFAULT_AGV_VERSION"
         fi
     fi
 
@@ -189,7 +189,7 @@ do_install_binary() {
     local desktop_file_sys_var="$DESKTOP_FILE_SYS"
     local desktop_file_user_var="$DESKTOP_FILE_USER"
     local icon_path_var="$ICON_PATH"
-    local app_title="Google Antigravity Vibe"
+    local app_title="Google Antigravity"
     local state_file_var="$STATE_FILE"
 
     if [ "$product_name" = "ide" ]; then
@@ -295,7 +295,7 @@ do_install_binary() {
             extracted_icon=1
         fi
 
-        # 2. Try extracting from app.asar (for 2.x Vibe UI)
+        # 2. Try extracting from app.asar (for 2.x Antigravity)
         if [ "$extracted_icon" -eq 0 ] && command -v python3 >/dev/null 2>&1; then
             if python3 -c "
 import struct, json
@@ -463,7 +463,7 @@ do_remove() {
         npm uninstall -g @google/jules >/dev/null 2>&1 || sudo npm uninstall -g @google/jules >/dev/null 2>&1 || true
     fi
 
-    # Remove Vibe (Binary/Tarball)
+    # Remove Google Antigravity (Binary/Tarball)
     rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
     if [ "$PLATFORM" = "Darwin" ]; then
         rm -rf "/Applications/Google Antigravity.app"

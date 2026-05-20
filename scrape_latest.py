@@ -43,8 +43,8 @@ def scrape_urls() -> Optional[Dict[str, Any]]:
             old_data = json.load(f)
             # Handle new structure
             if isinstance(old_data, dict):
-                if "vibe" in old_data:
-                    for ver, platforms in old_data["vibe"].items():
+                if "antigravity" in old_data:
+                    for ver, platforms in old_data["antigravity"].items():
                         for plat, info in platforms.items():
                             if isinstance(info, dict) and "url" in info and "sha256" in info:
                                 cache[info["url"]] = info["sha256"]
@@ -59,7 +59,7 @@ def scrape_urls() -> Optional[Dict[str, Any]]:
                             if isinstance(info, dict) and "url" in info and "sha512" in info:
                                 cache[info["url"]] = info["sha512"]
                 # Handle old flat structure
-                if "vibe" not in old_data and "ide" not in old_data and "cli" not in old_data:
+                if "antigravity" not in old_data and "ide" not in old_data and "cli" not in old_data:
                     for plat, info in old_data.items():
                         if isinstance(info, dict) and "url" in info and "sha256" in info:
                             cache[info["url"]] = info["sha256"]
@@ -67,7 +67,7 @@ def scrape_urls() -> Optional[Dict[str, Any]]:
         print(f"INFO: Could not load existing versions.json for caching: {e}", file=sys.stderr)
 
     results = {
-        "vibe": {},
+        "antigravity": {},
         "ide": {},
         "cli": {},
         "sdk": {"latest": "0.1.0", "versions": ["0.1.0"]}
@@ -151,7 +151,7 @@ def scrape_urls() -> Optional[Dict[str, Any]]:
 
         if valid:
             if version.startswith("2."):
-                results["vibe"][version] = version_data
+                results["antigravity"][version] = version_data
             else:
                 results["ide"][version] = version_data
 

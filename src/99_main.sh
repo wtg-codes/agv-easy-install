@@ -121,7 +121,7 @@ fi
 do_fast_track_install() {
     # Count total steps for progress display
     local total=0 step=0
-    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then total=$((total+1)); fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then total=$((total+1)); fi
@@ -130,11 +130,11 @@ do_fast_track_install() {
     log_info "${C_MAG}🎓 Starting setup — installing ${total} tool(s)...${C_RESET}"
     echo ""
 
-    # Install Vibe (if selected)
-    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+    # Install Google Antigravity (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
         step=$((step+1))
-        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity Vibe Code UI...${C_RESET}"
-        do_install_binary "vibe"
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Google Antigravity...${C_RESET}"
+        do_install_binary "antigravity"
         echo ""
     fi
 
@@ -179,12 +179,12 @@ do_fast_track_install() {
     echo ""
     local done_msg="🎉 Setup Complete!"
     local mock_bin_name="antigravity"
-    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-        done_msg="${done_msg}\nVibe Code UI: v${DEFAULT_VIBE_VERSION} installed"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
+        done_msg="${done_msg}\nAntigravity: v${DEFAULT_AGV_VERSION} installed"
     fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
         done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed"
-        if ! echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+        if ! echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
             mock_bin_name="antigravity-ide"
         fi
     fi
@@ -239,7 +239,14 @@ start_sandbox_mode() {
                         continue
                     fi
                     
-                    if [ "$choice" = "ide_menu" ]; then
+                    if [ "$choice" = "antigravity_menu" ]; then
+                        choose_antigravity_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    elif [ "$choice" = "ide_menu" ]; then
                         local in_ide=true
                         while [ "$in_ide" = true ]; do
                             ide_method_submenu
@@ -331,7 +338,14 @@ run_interactive() {
                         continue
                     fi
                     
-                    if [ "$choice" = "ide_menu" ]; then
+                    if [ "$choice" = "antigravity_menu" ]; then
+                        choose_antigravity_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    elif [ "$choice" = "ide_menu" ]; then
                         local in_ide=true
                         while [ "$in_ide" = true ]; do
                             ide_method_submenu
@@ -380,6 +394,15 @@ run_interactive() {
                 case "$choice" in
                     brew) FAST_TRACK_PRODUCTS="ide"; install_brew; save_manager_locally; post_install_menu; break ;;
                     repo) FAST_TRACK_PRODUCTS="ide"; install_repo; save_manager_locally; post_install_menu; break ;;
+                    antigravity:*)
+                        local selected_version
+                        selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="antigravity"
+                        do_install_binary "antigravity" "$selected_version"
+                        save_manager_locally
+                        post_install_menu
+                        break
+                        ;;
                     binary:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
@@ -439,15 +462,15 @@ case "$ACTION" in
         log_info "${C_MAG}🚀 Starting headless auto-install...${C_RESET}"
         if [ "$RECOMMENDED" = "1" ]; then install_brew; save_manager_locally
         elif [ "$RECOMMENDED" = "2" ]; then install_repo; save_manager_locally
-        else do_install_binary "vibe"; save_manager_locally
+        else do_install_binary "antigravity"; save_manager_locally
         fi ;;
     fast_track)
-        FAST_TRACK_PRODUCTS="vibe ide cli jules"
+        FAST_TRACK_PRODUCTS="antigravity ide cli jules"
         case "$RECOMMENDED" in 1) FAST_TRACK_METHOD="brew" ;; 2) FAST_TRACK_METHOD="repo" ;; *) FAST_TRACK_METHOD="binary" ;; esac
         do_fast_track_install ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
-    binary) do_install_binary "vibe"; save_manager_locally ;;
+    binary) do_install_binary "antigravity"; save_manager_locally ;;
     cli) install_cli; save_manager_locally ;;
     jules) install_jules; save_manager_locally ;;
     sdk) install_sdk; save_manager_locally ;;

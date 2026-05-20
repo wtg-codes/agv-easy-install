@@ -19,7 +19,7 @@ C_RESET='\033[0m'
 
 # Configuration
 SCRIPT_VERSION="0.2.15"
-DEFAULT_VIBE_VERSION="2.0.0"
+DEFAULT_AGV_VERSION="2.0.0"
 DEFAULT_IDE_VERSION="1.23.2"
 DEFAULT_CLI_VERSION="1.0.0"
 DEFAULT_SDK_VERSION="0.1.0"
@@ -44,17 +44,17 @@ WIN_ARM64_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stab
 # Dummy references to satisfy automated phase gate checks
 : "$LINUX_X64_SHA256" "$LINUX_X64_URL" "$MAC_X64_SHA256" "$MAC_X64_URL" "$MAC_ARM64_SHA256" "$MAC_ARM64_URL" "$WIN_X64_SHA256" "$WIN_X64_URL" "$WIN_ARM64_SHA256" "$WIN_ARM64_URL"
 
-# Vibe Fallbacks (2.0.0)
-VIBE_LINUX_X64_SHA256="14bc9cb480a5be8fb3b7dc3e2b0cebfa66d370ad58cc1e0fa01140d1204d4297"
-VIBE_LINUX_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/linux-x64/Antigravity.tar.gz"
-VIBE_MAC_X64_SHA256="7416561b81866656453d51810ff64c19bfdc41b5fabca2ca253e9f835e7b20a6"
-VIBE_MAC_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-x64/Antigravity.dmg"
-VIBE_MAC_ARM64_SHA256="f96c360be0dc419186f987276b0aa1f8c22def1b76eec0892537c193e6bf4fdd"
-VIBE_MAC_ARM64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-arm/Antigravity.dmg"
-VIBE_WIN_X64_SHA256="06e1b95dca9bf14fcbfc72ace0c11b42123c0cb65f35ee3c979b63bab3b56a6a"
-VIBE_WIN_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-x64/Antigravity.exe"
-VIBE_WIN_ARM64_SHA256="5b8f70548455c61fbc7ddf137b4d74c189444167085fdd6ef29b8cd2feb57b18"
-VIBE_WIN_ARM64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-arm/Antigravity.exe"
+# Google Antigravity Fallbacks (2.0.0)
+AGV_LINUX_X64_SHA256="14bc9cb480a5be8fb3b7dc3e2b0cebfa66d370ad58cc1e0fa01140d1204d4297"
+AGV_LINUX_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/linux-x64/Antigravity.tar.gz"
+AGV_MAC_X64_SHA256="7416561b81866656453d51810ff64c19bfdc41b5fabca2ca253e9f835e7b20a6"
+AGV_MAC_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-x64/Antigravity.dmg"
+AGV_MAC_ARM64_SHA256="f96c360be0dc419186f987276b0aa1f8c22def1b76eec0892537c193e6bf4fdd"
+AGV_MAC_ARM64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/darwin-arm/Antigravity.dmg"
+AGV_WIN_X64_SHA256="06e1b95dca9bf14fcbfc72ace0c11b42123c0cb65f35ee3c979b63bab3b56a6a"
+AGV_WIN_X64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-x64/Antigravity.exe"
+AGV_WIN_ARM64_SHA256="5b8f70548455c61fbc7ddf137b4d74c189444167085fdd6ef29b8cd2feb57b18"
+AGV_WIN_ARM64_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.0.0-6324554176528384/windows-arm/Antigravity.exe"
 
 # IDE Fallbacks (1.23.2)
 IDE_LINUX_X64_SHA256="5232a4048ff4fa15685d9a981ba4fba573e297f3efc9b76f638e794baf775725"
@@ -708,13 +708,13 @@ get_product_release_info() {
     local json_file="/tmp/versions.json"
     
     if [ ! -f "$json_file" ]; then
-        if [ "$product_name" = "vibe" ] && [ "$version" = "$DEFAULT_VIBE_VERSION" ]; then
+        if [ "$product_name" = "antigravity" ] && [ "$version" = "$DEFAULT_AGV_VERSION" ]; then
             case "$platform_key" in
-                LINUX_X64) echo "$VIBE_LINUX_X64_URL|$VIBE_LINUX_X64_SHA256" ;;
-                MAC_X64) echo "$VIBE_MAC_X64_URL|$VIBE_MAC_X64_SHA256" ;;
-                MAC_ARM64) echo "$VIBE_MAC_ARM64_URL|$VIBE_MAC_ARM64_SHA256" ;;
-                WIN_X64) echo "$VIBE_WIN_X64_URL|$VIBE_WIN_X64_SHA256" ;;
-                WIN_ARM64) echo "$VIBE_WIN_ARM64_URL|$VIBE_WIN_ARM64_SHA256" ;;
+                LINUX_X64) echo "$AGV_LINUX_X64_URL|$AGV_LINUX_X64_SHA256" ;;
+                MAC_X64) echo "$AGV_MAC_X64_URL|$AGV_MAC_X64_SHA256" ;;
+                MAC_ARM64) echo "$AGV_MAC_ARM64_URL|$AGV_MAC_ARM64_SHA256" ;;
+                WIN_X64) echo "$AGV_WIN_X64_URL|$AGV_WIN_X64_SHA256" ;;
+                WIN_ARM64) echo "$AGV_WIN_ARM64_URL|$AGV_WIN_ARM64_SHA256" ;;
             esac
             return
         elif [ "$product_name" = "ide" ] && [ "$version" = "$DEFAULT_IDE_VERSION" ]; then
@@ -748,13 +748,13 @@ get_product_release_info() {
     if [ -n "$info" ]; then
         echo "$info"
     else
-        if [ "$product_name" = "vibe" ] && [ "$version" = "$DEFAULT_VIBE_VERSION" ]; then
+        if [ "$product_name" = "antigravity" ] && [ "$version" = "$DEFAULT_AGV_VERSION" ]; then
             case "$platform_key" in
-                LINUX_X64) echo "$VIBE_LINUX_X64_URL|$VIBE_LINUX_X64_SHA256" ;;
-                MAC_X64) echo "$VIBE_MAC_X64_URL|$VIBE_MAC_X64_SHA256" ;;
-                MAC_ARM64) echo "$VIBE_MAC_ARM64_URL|$VIBE_MAC_ARM64_SHA256" ;;
-                WIN_X64) echo "$VIBE_WIN_X64_URL|$VIBE_WIN_X64_SHA256" ;;
-                WIN_ARM64) echo "$VIBE_WIN_ARM64_URL|$VIBE_WIN_ARM64_SHA256" ;;
+                LINUX_X64) echo "$AGV_LINUX_X64_URL|$AGV_LINUX_X64_SHA256" ;;
+                MAC_X64) echo "$AGV_MAC_X64_URL|$AGV_MAC_X64_SHA256" ;;
+                MAC_ARM64) echo "$AGV_MAC_ARM64_URL|$AGV_MAC_ARM64_SHA256" ;;
+                WIN_X64) echo "$AGV_WIN_X64_URL|$AGV_WIN_X64_SHA256" ;;
+                WIN_ARM64) echo "$AGV_WIN_ARM64_URL|$AGV_WIN_ARM64_SHA256" ;;
             esac
         elif [ "$product_name" = "ide" ] && [ "$version" = "$DEFAULT_IDE_VERSION" ]; then
             case "$platform_key" in
@@ -771,13 +771,13 @@ get_product_release_info() {
 }
 
 do_install_binary() {
-    local product_name="${1:-vibe}"
+    local product_name="${1:-antigravity}"
     local target_version="$2"
     if [ -z "$target_version" ]; then
         if [ "$product_name" = "ide" ]; then
             target_version="$DEFAULT_IDE_VERSION"
         else
-            target_version="$DEFAULT_VIBE_VERSION"
+            target_version="$DEFAULT_AGV_VERSION"
         fi
     fi
 
@@ -794,7 +794,7 @@ do_install_binary() {
     local desktop_file_sys_var="$DESKTOP_FILE_SYS"
     local desktop_file_user_var="$DESKTOP_FILE_USER"
     local icon_path_var="$ICON_PATH"
-    local app_title="Google Antigravity Vibe"
+    local app_title="Google Antigravity"
     local state_file_var="$STATE_FILE"
 
     if [ "$product_name" = "ide" ]; then
@@ -900,7 +900,7 @@ do_install_binary() {
             extracted_icon=1
         fi
 
-        # 2. Try extracting from app.asar (for 2.x Vibe UI)
+        # 2. Try extracting from app.asar (for 2.x Antigravity)
         if [ "$extracted_icon" -eq 0 ] && command -v python3 >/dev/null 2>&1; then
             if python3 -c "
 import struct, json
@@ -1068,7 +1068,7 @@ do_remove() {
         npm uninstall -g @google/jules >/dev/null 2>&1 || sudo npm uninstall -g @google/jules >/dev/null 2>&1 || true
     fi
 
-    # Remove Vibe (Binary/Tarball)
+    # Remove Google Antigravity (Binary/Tarball)
     rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
     if [ "$PLATFORM" = "Darwin" ]; then
         rm -rf "/Applications/Google Antigravity.app"
@@ -1635,15 +1635,15 @@ fast_track_setup() {
         cheader=$(get_compact_header "Select tools to install (space to toggle)")
         local selected
         selected=$(gum choose --no-limit --header="$cheader" \
-            --selected="Antigravity Vibe Code UI,Antigravity IDE,Antigravity CLI (agy),Google Jules CLI" \
-            "Antigravity Vibe Code UI" \
+            --selected="Google Antigravity,Antigravity IDE,Antigravity CLI (agy),Google Jules CLI" \
+            "Google Antigravity" \
             "Antigravity IDE" \
             "Antigravity CLI (agy)" \
             "Google Jules CLI" \
             "Antigravity SDK (Python)") || selected=""
     else
         echo "Select tools to install (comma-separated, e.g. 1,2):"
-        echo "1) Antigravity Vibe Code UI"
+        echo "1) Google Antigravity"
         echo "2) Antigravity IDE"
         echo "3) Antigravity CLI (agy)"
         echo "4) Google Jules CLI"
@@ -1651,7 +1651,7 @@ fast_track_setup() {
         read -r -p "Choice [1,2,3,4]: " nums < /dev/tty
         local selected=""
         case "$nums" in
-            *1*) selected="Antigravity Vibe Code UI" ;;
+            *1*) selected="Google Antigravity" ;;
         esac
         case "$nums" in
             *2*) selected="${selected:+$selected\n}Antigravity IDE" ;;
@@ -1673,7 +1673,7 @@ fast_track_setup() {
     fi
 
     # Parse selections into a simple flag string
-    if echo "$selected" | grep -q "Vibe"; then FAST_TRACK_PRODUCTS="vibe"; fi
+    if echo "$selected" | grep -q "Google Antigravity"; then FAST_TRACK_PRODUCTS="antigravity"; fi
     if echo "$selected" | grep -q "IDE"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }ide"; fi
     if echo "$selected" | grep -q "CLI"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }cli"; fi
     if echo "$selected" | grep -q "Jules"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }jules"; fi
@@ -1726,8 +1726,8 @@ fast_track_setup() {
     clear || true
     echo ""
     local summary="📦 Ready to install:"
-    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-        summary="${summary}\n  ✦ Antigravity Vibe Code UI (v${DEFAULT_VIBE_VERSION})"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
+        summary="${summary}\n  ✦ Google Antigravity (v${DEFAULT_AGV_VERSION})"
     fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
         local method_label="Homebrew"
@@ -1774,7 +1774,7 @@ install_submenu() {
     echo ""
     local options=(
         "Back"
-        "Antigravity Vibe Code UI  →"
+        "Google Antigravity  →"
         "Antigravity IDE  →"
         "Antigravity CLI (agy)  →"
         "Google Jules CLI (npm)  →"
@@ -1792,7 +1792,7 @@ install_submenu() {
         read -r -p "Select tool [1-6]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
-            2) CHOICE="Antigravity Vibe Code UI" ;;
+            2) CHOICE="Google Antigravity" ;;
             3) CHOICE="Antigravity IDE" ;;
             4) CHOICE="Antigravity CLI" ;;
             5) CHOICE="Google Jules CLI" ;;
@@ -1803,7 +1803,7 @@ install_submenu() {
 
     case "$CHOICE" in
         "Back"*) choice="back" ;;
-        *"Vibe"*) choice="vibe_menu" ;;
+        *"Google Antigravity"*) choice="antigravity_menu" ;;
         *"IDE"*) choice="ide_menu" ;;
         *"CLI"*) choice="cli_menu" ;;
         *"Jules"*) choice="jules_menu" ;;
@@ -1966,38 +1966,38 @@ post_install_menu() {
 }
 
 # ── Version Selection Helpers ────────────────────────────────────
-list_vibe_versions() {
+list_antigravity_versions() {
     local json_file="/tmp/versions.json"
     if [ -f "$json_file" ]; then
         awk '
-          BEGIN { in_vibe=0 }
-          $0 ~ "\"vibe\"" { in_vibe=1; next }
-          in_vibe && $0 ~ "}" && $0 !~ "," { in_vibe=0 }
-          in_vibe && $0 ~ "^    \"[0-9.]+\":" {
+          BEGIN { in_agv=0 }
+          $0 ~ "\"antigravity\"" { in_agv=1; next }
+          in_agv && $0 ~ "}" && $0 !~ "," { in_agv=0 }
+          in_agv && $0 ~ "^    \"[0-9.]+\":" {
             split($0, a, "\"");
             print a[2]
           }
         ' "$json_file" 2>/dev/null
     else
-        echo "$DEFAULT_VIBE_VERSION"
+        echo "$DEFAULT_AGV_VERSION"
     fi
 }
 
-choose_vibe_version() {
+choose_antigravity_version() {
     fetch_versions_json || true
     
     local versions=()
     while IFS= read -r line; do
         versions+=("$line")
-    done < <(list_vibe_versions)
+    done < <(list_antigravity_versions)
     
     if [ ${#versions[@]} -eq 0 ]; then
-        versions+=("$DEFAULT_VIBE_VERSION")
+        versions+=("$DEFAULT_AGV_VERSION")
     fi
     
     local options=("Back")
     for v in "${versions[@]}"; do
-        if [ "$v" = "$DEFAULT_VIBE_VERSION" ]; then
+        if [ "$v" = "$DEFAULT_AGV_VERSION" ]; then
             options+=("$v (Latest / Default)")
         else
             options+=("$v")
@@ -2006,11 +2006,11 @@ choose_vibe_version() {
     
     if command -v gum >/dev/null 2>&1; then
         local cheader
-        cheader=$(get_compact_header "Select Vibe Code UI version")
+        cheader=$(get_compact_header "Select Antigravity version")
         CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
     else
         clear || true
-        echo "Select Vibe Code UI version:"
+        echo "Select Antigravity version:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select option [1-${#options[@]}]: " num < /dev/tty
         local idx=$((num-1))
@@ -2026,7 +2026,7 @@ choose_vibe_version() {
         *)
             local selected_ver
             selected_ver=$(echo "$CHOICE" | awk '{print $1}')
-            choice="vibe:$selected_ver"
+            choice="antigravity:$selected_ver"
             ;;
     esac
 }
@@ -2269,8 +2269,8 @@ run_mock_action() {
             case "$FAST_TRACK_METHOD" in repo) method_label="System Repo" ;; binary) method_label="Official Binary" ;; esac
 
             log_info "${C_MAG}🚀 Starting setup (Mock)...${C_RESET}"
-            if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-                run_cmd_ui "Installing Antigravity Vibe Code UI (v${DEFAULT_VIBE_VERSION})..." sleep 1
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
+                run_cmd_ui "Installing Google Antigravity (v${DEFAULT_AGV_VERSION})..." sleep 1
             fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
                 run_cmd_ui "Installing Antigravity IDE (v${DEFAULT_IDE_VERSION}) via ${method_label}..." sleep 1.5
@@ -2287,12 +2287,12 @@ run_mock_action() {
             echo ""
             local done_msg="🎉 Mock Setup Complete!"
             local mock_bin_name="antigravity"
-            if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-                done_msg="${done_msg}\nVibe Code UI: v${DEFAULT_VIBE_VERSION} installed"
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
+                done_msg="${done_msg}\nAntigravity: v${DEFAULT_AGV_VERSION} installed"
             fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
                 done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed via ${method_label}"
-                if ! echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+                if ! echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
                     mock_bin_name="antigravity-ide"
                 fi
             fi
@@ -2306,7 +2306,7 @@ run_mock_action() {
                 log_info "${C_GREEN}${C_BOLD}${done_msg}${C_RESET}"
             fi
             ;;
-        vibe*|brew|repo|binary*|cli*|sdk*|jules*)
+        antigravity*|brew|repo|binary*|cli*|sdk*|jules*)
             local method="Homebrew"
             local product="Google Antigravity IDE"
             local version=""
@@ -2316,9 +2316,9 @@ run_mock_action() {
                 version=" (version $(echo "$action" | cut -d':' -f2))"
             fi
             
-            if [[ "$action" == "vibe"* ]]; then
+            if [[ "$action" == "antigravity"* ]]; then
                 method="Official Binary"
-                product="Antigravity Vibe Code UI"
+                product="Google Antigravity"
                 mock_bin_name="antigravity"
             elif [[ "$action" == "binary"* ]]; then
                 method="Official Binary"
@@ -2614,7 +2614,7 @@ fi
 do_fast_track_install() {
     # Count total steps for progress display
     local total=0 step=0
-    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then total=$((total+1)); fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then total=$((total+1)); fi
@@ -2623,11 +2623,11 @@ do_fast_track_install() {
     log_info "${C_MAG}🎓 Starting setup — installing ${total} tool(s)...${C_RESET}"
     echo ""
 
-    # Install Vibe (if selected)
-    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+    # Install Google Antigravity (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
         step=$((step+1))
-        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity Vibe Code UI...${C_RESET}"
-        do_install_binary "vibe"
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Google Antigravity...${C_RESET}"
+        do_install_binary "antigravity"
         echo ""
     fi
 
@@ -2672,12 +2672,12 @@ do_fast_track_install() {
     echo ""
     local done_msg="🎉 Setup Complete!"
     local mock_bin_name="antigravity"
-    if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-        done_msg="${done_msg}\nVibe Code UI: v${DEFAULT_VIBE_VERSION} installed"
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
+        done_msg="${done_msg}\nAntigravity: v${DEFAULT_AGV_VERSION} installed"
     fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
         done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed"
-        if ! echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
+        if ! echo "$FAST_TRACK_PRODUCTS" | grep -q "antigravity"; then
             mock_bin_name="antigravity-ide"
         fi
     fi
@@ -2732,7 +2732,14 @@ start_sandbox_mode() {
                         continue
                     fi
                     
-                    if [ "$choice" = "ide_menu" ]; then
+                    if [ "$choice" = "antigravity_menu" ]; then
+                        choose_antigravity_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    elif [ "$choice" = "ide_menu" ]; then
                         local in_ide=true
                         while [ "$in_ide" = true ]; do
                             ide_method_submenu
@@ -2824,7 +2831,14 @@ run_interactive() {
                         continue
                     fi
                     
-                    if [ "$choice" = "ide_menu" ]; then
+                    if [ "$choice" = "antigravity_menu" ]; then
+                        choose_antigravity_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    elif [ "$choice" = "ide_menu" ]; then
                         local in_ide=true
                         while [ "$in_ide" = true ]; do
                             ide_method_submenu
@@ -2873,6 +2887,15 @@ run_interactive() {
                 case "$choice" in
                     brew) FAST_TRACK_PRODUCTS="ide"; install_brew; save_manager_locally; post_install_menu; break ;;
                     repo) FAST_TRACK_PRODUCTS="ide"; install_repo; save_manager_locally; post_install_menu; break ;;
+                    antigravity:*)
+                        local selected_version
+                        selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="antigravity"
+                        do_install_binary "antigravity" "$selected_version"
+                        save_manager_locally
+                        post_install_menu
+                        break
+                        ;;
                     binary:*)
                         local selected_version
                         selected_version=$(echo "$choice" | cut -d':' -f2)
@@ -2932,15 +2955,15 @@ case "$ACTION" in
         log_info "${C_MAG}🚀 Starting headless auto-install...${C_RESET}"
         if [ "$RECOMMENDED" = "1" ]; then install_brew; save_manager_locally
         elif [ "$RECOMMENDED" = "2" ]; then install_repo; save_manager_locally
-        else do_install_binary "vibe"; save_manager_locally
+        else do_install_binary "antigravity"; save_manager_locally
         fi ;;
     fast_track)
-        FAST_TRACK_PRODUCTS="vibe ide cli jules"
+        FAST_TRACK_PRODUCTS="antigravity ide cli jules"
         case "$RECOMMENDED" in 1) FAST_TRACK_METHOD="brew" ;; 2) FAST_TRACK_METHOD="repo" ;; *) FAST_TRACK_METHOD="binary" ;; esac
         do_fast_track_install ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
-    binary) do_install_binary "vibe"; save_manager_locally ;;
+    binary) do_install_binary "antigravity"; save_manager_locally ;;
     cli) install_cli; save_manager_locally ;;
     jules) install_jules; save_manager_locally ;;
     sdk) install_sdk; save_manager_locally ;;

@@ -13,30 +13,30 @@ def main():
     with open(sys.argv[2], "r") as f:
         config = f.read()
 
-    # 1. Parse Vibe releases and find the latest version
-    vibe_data = data.get("vibe", {})
-    if vibe_data:
-        latest_vibe_ver = sorted(vibe_data.keys(), key=lambda v: list(map(int, v.split('.'))), reverse=True)[0]
+    # 1. Parse Antigravity releases and find the latest version
+    agv_data = data.get("antigravity", {})
+    if agv_data:
+        latest_agv_ver = sorted(agv_data.keys(), key=lambda v: list(map(int, v.split('.'))), reverse=True)[0]
         
-        # Update default Vibe version variable
-        vibe_ver_pattern = re.compile(r'^DEFAULT_VIBE_VERSION=".*"$', re.MULTILINE)
-        if vibe_ver_pattern.search(config):
-            config = vibe_ver_pattern.sub(f'DEFAULT_VIBE_VERSION="{latest_vibe_ver}"', config)
+        # Update default AGV version variable
+        agv_ver_pattern = re.compile(r'^DEFAULT_AGV_VERSION=".*"$', re.MULTILINE)
+        if agv_ver_pattern.search(config):
+            config = agv_ver_pattern.sub(f'DEFAULT_AGV_VERSION="{latest_agv_ver}"', config)
 
-        # Update Vibe platform variables
-        for key, info in vibe_data[latest_vibe_ver].items():
+        # Update AGV platform variables
+        for key, info in agv_data[latest_agv_ver].items():
             url = info["url"]
             sha = info["sha256"]
             
             # Replace URL
-            url_pattern = re.compile(rf'^VIBE_{key}_URL=".*"$', re.MULTILINE)
+            url_pattern = re.compile(rf'^AGV_{key}_URL=".*"$', re.MULTILINE)
             if url_pattern.search(config):
-                config = url_pattern.sub(f'VIBE_{key}_URL="{url}"', config)
+                config = url_pattern.sub(f'AGV_{key}_URL="{url}"', config)
             
             # Replace SHA
-            sha_pattern = re.compile(rf'^VIBE_{key}_SHA256=".*"$', re.MULTILINE)
+            sha_pattern = re.compile(rf'^AGV_{key}_SHA256=".*"$', re.MULTILINE)
             if sha_pattern.search(config):
-                config = sha_pattern.sub(f'VIBE_{key}_SHA256="{sha}"', config)
+                config = sha_pattern.sub(f'AGV_{key}_SHA256="{sha}"', config)
 
     # 1b. Parse IDE releases and find the latest version
     ide_data = data.get("ide", {})
