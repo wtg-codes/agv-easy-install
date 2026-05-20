@@ -85,15 +85,15 @@ fast_track_setup() {
         cheader=$(get_compact_header "Select tools to install (space to toggle)")
         local selected
         selected=$(gum choose --no-limit --header="$cheader" \
-            --selected="Antigravity Vibe Code UI,Antigravity IDE,Antigravity CLI (agy),Google Jules CLI" \
-            "Antigravity Vibe Code UI" \
+            --selected="Antigravity Vibe,Antigravity IDE,Antigravity CLI (agy),Google Jules CLI" \
+            "Antigravity Vibe" \
             "Antigravity IDE" \
             "Antigravity CLI (agy)" \
             "Google Jules CLI" \
             "Antigravity SDK (Python)") || selected=""
     else
         echo "Select tools to install (comma-separated, e.g. 1,2):"
-        echo "1) Antigravity Vibe Code UI"
+        echo "1) Antigravity Vibe"
         echo "2) Antigravity IDE"
         echo "3) Antigravity CLI (agy)"
         echo "4) Google Jules CLI"
@@ -101,7 +101,7 @@ fast_track_setup() {
         read -r -p "Choice [1,2,3,4]: " nums < /dev/tty
         local selected=""
         case "$nums" in
-            *1*) selected="Antigravity Vibe Code UI" ;;
+            *1*) selected="Antigravity Vibe" ;;
         esac
         case "$nums" in
             *2*) selected="${selected:+$selected\n}Antigravity IDE" ;;
@@ -177,7 +177,7 @@ fast_track_setup() {
     echo ""
     local summary="📦 Ready to install:"
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-        summary="${summary}\n  ✦ Antigravity Vibe Code UI (v${DEFAULT_VIBE_VERSION})"
+        summary="${summary}\n  ✦ Antigravity Vibe (v${DEFAULT_VIBE_VERSION})"
     fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
         local method_label="Homebrew"
@@ -224,7 +224,7 @@ install_submenu() {
     echo ""
     local options=(
         "Back"
-        "Antigravity Vibe Code UI  →"
+        "Antigravity Vibe  →"
         "Antigravity IDE  →"
         "Antigravity CLI (agy)  →"
         "Google Jules CLI (npm)  →"
@@ -242,7 +242,7 @@ install_submenu() {
         read -r -p "Select tool [1-6]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
-            2) CHOICE="Antigravity Vibe Code UI" ;;
+            2) CHOICE="Antigravity Vibe" ;;
             3) CHOICE="Antigravity IDE" ;;
             4) CHOICE="Antigravity CLI" ;;
             5) CHOICE="Google Jules CLI" ;;
@@ -456,11 +456,11 @@ choose_vibe_version() {
     
     if command -v gum >/dev/null 2>&1; then
         local cheader
-        cheader=$(get_compact_header "Select Vibe Code UI version")
+        cheader=$(get_compact_header "Select Vibe version")
         CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
     else
         clear || true
-        echo "Select Vibe Code UI version:"
+        echo "Select Vibe version:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
         read -r -p "Select option [1-${#options[@]}]: " num < /dev/tty
         local idx=$((num-1))
@@ -720,7 +720,7 @@ run_mock_action() {
 
             log_info "${C_MAG}🚀 Starting setup (Mock)...${C_RESET}"
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-                run_cmd_ui "Installing Antigravity Vibe Code UI (v${DEFAULT_VIBE_VERSION})..." sleep 1
+                run_cmd_ui "Installing Antigravity Vibe (v${DEFAULT_VIBE_VERSION})..." sleep 1
             fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
                 run_cmd_ui "Installing Antigravity IDE (v${DEFAULT_IDE_VERSION}) via ${method_label}..." sleep 1.5
@@ -738,7 +738,7 @@ run_mock_action() {
             local done_msg="🎉 Mock Setup Complete!"
             local mock_bin_name="antigravity"
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-                done_msg="${done_msg}\nVibe Code UI: v${DEFAULT_VIBE_VERSION} installed"
+                done_msg="${done_msg}\nVibe: v${DEFAULT_VIBE_VERSION} installed"
             fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
                 done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed via ${method_label}"
@@ -768,7 +768,7 @@ run_mock_action() {
             
             if [[ "$action" == "vibe"* ]]; then
                 method="Official Binary"
-                product="Antigravity Vibe Code UI"
+                product="Antigravity Vibe"
                 mock_bin_name="antigravity"
             elif [[ "$action" == "binary"* ]]; then
                 method="Official Binary"

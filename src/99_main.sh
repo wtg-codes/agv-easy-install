@@ -133,7 +133,7 @@ do_fast_track_install() {
     # Install Vibe (if selected)
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
         step=$((step+1))
-        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity Vibe Code UI...${C_RESET}"
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Antigravity Vibe...${C_RESET}"
         do_install_binary "vibe"
         echo ""
     fi
@@ -180,7 +180,7 @@ do_fast_track_install() {
     local done_msg="🎉 Setup Complete!"
     local mock_bin_name="antigravity"
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then
-        done_msg="${done_msg}\nVibe Code UI: v${DEFAULT_VIBE_VERSION} installed"
+        done_msg="${done_msg}\nVibe: v${DEFAULT_VIBE_VERSION} installed"
     fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then
         done_msg="${done_msg}\nIDE:  v${DEFAULT_IDE_VERSION} installed"
