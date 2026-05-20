@@ -16,11 +16,28 @@ install_brew() {
             return
         fi
     else
-        if ! run_cmd_ui "Brewing Antigravity..." brew install antigravity; then
+        # For Linux platforms using Brew (especially Bluefin)
+        run_cmd_ui "Tapping Ublue-OS experimental tap..." brew tap ublue-os/experimental-tap
+        if ! run_cmd_ui "Brewing Antigravity Linux..." brew install ublue-os/experimental-tap/antigravity-linux; then
             log_error "Formula not found or installation failed."
             log_warn "Falling back to official Binary installation..."
             do_install_binary
             return
+        fi
+        # Workaround Homebrew Cask bug: create the missing binary symlink in $(brew --prefix)/bin/
+        local brew_prefix
+        brew_prefix=$(brew --prefix)
+        local exec_file
+        exec_file=$(find "$brew_prefix/Caskroom/antigravity-linux" -type f -name "antigravity-ide" -o -name "antigravity" 2>/dev/null | head -n 1)
+        if [ -n "$exec_file" ]; then
+            log_info "Creating missing binary symlink in Homebrew bin folder..."
+            run_cmd ln -sf "$exec_file" "$brew_prefix/bin/antigravity"
+        else
+            log_warn "Could not locate the extracted executable to create the launcher symlink."
+        fi
+        # Refresh desktop database
+        if command -v update-desktop-database &>/dev/null; then
+            run_cmd update-desktop-database "$HOME/.local/share/applications" || true
         fi
     fi
     configure_chrome_path
@@ -470,8 +487,17 @@ do_remove() {
         
         case "$method" in
             "brew")
-                if [ "$PLATFORM" = "Darwin" ]; then run_cmd brew uninstall --cask antigravity || true
-                else run_cmd brew uninstall antigravity || true; fi ;;
+                if [ "$PLATFORM" = "Darwin" ]; then 
+                    run_cmd brew uninstall --cask antigravity || true
+                else 
+                    local brew_prefix
+                    brew_prefix=$(brew --prefix 2>/dev/null || echo "/home/linuxbrew/.linuxbrew")
+                    run_cmd rm -f "$brew_prefix/bin/antigravity" || true
+                    run_cmd brew uninstall ublue-os/experimental-tap/antigravity-linux || run_cmd brew uninstall antigravity || true
+                    if command -v update-desktop-database &>/dev/null; then
+                        run_cmd update-desktop-database "$HOME/.local/share/applications" || true
+                    fi
+                fi ;;
             "repo")
                 detect_distro
                 if command -v apt &> /dev/null && [ -f /etc/apt/sources.list.d/antigravity.list ]; then

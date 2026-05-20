@@ -218,6 +218,7 @@ install_submenu() {
     echo ""
     local options=(
         "Back"
+        "Antigravity Vibe Code UI  →"
         "Antigravity IDE  →"
         "Antigravity CLI (agy)  →"
         "Antigravity SDK (Python)  →"
@@ -231,18 +232,20 @@ install_submenu() {
         clear || true
         echo "Select a tool to install:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select tool [1-4]: " num < /dev/tty
+        read -r -p "Select tool [1-5]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
-            2) CHOICE="Antigravity IDE" ;;
-            3) CHOICE="Antigravity CLI" ;;
-            4) CHOICE="Antigravity SDK" ;;
+            2) CHOICE="Antigravity Vibe Code UI" ;;
+            3) CHOICE="Antigravity IDE" ;;
+            4) CHOICE="Antigravity CLI" ;;
+            5) CHOICE="Antigravity SDK" ;;
             *) CHOICE="Back" ;;
         esac
     fi
 
     case "$CHOICE" in
         "Back"*) choice="back" ;;
+        *"Vibe"*) choice="vibe_menu" ;;
         *"IDE"*) choice="ide_menu" ;;
         *"CLI"*) choice="cli_menu" ;;
         *"SDK"*) choice="sdk_menu" ;;
@@ -265,7 +268,6 @@ ide_method_submenu() {
         "Back"
         "${rec_brew}Homebrew (cross-platform, no sudo)"
         "${rec_repo}System Repo (APT/DNF, needs sudo)"
-        "Official Vibe Code UI  →"
         "${rec_bin}Official Binary IDE  →"
     )
 

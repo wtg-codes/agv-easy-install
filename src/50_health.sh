@@ -31,6 +31,8 @@ do_health_check() {
     fi
 
     # 2. Chrome/Chromium installation
+    local chrome_path
+    chrome_path=$(find_chrome_binary)
     if [ -n "$chrome_path" ] && [ -x "$chrome_path" ]; then
         check_status "Chrome/Chromium found ($chrome_path)" "true"
     else
@@ -49,7 +51,7 @@ do_health_check() {
     fi
 
     # 6. Antigravity Python SDK (Optional)
-    if command -v python3 >/dev/null 2>&1 && python3 -c "import google_antigravity" >/dev/null 2>&1; then
+    if command -v python3 >/dev/null 2>&1 && python3 -c "import google.antigravity" >/dev/null 2>&1; then
         echo -e "  ${C_GREEN}✅ Antigravity Python SDK found in Python environment${C_RESET}"
     fi
 
