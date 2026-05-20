@@ -207,6 +207,44 @@ fast_track_setup() {
 install_submenu() {
     clear || true
     echo ""
+    local options=(
+        "Back"
+        "Antigravity IDE  →"
+        "Antigravity CLI (agy)  →"
+        "Antigravity SDK (Python)  →"
+    )
+
+    if command -v gum >/dev/null 2>&1; then
+        local cheader
+        cheader=$(get_compact_header "Select a tool to install")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
+    else
+        clear || true
+        echo "Select a tool to install:"
+        for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
+        read -r -p "Select tool [1-4]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Back" ;;
+            2) CHOICE="Antigravity IDE" ;;
+            3) CHOICE="Antigravity CLI" ;;
+            4) CHOICE="Antigravity SDK" ;;
+            *) CHOICE="Back" ;;
+        esac
+    fi
+
+    case "$CHOICE" in
+        "Back"*) choice="back" ;;
+        *"IDE"*) choice="ide_menu" ;;
+        *"CLI"*) choice="cli_menu" ;;
+        *"SDK"*) choice="sdk_menu" ;;
+        *) choice="back" ;;
+    esac
+}
+
+# ── Wizard Step 2c: IDE Install Method Picker ──────────────────
+ide_method_submenu() {
+    clear || true
+    echo ""
     local rec_brew="" rec_repo="" rec_bin="  "
     case "$RECOMMENDED" in
         1) rec_brew="★ " ;;
@@ -219,26 +257,22 @@ install_submenu() {
         "${rec_brew}Homebrew (cross-platform, no sudo)"
         "${rec_repo}System Repo (APT/DNF, needs sudo)"
         "${rec_bin}Official Binary IDE  →"
-        "Antigravity CLI (agy)  →"
-        "Antigravity SDK (Python)  →"
     )
 
     if command -v gum >/dev/null 2>&1; then
         local cheader
-        cheader=$(get_compact_header "Choose install method")
+        cheader=$(get_compact_header "Choose IDE install method")
         CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
     else
         clear || true
-        echo "Choose install method:"
+        echo "Choose IDE install method:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select method [1-6]: " num < /dev/tty
+        read -r -p "Select method [1-4]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
             2) CHOICE="Homebrew" ;;
-            3) CHOICE="System" ;;
+            3) CHOICE="System Repo" ;;
             4) CHOICE="Official Binary IDE" ;;
-            5) CHOICE="CLI" ;;
-            6) CHOICE="SDK" ;;
             *) CHOICE="Back" ;;
         esac
     fi
@@ -246,13 +280,12 @@ install_submenu() {
     case "$CHOICE" in
         "Back"*) choice="back" ;;
         *"Homebrew"*) choice="brew" ;;
-        *"System"*) choice="repo" ;;
-        *"Binary IDE"*) choice="binary_menu" ;;
-        *"CLI"*) choice="cli_menu" ;;
-        *"SDK"*) choice="sdk_menu" ;;
+        *"System Repo"*) choice="repo" ;;
+        *"Official Binary IDE"*) choice="binary_menu" ;;
         *) choice="back" ;;
     esac
 }
+
 
 # ── Cleanup sub-menu ────────────────────────────────────────────
 cleanup_submenu() {
