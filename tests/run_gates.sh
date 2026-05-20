@@ -182,6 +182,39 @@ gate_5() {
 }
 
 # =============================================================================
+# Phase 6 — Jules CLI & Bootstrapping
+# =============================================================================
+gate_6() {
+    echo -e "\n${CYAN}${BOLD}=== Phase 6 Gate: Jules CLI & Bootstrapping ===${RESET}"
+
+    local SCRIPT="antigravity-manager.sh"
+
+    # Make sure we compiled the script
+    ./build.sh > /dev/null 2>&1
+
+    # Verify syntax & lint
+    check "6.G1  Bash syntax valid"            "bash -n $SCRIPT"
+    check "6.G2  Shellcheck clean"             "shellcheck -e SC1091,SC2162 $SCRIPT"
+
+    # CLI flag updates
+    check "6.G3  --install-jules flag exists"   "grep -q -- '--install-jules' $SCRIPT"
+    check "6.G4  --help lists --install-jules"  "bash $SCRIPT --help 2>&1 | grep -- '--install-jules' >/dev/null"
+    check "6.G5  Jules config exists"           "grep -q 'DEFAULT_JULES_VERSION' $SCRIPT"
+
+    # Functions exist
+    check "6.G6  ensure_brew() exists"          "grep -q 'ensure_brew()' $SCRIPT"
+    check "6.G7  ensure_node() exists"          "grep -q 'ensure_node()' $SCRIPT"
+    check "6.G8  install_jules() exists"        "grep -q 'install_jules()' $SCRIPT"
+
+    # Health check items
+    check "6.G9  Jules in health check"         "grep -q 'Google Jules CLI' src/50_health.sh"
+
+    # Sandbox/mock updates
+    check "6.G10 Sandbox has jules_menu"        "grep -q 'jules_menu' src/99_main.sh"
+    check "6.G11 Sandbox mocks Jules package"   "grep -q '@google/jules' src/40_ui.sh"
+}
+
+# =============================================================================
 # Runner
 # =============================================================================
 print_summary() {
@@ -198,7 +231,7 @@ print_summary() {
 }
 
 usage() {
-    echo "Usage: $0 --phase <0|1|2|3|4|all>"
+    echo "Usage: $0 --phase <0|1|2|3|4|5|6|all>"
     echo ""
     echo "Runs phase gate tests for the agv-easy-install fix-up."
     echo ""
@@ -209,6 +242,7 @@ usage() {
     echo "  --phase 3     Run Phase 3 gate (Pipeline Fixes)"
     echo "  --phase 4     Run Phase 4 gate (Docs & Polish)"
     echo "  --phase 5     Run Phase 5 gate (Bundler & Tooling)"
+    echo "  --phase 6     Run Phase 6 gate (Jules CLI & Bootstrapping)"
     echo "  --phase all   Run all gates sequentially"
     exit 1
 }
@@ -231,7 +265,7 @@ echo -e "${BOLD}agv-easy-install — Phase Gate Runner${RESET}"
 echo -e "Working directory: ${REPO_DIR}"
 
 if [ "$PHASE" = "all" ]; then
-    for p in 0 1 2 3 4 5; do
+    for p in 0 1 2 3 4 5 6; do
         gate_"$p"
     done
 else

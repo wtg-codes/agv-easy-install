@@ -1,6 +1,6 @@
 # TODO — AGV Easy Install
 
-> **Last updated:** 2026-05-20 · Branch: `feature/multi-product-support`
+> **Last updated:** 2026-05-20 · Branch: `feature/jules-and-bootstrapping`
 > This file is the single source of truth for all pending work.
 > It MUST be updated at the end of every coding session.
 
@@ -61,7 +61,7 @@
 - [x] Package architecture specifications (`package-antigravity-*.md`) for IDE, CLI, and SDK
 
 ### Testing
-- [x] 66-gate test suite across 6 phases
+- [x] 77-gate test suite across 7 phases
 - [x] Phase 0: Documentation bootstrap
 - [x] Phase 1: Scaffolding & hygiene
 - [x] Phase 2: Shell hardening + Homebrew
@@ -163,7 +163,8 @@
 - [x] **Antigravity CLI Support (`agy`)**: Add helper functions and UI/headless flags to install/uninstall the new command-line helper tool.
 - [x] **Gemini CLI Support**: Rebranded and transitioned to Antigravity CLI (`agy`) as per developers blog post.
 - [x] **Multi-Product Re-Imagining**: Offer Google Antigravity IDE, CLI, and SDK in the install helper with version checking and custom version choosing.
-- [ ] **Jules-cli Support**: Add installer support for the Jules-cli developer tool.
+- [x] **Jules-cli Support**: Add installer support for the Jules-cli developer tool.
+- [x] **Dependency Bootstrapping**: Automated Homebrew and Node.js/NPM bootstrapping for zero-dependency execution.
 - [ ] Localization / i18n (stretch goal)
 
 ---
@@ -173,5 +174,5 @@
 - [x] Review and update screenshots when menu text changes — verified all menu text matches between `src/40_ui.sh` and `docs/images/render.html`
 - [x] Keep landing page screenshots in sync with `render.html` — landing page (`docs/index.html`) references `main_menu.png`, `install_submenu.png`, `cleanup_submenu.png`; README references all 4 PNGs
 - [x] Regenerate screenshots: ran `python3 docs/images/capture.py` — 4 PNGs updated
-- [x] Gate count in implementation plan — verified: 66 gates across 6 phases
+- [x] Gate count in implementation plan — verified: 77 gates across 7 phases
 - [x] Architecture Documentation Deep-Dive — researched and enhanced all 10 platform and install architecture documents with tool skills and background logic.

@@ -18,11 +18,12 @@ C_DIM='\033[2m'
 C_RESET='\033[0m'
 
 # Configuration
-SCRIPT_VERSION="0.2.14"
+SCRIPT_VERSION="0.2.15"
 DEFAULT_VIBE_VERSION="2.0.0"
 DEFAULT_IDE_VERSION="1.23.2"
 DEFAULT_CLI_VERSION="1.0.0"
 DEFAULT_SDK_VERSION="0.1.0"
+DEFAULT_JULES_VERSION="latest"
 VERSIONS_JSON_URL="https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/versions.json"
 
 LINUX_X64_SHA256="5232a4048ff4fa15685d9a981ba4fba573e297f3efc9b76f638e794baf775725"
@@ -605,12 +606,7 @@ BANNER_EOF
 install_brew() {
     JSON_METHOD="brew"
     log_info "${C_MAG}🚀 Installing Antigravity via Homebrew...${C_RESET}"
-    if ! check_brew; then
-        log_error "Homebrew is not installed."
-        log_warn "Falling back to official Binary installation..."
-        do_install_binary
-        return
-    fi
+    ensure_brew
     
     if [ "$PLATFORM" = "Darwin" ]; then
         if ! run_cmd_ui "Brewing Antigravity..." brew install --cask antigravity; then
@@ -1067,7 +1063,10 @@ do_remove() {
     log_info "${C_RED}🧹 Removing Google Antigravity...${C_RESET}"
     
     # Remove CLI and other shared files
-    rm -f "$BIN_DIR/agy"
+    rm -f "$BIN_DIR/agy" "$BIN_DIR/jules"
+    if command -v npm >/dev/null 2>&1; then
+        npm uninstall -g @google/jules >/dev/null 2>&1 || sudo npm uninstall -g @google/jules >/dev/null 2>&1 || true
+    fi
 
     # Remove Vibe (Binary/Tarball)
     rm -rf "$APP_DIR" "$BIN_DIR/antigravity" "$DESKTOP_FILE_SYS" "$DESKTOP_FILE_USER"
@@ -1314,6 +1313,241 @@ install_sdk() {
     log_info "${C_GREEN}✅ Antigravity SDK installation complete!${C_RESET}"
 }
 
+ensure_brew() {
+    if check_brew; then
+        return 0
+    fi
+    
+    log_warn "Homebrew is required but not installed."
+    local install_now=true
+    if [ "$AUTO" -eq 0 ] && command -v gum >/dev/null 2>&1; then
+        if ! gum confirm "Would you like the installer to set up Homebrew now?"; then
+            install_now=false
+        fi
+    elif [ "$AUTO" -eq 0 ]; then
+        read -r -p "Would you like the installer to set up Homebrew now? [Y/n]: " choice < /dev/tty
+        case "$choice" in
+            [nN]*) install_now=false ;;
+        esac
+    fi
+    
+    if [ "$install_now" = false ]; then
+        log_error "Homebrew installation declined. Cannot proceed with Homebrew installation."
+        exit 1
+    fi
+    
+    log_info "${C_BLUE}⬇️  Installing Homebrew...${C_RESET}"
+    if ! /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+        log_error "Homebrew installation failed."
+        exit 1
+    fi
+    
+    # Try to load brew into current session
+    local brew_path=""
+    if [ -f "/opt/homebrew/bin/brew" ]; then
+        brew_path="/opt/homebrew/bin/brew"
+    elif [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+        brew_path="/home/linuxbrew/.linuxbrew/bin/brew"
+    elif [ -f "/usr/local/bin/brew" ]; then
+        brew_path="/usr/local/bin/brew"
+    fi
+    
+    if [ -n "$brew_path" ]; then
+        eval "$("$brew_path" shellenv)"
+        
+        # Also write to profile
+        local profile_file=""
+        if [ "$PLATFORM" = "Darwin" ]; then
+            profile_file="$HOME/.zprofile"
+        else
+            profile_file="$HOME/.bashrc"
+        fi
+        
+        if [ -f "$profile_file" ] && ! grep -q "shellenv" "$profile_file"; then
+            log_info "Adding Homebrew configuration to $profile_file..."
+            echo "eval \"\$($brew_path shellenv)\"" >> "$profile_file"
+        fi
+    fi
+    
+    if ! check_brew; then
+        log_error "Homebrew was installed but is still not found in PATH."
+        exit 1
+    fi
+    
+    log_info "${C_GREEN}✅ Homebrew installed and configured successfully!${C_RESET}"
+}
+
+ensure_node() {
+    if command -v npm >/dev/null 2>&1; then
+        return 0
+    fi
+    
+    log_warn "Node.js & NPM are required to install Jules CLI."
+    local install_now=true
+    if [ "$AUTO" -eq 0 ] && command -v gum >/dev/null 2>&1; then
+        if ! gum confirm "Would you like the installer to set up Node.js and NPM now?"; then
+            install_now=false
+        fi
+    elif [ "$AUTO" -eq 0 ]; then
+        read -r -p "Would you like the installer to set up Node.js and NPM now? [Y/n]: " choice < /dev/tty
+        case "$choice" in
+            [nN]*) install_now=false ;;
+        esac
+    fi
+    
+    if [ "$install_now" = false ]; then
+        log_error "Node.js installation declined. Cannot proceed with Jules CLI installation."
+        exit 1
+    fi
+    
+    # Try using brew if available
+    if check_brew; then
+        log_info "${C_BLUE}📦 Installing Node.js via Homebrew...${C_RESET}"
+        if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
+            run_cmd brew install node
+        else
+            brew install node
+        fi
+        if command -v npm >/dev/null 2>&1; then
+            log_info "${C_GREEN}✅ Node.js and NPM installed successfully via Homebrew!${C_RESET}"
+            return 0
+        fi
+    fi
+    
+    # Standalone binary fallback install
+    log_info "${C_BLUE}⬇️  Setting up standalone Node.js and NPM in user space...${C_RESET}"
+    
+    local node_url=""
+    local node_dir_name=""
+    
+    case "$PLATFORM" in
+        Darwin)
+            if [ "$ARCH" = "arm64" ]; then
+                node_url="https://nodejs.org/dist/v20.11.1/node-v20.11.1-darwin-arm64.tar.gz"
+                node_dir_name="node-v20.11.1-darwin-arm64"
+            else
+                node_url="https://nodejs.org/dist/v20.11.1/node-v20.11.1-darwin-x64.tar.gz"
+                node_dir_name="node-v20.11.1-darwin-x64"
+            fi
+            ;;
+        Linux)
+            if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+                node_url="https://nodejs.org/dist/v20.11.1/node-v20.11.1-linux-arm64.tar.xz"
+                node_dir_name="node-v20.11.1-linux-arm64"
+            else
+                node_url="https://nodejs.org/dist/v20.11.1/node-v20.11.1-linux-x64.tar.xz"
+                node_dir_name="node-v20.11.1-linux-x64"
+            fi
+            ;;
+        *)
+            log_error "Unsupported platform for standalone Node.js installation."
+            exit 1
+            ;;
+    esac
+    
+    local node_lib_dir="$HOME/.local/lib/node"
+    mkdir -p "$node_lib_dir" "$BIN_DIR"
+    
+    local dl_temp
+    dl_temp=$(mktemp -d)
+    local archive_ext="tar.gz"
+    case "$node_url" in
+        *.tar.xz) archive_ext="tar.xz" ;;
+    esac
+    
+    local dl_target="$dl_temp/node.$archive_ext"
+    
+    if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
+        run_cmd curl -fSL "$node_url" -o "$dl_target"
+    else
+        curl -fSL --progress-bar "$node_url" -o "$dl_target"
+    fi
+    
+    log_info "${C_CYAN}📁 Extracting Node.js...${C_RESET}"
+    tar -xf "$dl_target" -C "$dl_temp"
+    
+    # Copy files to permanent location
+    rm -rf "$node_lib_dir"
+    mv "$dl_temp/$node_dir_name" "$node_lib_dir"
+    rm -rf "$dl_temp"
+    
+    # Symlink binaries to $BIN_DIR
+    ln -sf "$node_lib_dir/bin/node" "$BIN_DIR/node"
+    ln -sf "$node_lib_dir/bin/npm" "$BIN_DIR/npm"
+    ln -sf "$node_lib_dir/bin/npx" "$BIN_DIR/npx"
+    
+    # Ensure BIN_DIR is in PATH for current execution
+    export PATH="$BIN_DIR:$PATH"
+    
+    # Force profile config reload for the user
+    # Add to shell configuration profile
+    local profile_file=""
+    if [ "$PLATFORM" = "Darwin" ]; then
+        profile_file="$HOME/.zprofile"
+    else
+        profile_file="$HOME/.bashrc"
+    fi
+    
+    if [ -f "$profile_file" ] && ! grep -q "$BIN_DIR" "$profile_file"; then
+        log_info "Adding $BIN_DIR to PATH in $profile_file..."
+        echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$profile_file"
+    fi
+    
+    if ! command -v npm >/dev/null 2>&1; then
+        log_error "Node.js was installed but npm is still not found in PATH."
+        exit 1
+    fi
+    
+    log_info "${C_GREEN}✅ Standalone Node.js and NPM setup complete!${C_RESET}"
+}
+
+install_jules() {
+    local target_version="${1:-$DEFAULT_JULES_VERSION}"
+    JSON_METHOD="jules"
+    log_info "${C_MAG}🚀 Installing Google Jules CLI...${C_RESET}"
+    
+    ensure_node
+    
+    local pkg="@google/jules"
+    if [ -n "$target_version" ] && [ "$target_version" != "latest" ]; then
+        pkg="@google/jules@$target_version"
+    fi
+    
+    log_info "${C_BLUE}📦 Installing package '$pkg' via npm...${C_RESET}"
+    
+    local install_ok=false
+    if [ "$JSON_OUT" -eq 1 ] || [ "$QUIET" -eq 1 ]; then
+        if run_cmd npm install -g "$pkg" 2>/dev/null; then
+            install_ok=true
+        elif command -v sudo >/dev/null 2>&1 && run_cmd sudo npm install -g "$pkg"; then
+            install_ok=true
+        fi
+    else
+        if npm install -g "$pkg"; then
+            install_ok=true
+        elif command -v sudo >/dev/null 2>&1; then
+            log_warn "Permission denied. Retrying with sudo..."
+            if sudo npm install -g "$pkg"; then
+                install_ok=true
+            fi
+        fi
+    fi
+    
+    if [ "$install_ok" = false ]; then
+        log_error "Failed to install Google Jules CLI package."
+        exit 1
+    fi
+    
+    # If we installed to a local or custom path, link it to BIN_DIR
+    local npm_prefix
+    npm_prefix=$(npm config get prefix 2>/dev/null || echo "")
+    if [ -n "$npm_prefix" ] && [ -f "$npm_prefix/bin/jules" ]; then
+        ln -sf "$npm_prefix/bin/jules" "$BIN_DIR/jules"
+    fi
+    
+    log_info "${C_GREEN}✅ Google Jules CLI installation complete!${C_RESET}"
+}
+
 # ── Top-level menu header (full banner + system info) ────────────
 get_menu_header() {
     print_banner "${UI_MODE:-}"
@@ -1401,18 +1635,20 @@ fast_track_setup() {
         cheader=$(get_compact_header "Select tools to install (space to toggle)")
         local selected
         selected=$(gum choose --no-limit --header="$cheader" \
-            --selected="Antigravity Vibe Code UI,Antigravity IDE,Antigravity CLI (agy)" \
+            --selected="Antigravity Vibe Code UI,Antigravity IDE,Antigravity CLI (agy),Google Jules CLI" \
             "Antigravity Vibe Code UI" \
             "Antigravity IDE" \
             "Antigravity CLI (agy)" \
+            "Google Jules CLI" \
             "Antigravity SDK (Python)") || selected=""
     else
         echo "Select tools to install (comma-separated, e.g. 1,2):"
         echo "1) Antigravity Vibe Code UI"
         echo "2) Antigravity IDE"
         echo "3) Antigravity CLI (agy)"
-        echo "4) Antigravity SDK (Python)"
-        read -r -p "Choice [1,2,3]: " nums < /dev/tty
+        echo "4) Google Jules CLI"
+        echo "5) Antigravity SDK (Python)"
+        read -r -p "Choice [1,2,3,4]: " nums < /dev/tty
         local selected=""
         case "$nums" in
             *1*) selected="Antigravity Vibe Code UI" ;;
@@ -1424,7 +1660,10 @@ fast_track_setup() {
             *3*) selected="${selected:+$selected\n}Antigravity CLI" ;;
         esac
         case "$nums" in
-            *4*) selected="${selected:+$selected\n}Antigravity SDK" ;;
+            *4*) selected="${selected:+$selected\n}Google Jules CLI" ;;
+        esac
+        case "$nums" in
+            *5*) selected="${selected:+$selected\n}Antigravity SDK" ;;
         esac
     fi
 
@@ -1437,6 +1676,7 @@ fast_track_setup() {
     if echo "$selected" | grep -q "Vibe"; then FAST_TRACK_PRODUCTS="vibe"; fi
     if echo "$selected" | grep -q "IDE"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }ide"; fi
     if echo "$selected" | grep -q "CLI"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }cli"; fi
+    if echo "$selected" | grep -q "Jules"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }jules"; fi
     if echo "$selected" | grep -q "SDK"; then FAST_TRACK_PRODUCTS="${FAST_TRACK_PRODUCTS:+$FAST_TRACK_PRODUCTS }sdk"; fi
 
     # ── Step B: IDE install method (if IDE selected) ──
@@ -1537,6 +1777,7 @@ install_submenu() {
         "Antigravity Vibe Code UI  →"
         "Antigravity IDE  →"
         "Antigravity CLI (agy)  →"
+        "Google Jules CLI (npm)  →"
         "Antigravity SDK (Python)  →"
     )
 
@@ -1548,13 +1789,14 @@ install_submenu() {
         clear || true
         echo "Select a tool to install:"
         for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
-        read -r -p "Select tool [1-5]: " num < /dev/tty
+        read -r -p "Select tool [1-6]: " num < /dev/tty
         case "$num" in
             1) CHOICE="Back" ;;
             2) CHOICE="Antigravity Vibe Code UI" ;;
             3) CHOICE="Antigravity IDE" ;;
             4) CHOICE="Antigravity CLI" ;;
-            5) CHOICE="Antigravity SDK" ;;
+            5) CHOICE="Google Jules CLI" ;;
+            6) CHOICE="Antigravity SDK" ;;
             *) CHOICE="Back" ;;
         esac
     fi
@@ -1564,6 +1806,7 @@ install_submenu() {
         *"Vibe"*) choice="vibe_menu" ;;
         *"IDE"*) choice="ide_menu" ;;
         *"CLI"*) choice="cli_menu" ;;
+        *"Jules"*) choice="jules_menu" ;;
         *"SDK"*) choice="sdk_menu" ;;
         *) choice="back" ;;
     esac
@@ -1984,6 +2227,38 @@ choose_sdk_version() {
     esac
 }
 
+choose_jules_version() {
+    clear || true
+    local options=(
+        "Back"
+        "latest (Latest / Default)"
+    )
+    if command -v gum >/dev/null 2>&1; then
+        local cheader
+        cheader=$(get_compact_header "Select Jules CLI version")
+        CHOICE=$(gum choose --header="$cheader" "${options[@]}") || CHOICE="Back"
+    else
+        clear || true
+        echo "Select Jules CLI version:"
+        for i in "${!options[@]}"; do echo "$((i+1))) ${options[$i]}"; done
+        read -r -p "Select option [1-2]: " num < /dev/tty
+        case "$num" in
+            1) CHOICE="Back" ;;
+            2) CHOICE="latest" ;;
+            *) CHOICE="Back" ;;
+        esac
+    fi
+    
+    case "$CHOICE" in
+        "Back"*) choice="back" ;;
+        *)
+            local selected_ver
+            selected_ver=$(echo "$CHOICE" | awk '{print $1}')
+            choice="jules:$selected_ver"
+            ;;
+    esac
+}
+
 # ── Mock actions for sandbox mode ───────────────────────────────
 run_mock_action() {
     local action="$1"
@@ -2003,6 +2278,9 @@ run_mock_action() {
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then
                 run_cmd_ui "Installing Antigravity CLI (v${DEFAULT_CLI_VERSION})..." sleep 1
             fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then
+                run_cmd_ui "Installing Google Jules CLI (latest) via npm..." sleep 1
+            fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then
                 run_cmd_ui "Installing Antigravity SDK (v${DEFAULT_SDK_VERSION}) via pip..." sleep 1
             fi
@@ -2019,6 +2297,7 @@ run_mock_action() {
                 fi
             fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
+            if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then done_msg="${done_msg}\nJules CLI: latest installed"; fi
             if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
             done_msg="${done_msg}\nLaunch: ${mock_bin_name}"
             if command -v gum >/dev/null 2>&1; then
@@ -2027,7 +2306,7 @@ run_mock_action() {
                 log_info "${C_GREEN}${C_BOLD}${done_msg}${C_RESET}"
             fi
             ;;
-        vibe*|brew|repo|binary*|cli*|sdk*)
+        vibe*|brew|repo|binary*|cli*|sdk*|jules*)
             local method="Homebrew"
             local product="Google Antigravity IDE"
             local version=""
@@ -2048,6 +2327,9 @@ run_mock_action() {
             elif [[ "$action" == "cli"* ]]; then
                 method="Antigravity CLI"
                 product="Antigravity CLI (agy)"
+            elif [[ "$action" == "jules"* ]]; then
+                method="Google Jules CLI"
+                product="Google Jules CLI (NPM)"
             elif [[ "$action" == "sdk"* ]]; then
                 method="Antigravity SDK"
                 product="Antigravity SDK (Python)"
@@ -2072,6 +2354,15 @@ run_mock_action() {
                 echo ""
                 log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"
                 log_info "  ${C_CYAN}▸${C_RESET} Verify:    ${C_BOLD}python3 -c \"import google_antigravity\"${C_RESET}"
+                return
+            fi
+
+            if [[ "$action" == "jules"* ]]; then
+                run_cmd_ui "Connecting to NPM registry..." sleep 1
+                run_cmd_ui "Installing package '@google/jules'..." sleep 1.5
+                echo ""
+                log_info "${C_GREEN}${C_BOLD}🎉 Mock Installation Complete!${C_RESET}"
+                log_info "  ${C_CYAN}▸${C_RESET} Verify:    ${C_BOLD}jules --help${C_RESET}"
                 return
             fi
 
@@ -2188,6 +2479,11 @@ do_health_check() {
         echo -e "  ${C_GREEN}✅ Antigravity Python SDK found in Python environment${C_RESET}"
     fi
 
+    # 7. Google Jules CLI (Optional)
+    if command -v jules >/dev/null 2>&1; then
+        echo -e "  ${C_GREEN}✅ Google Jules CLI found in PATH ($(command -v jules))${C_RESET}"
+    fi
+
     echo ""
     if [ "$failed" -eq 0 ]; then
         log_info "${C_GREEN}${C_BOLD}🎉 Health check passed! Your installation is healthy.${C_RESET}"
@@ -2204,8 +2500,9 @@ print_usage() {
     echo "  --install-repo    Headless System Repo install"
     echo "  --install-binary  Headless Official Binary install"
     echo "  --install-cli     Headless Antigravity CLI install"
+    echo "  --install-jules   Headless Google Jules CLI install"
     echo "  --install-sdk     Headless Antigravity Python SDK install"
-    echo "  --fast-track      Headless lab setup (IDE + CLI)"
+    echo "  --fast-track      Headless lab setup (IDE + CLI + Jules)"
     echo "  --remove          Uninstall Antigravity"
     echo "  --demo-ui         Test and view the UI layout without modifying the system"
     echo "  --json            Output machine-readable JSON at end (disables prompts)"
@@ -2228,6 +2525,7 @@ for arg in "$@"; do
         --install-repo) ACTION="repo"; AUTO=1 ;;
         --install-binary) ACTION="binary"; AUTO=1 ;;
         --install-cli) ACTION="cli"; AUTO=1 ;;
+        --install-jules) ACTION="jules"; AUTO=1 ;;
         --install-sdk) ACTION="sdk"; AUTO=1 ;;
         --fast-track) ACTION="fast_track"; AUTO=1 ;;
         --remove) ACTION="remove" ;;
@@ -2319,6 +2617,7 @@ do_fast_track_install() {
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "vibe"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "ide"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then total=$((total+1)); fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then total=$((total+1)); fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then total=$((total+1)); fi
 
     log_info "${C_MAG}🎓 Starting setup — installing ${total} tool(s)...${C_RESET}"
@@ -2352,6 +2651,14 @@ do_fast_track_install() {
         echo ""
     fi
 
+    # Install Jules (if selected)
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then
+        step=$((step+1))
+        log_info "${C_BOLD}Step ${step}/${total}: Installing Google Jules CLI...${C_RESET}"
+        install_jules
+        echo ""
+    fi
+
     # Install SDK (if selected)
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then
         step=$((step+1))
@@ -2375,6 +2682,7 @@ do_fast_track_install() {
         fi
     fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "cli"; then done_msg="${done_msg}\nCLI:  v${DEFAULT_CLI_VERSION} installed"; fi
+    if echo "$FAST_TRACK_PRODUCTS" | grep -q "jules"; then done_msg="${done_msg}\nJules CLI: latest installed"; fi
     if echo "$FAST_TRACK_PRODUCTS" | grep -q "sdk"; then done_msg="${done_msg}\nSDK:  v${DEFAULT_SDK_VERSION} installed"; fi
     done_msg="${done_msg}\nLaunch: ${mock_bin_name}"
 
@@ -2449,6 +2757,13 @@ start_sandbox_mode() {
                         done
                     elif [ "$choice" = "cli_menu" ]; then
                         choose_cli_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
+                    elif [ "$choice" = "jules_menu" ]; then
+                        choose_jules_version
                         if [ "$choice" = "back" ]; then
                             choice="back"
                             continue
@@ -2539,6 +2854,13 @@ run_interactive() {
                             continue
                         fi
                         in_install=false
+                    elif [ "$choice" = "jules_menu" ]; then
+                        choose_jules_version
+                        if [ "$choice" = "back" ]; then
+                            choice="back"
+                            continue
+                        fi
+                        in_install=false
                     elif [ "$choice" = "sdk_menu" ]; then
                         choose_sdk_version
                         if [ "$choice" = "back" ]; then
@@ -2565,6 +2887,15 @@ run_interactive() {
                         selected_version=$(echo "$choice" | cut -d':' -f2)
                         FAST_TRACK_PRODUCTS="cli"
                         install_cli "$selected_version"
+                        save_manager_locally
+                        post_install_menu
+                        break
+                        ;;
+                    jules:*)
+                        local selected_version
+                        selected_version=$(echo "$choice" | cut -d':' -f2)
+                        FAST_TRACK_PRODUCTS="jules"
+                        install_jules "$selected_version"
                         save_manager_locally
                         post_install_menu
                         break
@@ -2604,13 +2935,14 @@ case "$ACTION" in
         else do_install_binary "vibe"; save_manager_locally
         fi ;;
     fast_track)
-        FAST_TRACK_PRODUCTS="vibe ide cli"
+        FAST_TRACK_PRODUCTS="vibe ide cli jules"
         case "$RECOMMENDED" in 1) FAST_TRACK_METHOD="brew" ;; 2) FAST_TRACK_METHOD="repo" ;; *) FAST_TRACK_METHOD="binary" ;; esac
         do_fast_track_install ;;
     brew) install_brew; save_manager_locally ;;
     repo) install_repo; save_manager_locally ;;
     binary) do_install_binary "vibe"; save_manager_locally ;;
     cli) install_cli; save_manager_locally ;;
+    jules) install_jules; save_manager_locally ;;
     sdk) install_sdk; save_manager_locally ;;
     check) do_health_check ;;
     demo_ui) start_sandbox_mode ;;
