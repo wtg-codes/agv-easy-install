@@ -49,6 +49,32 @@ inject_path() {
     fi
 }
 
+find_chrome_binary() {
+    # 1. Prioritize raw Flatpak binaries (required to bypass sandbox)
+    local flatpak_sys="/var/lib/flatpak/app/com.google.Chrome/current/active/files/extra/chrome"
+    local flatpak_user="$HOME/.local/share/flatpak/app/com.google.Chrome/current/active/files/extra/chrome"
+
+    if [[ -x "$flatpak_sys" ]]; then
+        echo "$flatpak_sys"
+    elif [[ -x "$flatpak_user" ]]; then
+        echo "$flatpak_user"
+    else
+        # 2. Fallback to standard system package binaries
+        if [ "$PLATFORM" = "Darwin" ] && [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
+            echo "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        elif [ "$PLATFORM" = "Crostini" ] && command -v garcon-url-handler >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
+            echo ""
+        else
+            for cmd in google-chrome-stable google-chrome chromium chromium-browser; do
+                if command -v "$cmd" >/dev/null 2>&1; then
+                    command -v "$cmd"
+                    return 0
+                fi
+            done
+        fi
+    fi
+}
+
 configure_chrome_path() {
     local SETTINGS_DIR="$HOME/.config/Antigravity/User"
     if [ "$PLATFORM" = "Darwin" ]; then
@@ -58,35 +84,9 @@ configure_chrome_path() {
     local chrome_path=""
 
     log_info "${C_CYAN}🔍 Locating Chrome binary for Antigravity...${C_RESET}"
-
-    # 1. Prioritize raw Flatpak binaries (required to bypass sandbox)
-    local flatpak_sys="/var/lib/flatpak/app/com.google.Chrome/current/active/files/extra/chrome"
-    local flatpak_user="$HOME/.local/share/flatpak/app/com.google.Chrome/current/active/files/extra/chrome"
-
-    if [[ -x "$flatpak_sys" ]]; then
-        chrome_path="$flatpak_sys"
-        log_info "  Found system-wide Flatpak Chrome: $chrome_path"
-    elif [[ -x "$flatpak_user" ]]; then
-        chrome_path="$flatpak_user"
-        log_info "  Found user-level Flatpak Chrome: $chrome_path"
-    else
-        # 2. Fallback to standard system package binaries
-        if [ "$PLATFORM" = "Darwin" ] && [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
-            chrome_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-            log_info "  Found macOS Chrome: $chrome_path"
-        elif [ "$PLATFORM" = "Crostini" ] && command -v garcon-url-handler >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
-            log_warn "Crostini detected, but no Linux browser is installed."
-            log_info "Antigravity requires a native Linux browser to run automations."
-            log_info "Please run: ${C_BOLD}sudo apt install chromium${C_RESET}"
-        else
-            for cmd in google-chrome-stable google-chrome chromium chromium-browser; do
-                if command -v "$cmd" >/dev/null 2>&1; then
-                    chrome_path=$(command -v "$cmd")
-                    log_info "  Found standard system Chrome: $chrome_path"
-                    break
-                fi
-            done
-        fi
+    chrome_path=$(find_chrome_binary)
+    if [[ -n "$chrome_path" ]]; then
+        log_info "  Located Chrome binary: $chrome_path"
     fi
 
     if [[ -n "$chrome_path" ]]; then

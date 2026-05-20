@@ -31,6 +31,8 @@ do_health_check() {
     fi
 
     # 2. Chrome/Chromium installation
+    local chrome_path
+    chrome_path=$(find_chrome_binary)
     if [ -n "$chrome_path" ] && [ -x "$chrome_path" ]; then
         check_status "Chrome/Chromium found ($chrome_path)" "true"
     else
