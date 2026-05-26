@@ -1,16 +1,26 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20(beta)%20%7C%20WSL%20(beta)%20%7C%20ChromeOS%20(beta)-blue?style=flat-square" alt="Platform">
-  <a href="https://github.com/wtg-codes/agv-easy-install/actions/workflows/nightly-update.yml"><img src="https://img.shields.io/github/actions/workflow/status/wtg-codes/agv-easy-install/nightly-update.yml?label=nightly%20sync&style=flat-square" alt="Nightly Sync"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"></a>
+  <a href="https://github.com/wtg-codes/agv-easy-install/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/wtg-codes/agv-easy-install/ci.yml?branch=main&label=CI%2FCD&style=flat-square" alt="CI/CD Status">
+  </a>
+  <a href="https://github.com/wtg-codes/agv-easy-install/actions/workflows/nightly-update.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/wtg-codes/agv-easy-install/nightly-update.yml?label=Nightly%20Sync&style=flat-square" alt="Nightly Sync Status">
+  </a>
+  <a href="https://github.com/wtg-codes/agv-easy-install/actions/workflows/deploy-pages.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/wtg-codes/agv-easy-install/deploy-pages.yml?label=Docs%20Build&style=flat-square" alt="GitHub Pages Status">
+  </a>
+  <img src="https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20WSL2%20%7C%20ChromeOS-blue?style=flat-square" alt="Supported Platforms">
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-emerald?style=flat-square" alt="MIT License">
+  </a>
 </p>
 
-# 🚀 AGV Easy Install
+# 🚀 AGY Easy Install
 
 > **Unofficial Google Antigravity setup by [wtg-codes](https://github.com/wtg-codes).**
 > One command. Any shell. We get you coding.
 
 <p align="center">
-  <img src="docs/images/main_menu.png" alt="AGV Easy Install — Main Menu" width="680">
+  <img src="docs/images/main_menu.png" alt="AGY Easy Install — Main Menu" width="680">
 </p>
 
 ---
@@ -38,8 +48,9 @@ curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agv-easy-install/main/an
 bash antigravity-manager.sh --install-brew
 bash antigravity-manager.sh --install-repo
 bash antigravity-manager.sh --install-binary
-bash antigravity-manager.sh --install-cli    # Headless Antigravity CLI install
-bash antigravity-manager.sh --install-sdk    # Headless Antigravity Python SDK install
+bash antigravity-manager.sh --install-cli      # Headless Antigravity CLI install
+bash antigravity-manager.sh --install-sdk      # Headless Antigravity Python SDK install
+bash antigravity-manager.sh --install-sandbox  # Headless agy-box sandbox container install
 
 # Additional options
 bash antigravity-manager.sh --verbose  # Print detailed logs
@@ -82,11 +93,12 @@ The installer uses a hierarchical menu system — pick a category, then choose y
 ## 🏗️ Architecture
 
 ```mermaid
-graph LR
+graph TD
     A["🖥️ User Terminal"] -->|"curl \| bash"| B("antigravity-manager.sh")
-    B -->|"Option 1"| C["🍺 Homebrew"]
-    B -->|"Option 2"| D["📦 APT / DNF"]
+    B -->|"Option 1"| C["🍺 Homebrew (User space)"]
+    B -->|"Option 2"| D["📦 APT / DNF (System space)"]
     B -->|"Option 3"| E["📁 Official Binary (.tar.gz, .dmg, .exe)"]
+    B -->|"Option 4"| F["📦 Container Sandbox (agy-box via Distrobox)"]
 ```
 
 The installer detects your OS and package manager, then recommends the best method automatically.
@@ -138,6 +150,7 @@ Having issues? Curious how the installer works under the hood or what's on the r
 - **[Homebrew Install Details](docs/architecture/install-homebrew.md)**
 - **[System Repo Install Details](docs/architecture/install-repo.md)**
 - **[Official Binary Install Details](docs/architecture/install-tarball.md)**
+- **[Container Sandbox (agy-box) Integration](docs/architecture/agy_box_integration_plan.md)**
 
 If `curl` fails, ensure you have an active internet connection. If the `gum` UI fails to download, the script gracefully falls back to a plain text menu.
 
