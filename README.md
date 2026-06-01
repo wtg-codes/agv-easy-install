@@ -1,3 +1,18 @@
+> [!CAUTION]
+> ## ⚠️ THIS REPO HAS MOVED
+>
+> **This repository has been renamed and relocated to
+> [`agy-easy-install`](https://github.com/wtg-codes/agy-easy-install).**
+>
+> - 🆕 **New repo**: [github.com/wtg-codes/agy-easy-install](https://github.com/wtg-codes/agy-easy-install)
+> - 📖 **New docs**: [wtg-codes.github.io/agy-easy-install](https://wtg-codes.github.io/agy-easy-install/)
+> - 📦 **New install command**:
+>   ```
+>   curl -fSsL "https://raw.githubusercontent.com/wtg-codes/agy-easy-install/main/antigravity-manager.sh" | bash
+>   ```
+>
+> This repository is **archived** and will no longer receive updates.
+
 <p align="center">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20(beta)%20%7C%20WSL%20(beta)%20%7C%20ChromeOS%20(beta)-blue?style=flat-square" alt="Platform">
   <a href="https://github.com/wtg-codes/agv-easy-install/actions/workflows/nightly-update.yml"><img src="https://img.shields.io/github/actions/workflow/status/wtg-codes/agv-easy-install/nightly-update.yml?label=nightly%20sync&style=flat-square" alt="Nightly Sync"></a>

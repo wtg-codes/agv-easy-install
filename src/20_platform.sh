@@ -365,6 +365,8 @@ print_banner() {
 BANNER_EOF
     echo -e "      ${C_BOLD}AGV Easy Install v${SCRIPT_VERSION}${C_RESET} ${mode}"
     echo -e "      ${C_DIM}github.com/wtg-codes/agv-easy-install${C_RESET}"
+    echo -e "      ${C_RED}${C_BOLD}⚠️  This script URL is deprecated! Update your bookmark:${C_RESET}"
+    echo -e "      ${C_YELLOW}github.com/wtg-codes/agy-easy-install${C_RESET}"
     echo -e "      ${C_DIM}──────────────────────────────────────────────────${C_RESET}"
 }
 
