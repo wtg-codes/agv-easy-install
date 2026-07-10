@@ -22,7 +22,7 @@ SCRIPT_VERSION="0.2.15"
 DEFAULT_AGV_VERSION="2.0.0"
 DEFAULT_IDE_VERSION="1.23.2"
 DEFAULT_CLI_VERSION="1.1.0"
-DEFAULT_SDK_VERSION="0.1.5"
+DEFAULT_SDK_VERSION="0.1.6"
 DEFAULT_JULES_VERSION="latest"
 VERSIONS_JSON_URL="https://raw.githubusercontent.com/wtg-codes/agy-easy-install/main/versions.json"
 
