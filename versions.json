@@ -114,6 +114,28 @@
     }
   },
   "cli": {
+    "1.1.2": {
+      "linux_amd64": {
+        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.2-5174998495789056/linux-x64/cli_linux_x64.tar.gz",
+        "sha512": "b7a1b606a61c97ccb1592a64d689ad0fd0ed4491592f3474adf6cf0e6193d23b390e1308f89a1dd4e78306aeab13fe08dcb1a4a24da3e4583c3bd6845d52c456"
+      },
+      "darwin_arm64": {
+        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.2-5174998495789056/darwin-arm/cli_mac_arm64.tar.gz",
+        "sha512": "231f10977aaf815e6de871535c99fc7a0296f8732f3f88ce55bcf57ecd27bbdccdf3a163400f6aa6c76a66d471d3e0c1f407ec60b5ac79b8eaa9db4123dedffd"
+      },
+      "darwin_amd64": {
+        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.2-5174998495789056/darwin-x64/cli_mac_x64.tar.gz",
+        "sha512": "6400534cb1322a3312089a2932f5aea11273271bb1fbfc377bf457d07f56e0bd41ac71012e7ff683fb65d6b3828052dabfa604459d192223997d7bf527c0f63c"
+      },
+      "windows_amd64": {
+        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.2-5174998495789056/windows-x64/cli_windows_x64.exe",
+        "sha512": "fcc090d1e06a16e7317fff7a33c27ce11a4aa30e26dec56b346e11af2f0ea6f73e0346881f757e34ca665b7dfeb158ac59e19006a5adcf7d3e860cf21f3663d5"
+      },
+      "windows_arm64": {
+        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.2-5174998495789056/windows-arm/cli_windows_arm64.exe",
+        "sha512": "036831f26e90ace2ceef2a67cbdcf23a3587f6bee4c302b81f79ede6334ccdbfd9658491995f20f37134d7b13b4e8c58e5240414fca7d92d305428bd54c886a7"
+      }
+    },
     "1.1.1": {
       "linux_amd64": {
         "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.1-6269367663591424/linux-x64/cli_linux_x64.tar.gz",
@@ -200,28 +222,6 @@
       "windows_arm64": {
         "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.15-5090589570629632/windows-arm/cli_windows_arm64.exe",
         "sha512": "9de28b582e879f56a84c1f2eee361cc8b89046818f216e479f836a498610d548042724b45b75add71a59b681a5cdfecf06513d655d2ce5e6b5f45cd783eab765"
-      }
-    },
-    "1.0.14": {
-      "linux_amd64": {
-        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/linux-x64/cli_linux_x64.tar.gz",
-        "sha512": "b950854e5e7ca88ed8595a472f4d655331275f9ddf2e9ebe3810f89c74c86d30e508cc08771ea42e0d112f65bf42f5680f4109e1aeedafc5d61f39d88ff66982"
-      },
-      "darwin_arm64": {
-        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/darwin-arm/cli_mac_arm64.tar.gz",
-        "sha512": "1415071b4e4f15c05e4fdb92542235c914295ab6e7f67bfc2691fad4b986b6c45fb06b5bcc2fde5f9429a89efcc246d1c444288491770a32f879c28595db7aff"
-      },
-      "darwin_amd64": {
-        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/darwin-x64/cli_mac_x64.tar.gz",
-        "sha512": "214668e2813c2846a7af90944fe9bcb0a43673f561768272bc04daf1961359a56b9c5732aca8428539700ac191aba9fc7378de5b54a065897cc32ab3d2a53fc5"
-      },
-      "windows_amd64": {
-        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/windows-x64/cli_windows_x64.exe",
-        "sha512": "9c59ca9e113e19b92bd998024683abf89deca67a1a327654148c974dcc12cf84536fb38b4eb2c69d9c1587dffc885aca5e0586fb93ee499babf142ee16bdbff9"
-      },
-      "windows_arm64": {
-        "url": "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/windows-arm/cli_windows_arm64.exe",
-        "sha512": "3e7f1c52128d003bf2287516097443337c1a501ecb7bb3baee834e65d20ade868c4ab7f0f5712c32013fc6d32c172088cd3e04eae5e6c3b1521e30e10562370c"
       }
     }
   },
